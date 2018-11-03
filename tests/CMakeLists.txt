@@ -1,6 +1,6 @@
 function(spear_define_test _name_)
     add_test(NAME ${_name_}
-        COMMAND ${RUNNER_COMMAND} ./${_name_}
+        COMMAND ${RUNNER_COMMAND} ${_name_}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
@@ -9,7 +9,7 @@ function(spear_define_test _name_)
         # (and any other DLL)
         STRING(REPLACE ";" "\\;" PATH_STRING "$ENV{PATH}")
         set_tests_properties(${_name_}
-            PROPERTIES ENVIRONMENT "PATH=${PATH_STRING}\;$<TARGET_FILE_DIR:spear>"
+            PROPERTIES ENVIRONMENT "PATH=${PATH_STRING}\;$<TARGET_FILE_DIR:spear>\;${CMAKE_BINARY_DIR}\\chemfiles\\bin"
         )
     endif()
 endfunction()

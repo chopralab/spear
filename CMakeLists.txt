@@ -103,6 +103,7 @@ set_property(TARGET spear PROPERTY SOVERSION ${SPEAR_VERSION_SHORT})
 target_link_libraries(spear
     Boost::filesystem
     Boost::graph
+    chemfiles
 )
 
 configure_file (
