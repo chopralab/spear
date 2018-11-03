@@ -10,9 +10,6 @@ namespace Spear {
 class SPEAR_EXPORT IDATM : public AtomType {
 public:
 
-    /// Returns "IDATM"
-    virtual std::string name() const override;
-
     /// algorithm based on E.C. Meng / R.A. Lewis paper
     /// "Determination of Molecular Topology and Atomic Hybridization
     /// States from Heavy Atom Coordinates", J. Comp. Chem., v12#7, 891-898
@@ -23,19 +20,9 @@ public:
     ///   Carbons in aromatic rings are type Car.  Aromatic oxygens are Oar.
     /// still missing types: C1-,O1+,O1
 
-    void type_atoms_3d(const Molecule& mol) override;
+    std::vector<size_t> type_atoms_3d(const Molecule& mol) override;
 
-    void type_atoms_order(const Molecule& mol) override;
-
-    /// Returns the human name for a given type id
-    /// Eg: C3, Npl, O2-, etc
-    std::string name(size_t id) const override;
-
-    size_t id(const std::string& name) const override;
-
-    std::unordered_set<size_t> unique_ids() const override;
-
-    const std::vector<size_t>& all_ids() const override;
+    std::vector<size_t> type_atoms_order(const Molecule& mol) override;
 
 private:
     /// infallible pass:  type hydrogens / deuteriums and compute number of
@@ -142,8 +129,13 @@ private:
 
     /// Have we typed the atom?
     std::vector<bool> mapped_;
-
 };
+
+template<> std::string atomtype_name<IDATM>();
+
+template<> std::string atomtype_name_for_id<IDATM>(size_t id);
+
+template<> size_t atomtype_id_for_name<IDATM>(std::string name);
 
 }
 

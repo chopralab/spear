@@ -7,32 +7,33 @@
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
+using namespace Spear;
+
+auto idatm_name = atomtype_name_for_id<IDATM>;
+auto idatm_type = atomtype_id_for_name<IDATM>;
+
 TEST_CASE("IDATM") {
     SECTION("Palmitic Acid") {
         auto traj = chemfiles::Trajectory("data/palmitic.sdf");
-        auto mol = Spear::Molecule(traj.read());
+        auto mol = Molecule(traj.read());
 
-        Spear::IDATM idatm;
-        idatm.type_atoms_3d(mol);
-
-        auto unique_types = idatm.unique_ids();
-        CHECK(unique_types.size() == 3);
-
-        auto alltypes = idatm.all_ids();
+        IDATM idatm;
+        auto alltypes = idatm.type_atoms_3d(mol);
         CHECK(alltypes.size() == mol.size());
 
-        CHECK(idatm.name(alltypes[16]) == "O2-");
-        CHECK(idatm.name(alltypes[17]) == "O2-");
-        CHECK(idatm.name(alltypes[15]) == "Cac");
+        auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
+        CHECK(unique_types.size() == 3);
+
+        CHECK(idatm_name(alltypes[16]) == "O2-");
+        CHECK(idatm_name(alltypes[17]) == "O2-");
+        CHECK(atomtype_name_for_id<IDATM>(alltypes[15]) == "Cac");
 
         // Check all but the last 3
         for (size_t i = 0; i < alltypes.size() - 3; ++i) {
-            CHECK(idatm.name(alltypes[i]) == "C3");
+            CHECK(atomtype_name_for_id<IDATM>(alltypes[i]) == "C3");
         }
 
-        Spear::IDATM idatm_bo;
-        idatm_bo.type_atoms_order(mol);
-        auto alltypes_2 = idatm_bo.all_ids();
+        auto alltypes_2 = idatm.type_atoms_order(mol);
         CHECK(alltypes == alltypes_2);
     }
 
@@ -41,22 +42,18 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         Spear::IDATM idatm;
-        idatm.type_atoms_3d(mol);
+		auto alltypes = idatm.type_atoms_3d(mol);
+		CHECK(alltypes.size() == mol.size());
 
-        auto unique_types = idatm.unique_ids();
+        auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
         CHECK(unique_types.size() == 5);
-        CHECK(unique_types.count(idatm.id("C3")) != 0);
-        CHECK(unique_types.count(idatm.id("C2")) != 0);
-        CHECK(unique_types.count(idatm.id("C1")) != 0);
-        CHECK(unique_types.count(idatm.id("O2")) != 0);
-        CHECK(unique_types.count(idatm.id("O3")) != 0);
+        CHECK(unique_types.count(idatm_type("C3")) != 0);
+        CHECK(unique_types.count(idatm_type("C2")) != 0);
+        CHECK(unique_types.count(idatm_type("C1")) != 0);
+        CHECK(unique_types.count(idatm_type("O2")) != 0);
+        CHECK(unique_types.count(idatm_type("O3")) != 0);
 
-        auto alltypes = idatm.all_ids();
-        CHECK(alltypes.size() == mol.size());
-
-        Spear::IDATM idatm_bo;
-        idatm_bo.type_atoms_order(mol);
-        auto alltypes_2 = idatm_bo.all_ids();
+        auto alltypes_2 = idatm.type_atoms_order(mol);
         CHECK(alltypes == alltypes_2);
     }
 
@@ -65,44 +62,40 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         Spear::IDATM idatm;
-        idatm.type_atoms_3d(mol);
+		auto alltypes = idatm.type_atoms_3d(mol);
+		CHECK(alltypes.size() == mol.size());
 
-        auto unique_types = idatm.unique_ids();
+        auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
         CHECK(unique_types.size() == 6);
-        CHECK(unique_types.count(idatm.id("C3")) != 0);
-        CHECK(unique_types.count(idatm.id("Car")) != 0);
-        CHECK(unique_types.count(idatm.id("N2")) != 0);
-        CHECK(unique_types.count(idatm.id("Npl")) != 0);
-        CHECK(unique_types.count(idatm.id("O3-")) != 0);
-        CHECK(unique_types.count(idatm.id("Son")) != 0);
-
-        auto alltypes = idatm.all_ids();
-        CHECK(alltypes.size() == mol.size());
+        CHECK(unique_types.count(idatm_type("C3")) != 0);
+        CHECK(unique_types.count(idatm_type("Car")) != 0);
+        CHECK(unique_types.count(idatm_type("N2")) != 0);
+        CHECK(unique_types.count(idatm_type("Npl")) != 0);
+        CHECK(unique_types.count(idatm_type("O3-")) != 0);
+        CHECK(unique_types.count(idatm_type("Son")) != 0);
 
         auto rings = mol.rings();
         for (auto ring : rings) {
             for (auto atom : ring) {
                 if (ring.size() == 6) {
                     if (mol[atom].atomic_number() == 6)
-                        CHECK(idatm.name(alltypes[atom]) == "Car");
+                        CHECK(idatm_name(alltypes[atom]) == "Car");
                     else if (mol[atom].atomic_number() == 7)
-                        CHECK(idatm.name(alltypes[atom]) == "N2");
+                        CHECK(idatm_name(alltypes[atom]) == "N2");
                     else
                         CHECK(0);
                 } else if (ring.size() == 5) {
                     if (mol[atom].atomic_number() != 7) continue;
                     if (mol[atom].neighbor_count() == 3) {
-                        CHECK(idatm.name(alltypes[atom]) == "Npl");
+                        CHECK(idatm_name(alltypes[atom]) == "Npl");
                     } else {
-                        CHECK(idatm.name(alltypes[atom]) == "N2");
+                        CHECK(idatm_name(alltypes[atom]) == "N2");
                     }
                 }
             }
         }
 
-        Spear::IDATM idatm_bo;
-        idatm_bo.type_atoms_order(mol);
-        auto alltypes_2 = idatm_bo.all_ids();
+        auto alltypes_2 = idatm.type_atoms_order(mol);
         CHECK(alltypes == alltypes_2);
     }
 
@@ -111,108 +104,96 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         Spear::IDATM idatm;
-        idatm.type_atoms_3d(mol);
+		auto alltypes = idatm.type_atoms_3d(mol);
+		CHECK(alltypes.size() == mol.size());
 
-        auto unique_types = idatm.unique_ids();
+        auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
         CHECK(unique_types.size() == 10);
-        CHECK(unique_types.count(idatm.id("Car")) != 0);
-        CHECK(unique_types.count(idatm.id("Oar")) != 0);
-        CHECK(unique_types.count(idatm.id("Oar+")) != 0);
-        CHECK(unique_types.count(idatm.id("O3-")) != 0);
-        CHECK(unique_types.count(idatm.id("N2")) != 0);
-        CHECK(unique_types.count(idatm.id("N2+")) != 0);
-        CHECK(unique_types.count(idatm.id("N1")) != 0);
-        CHECK(unique_types.count(idatm.id("N1+")) != 0);
-        CHECK(unique_types.count(idatm.id("Sar")) != 0);
-        CHECK(unique_types.count(idatm.id("H")) != 0);
+        CHECK(unique_types.count(idatm_type("Car")) != 0);
+        CHECK(unique_types.count(idatm_type("Oar")) != 0);
+        CHECK(unique_types.count(idatm_type("Oar+")) != 0);
+        CHECK(unique_types.count(idatm_type("O3-")) != 0);
+        CHECK(unique_types.count(idatm_type("N2")) != 0);
+        CHECK(unique_types.count(idatm_type("N2+")) != 0);
+        CHECK(unique_types.count(idatm_type("N1")) != 0);
+        CHECK(unique_types.count(idatm_type("N1+")) != 0);
+        CHECK(unique_types.count(idatm_type("Sar")) != 0);
+        CHECK(unique_types.count(idatm_type("H")) != 0);
 
-        auto alltypes = idatm.all_ids();
-        CHECK(alltypes.size() == mol.size());
-
-        Spear::IDATM idatm_bo;
-        idatm_bo.type_atoms_order(mol);
-        auto alltypes_2 = idatm_bo.all_ids();
-        CHECK(alltypes == alltypes_2);
-    }
+		auto alltypes_2 = idatm.type_atoms_order(mol);
+		CHECK(alltypes == alltypes_2);
+	}
 
     SECTION("Oxides") {
         auto traj = chemfiles::Trajectory("data/oxides.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        Spear::IDATM idatm;
-        idatm.type_atoms_3d(mol);
+		Spear::IDATM idatm;
+		auto alltypes = idatm.type_atoms_3d(mol);
+		CHECK(alltypes.size() == mol.size());
 
-        auto unique_types = idatm.unique_ids();
-        CHECK(unique_types.size() == 10);
-        CHECK(unique_types.count(idatm.id("C3")) != 0);
-        CHECK(unique_types.count(idatm.id("C2")) != 0);
-        CHECK(unique_types.count(idatm.id("O3")) != 0);
-        CHECK(unique_types.count(idatm.id("O3-")) != 0);
-        CHECK(unique_types.count(idatm.id("Ng+")) != 0);
-        CHECK(unique_types.count(idatm.id("Nox")) != 0);
-        CHECK(unique_types.count(idatm.id("Pac")) != 0);
-        CHECK(unique_types.count(idatm.id("Pox")) != 0);
-        CHECK(unique_types.count(idatm.id("Sac")) != 0);
-        CHECK(unique_types.count(idatm.id("Sxd")) != 0);
+		auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
+		CHECK(unique_types.size() == 10);
+        CHECK(unique_types.count(idatm_type("C3")) != 0);
+        CHECK(unique_types.count(idatm_type("C2")) != 0);
+        CHECK(unique_types.count(idatm_type("O3")) != 0);
+        CHECK(unique_types.count(idatm_type("O3-")) != 0);
+        CHECK(unique_types.count(idatm_type("Ng+")) != 0);
+        CHECK(unique_types.count(idatm_type("Nox")) != 0);
+        CHECK(unique_types.count(idatm_type("Pac")) != 0);
+        CHECK(unique_types.count(idatm_type("Pox")) != 0);
+        CHECK(unique_types.count(idatm_type("Sac")) != 0);
+        CHECK(unique_types.count(idatm_type("Sxd")) != 0);
 
-        auto alltypes = idatm.all_ids();
-        CHECK(alltypes.size() == mol.size());
-
-        Spear::IDATM idatm_bo;
-        idatm_bo.type_atoms_order(mol);
-        auto alltypes_2 = idatm_bo.all_ids();
-        CHECK(alltypes == alltypes_2);
-    }
+		auto alltypes_2 = idatm.type_atoms_order(mol);
+		CHECK(alltypes == alltypes_2);
+	}
 
     SECTION("POB Problem case") {
         auto traj = chemfiles::Trajectory("data/pob.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        Spear::IDATM idatm;
-        idatm.type_atoms_3d(mol);
+		Spear::IDATM idatm;
+		auto alltypes = idatm.type_atoms_3d(mol);
+		CHECK(alltypes.size() == mol.size());
 
-        auto unique_types = idatm.unique_ids();
-        CHECK(unique_types.size() == 8);
-        CHECK(unique_types.count(idatm.id("O3")) != 0);
-        CHECK(unique_types.count(idatm.id("O3-")) != 0);
-        CHECK(unique_types.count(idatm.id("O2-")) != 0);
-        CHECK(unique_types.count(idatm.id("Cac")) != 0);
-        CHECK(unique_types.count(idatm.id("N3")) != 0);
-        CHECK(unique_types.count(idatm.id("Pac")) != 0);
-        CHECK(unique_types.count(idatm.id("Pox")) != 0);
-        CHECK(unique_types.count(idatm.id("C3")) != 0);
+		auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
+		CHECK(unique_types.size() == 8);
+        CHECK(unique_types.count(idatm_type("O3")) != 0);
+        CHECK(unique_types.count(idatm_type("O3-")) != 0);
+        CHECK(unique_types.count(idatm_type("O2-")) != 0);
+        CHECK(unique_types.count(idatm_type("Cac")) != 0);
+        CHECK(unique_types.count(idatm_type("N3")) != 0);
+        CHECK(unique_types.count(idatm_type("Pac")) != 0);
+        CHECK(unique_types.count(idatm_type("Pox")) != 0);
+        CHECK(unique_types.count(idatm_type("C3")) != 0);
 
         // The problem, no C2 should be presnt
-        CHECK(unique_types.count(idatm.id("C2")) == 0);
-
-        auto alltypes = idatm.all_ids();
-        CHECK(alltypes.size() == mol.size());
+        CHECK(unique_types.count(idatm_type("C2")) == 0);
     }
 
     SECTION("0T8 Problem case") {
         auto traj = chemfiles::Trajectory("data/0t8.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        Spear::IDATM idatm;
-        idatm.type_atoms_3d(mol);
+		Spear::IDATM idatm;
+		auto alltypes = idatm.type_atoms_3d(mol);
+		CHECK(alltypes.size() == mol.size());
 
-        auto unique_types = idatm.unique_ids();
-        CHECK(unique_types.size() == 6);
-        CHECK(unique_types.count(idatm.id("O2")) != 0);
-        CHECK(unique_types.count(idatm.id("C2")) != 0);
-        CHECK(unique_types.count(idatm.id("Npl")) != 0);
-        CHECK(unique_types.count(idatm.id("Car")) != 0);
-        CHECK(unique_types.count(idatm.id("N2")) != 0);
-        CHECK(unique_types.count(idatm.id("C3")) != 0);
-
-        auto alltypes = idatm.all_ids();
-        CHECK(alltypes.size() == mol.size());
+		auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
+		CHECK(unique_types.size() == 6);
+        CHECK(unique_types.count(idatm_type("O2")) != 0);
+        CHECK(unique_types.count(idatm_type("C2")) != 0);
+        CHECK(unique_types.count(idatm_type("Npl")) != 0);
+        CHECK(unique_types.count(idatm_type("Car")) != 0);
+        CHECK(unique_types.count(idatm_type("N2")) != 0);
+        CHECK(unique_types.count(idatm_type("C3")) != 0);
 
         auto rings = mol.rings();
         for (auto ring : rings) {
             for (auto atom : ring) {
                 if (ring.size() == 5) {
-                    CHECK(idatm.name(alltypes[atom]) != "Car");
+                    CHECK(idatm_name(alltypes[atom]) != "Car");
                 }
             }
         }

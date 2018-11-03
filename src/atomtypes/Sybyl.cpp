@@ -114,93 +114,74 @@ static bool is_decloc(const Spear::AtomVertex& atom,
     return false;
 }
 
-std::string Sybyl::name() const {
-    return "Sybyl";
-}
-
-void Sybyl::type_atoms_3d(const Molecule& mol) {
-    type_atoms_order(mol);
+std::vector<size_t> Sybyl::type_atoms_3d(const Molecule& mol) {
+    auto atom_types = type_atoms_order(mol);
     for (auto atom : mol) {
         auto index = atom.index();
         switch (atom.atomic_number()) {
         case 6:
-            atom_types_[index] = assign_carbon_3d_(mol, atom);
+            atom_types[index] = assign_carbon_3d_(mol, atom);
             break;
         case 7:
-            atom_types_[index] = assign_nitrogen_3d_(mol, atom);
+            atom_types[index] = assign_nitrogen_3d_(mol, atom);
             break;
         case 8:
-            atom_types_[index] = assign_oxygen_(mol, atom);
+            atom_types[index] = assign_oxygen_(mol, atom);
             break;
         case 16:
-            atom_types_[index] = assign_sulfur_(mol, atom);
+            atom_types[index] = assign_sulfur_(mol, atom);
             break;
         default:
             break;
         }
     }
+    return atom_types;
 }
 
-void Sybyl::type_atoms_order(const Molecule& mol) {
-    atom_types_.clear();
-    atom_types_.resize(mol.size(), Du);
+std::vector<size_t> Sybyl::type_atoms_order(const Molecule& mol) {
+    std::vector<size_t> atom_types(mol.size(), Du);
     for (auto atom : mol) {
         auto index = atom.index();
         switch (atom.atomic_number()) {
         case 1:
-            atom_types_[index] = H;
+            atom_types[index] = H;
             break;
         case 6:
-            atom_types_[index] = assign_carbon_ord_(mol, atom);
+            atom_types[index] = assign_carbon_ord_(mol, atom);
             break;
         case 7:
-            atom_types_[index] = assign_nitrogen_ord_(mol, atom);
+            atom_types[index] = assign_nitrogen_ord_(mol, atom);
             break;
         case 8:
-            atom_types_[index] = assign_oxygen_(mol, atom);
+            atom_types[index] = assign_oxygen_(mol, atom);
             break;
         case 16:
-            atom_types_[index] = assign_sulfur_(mol, atom);
+            atom_types[index] = assign_sulfur_(mol, atom);
             break;
         case 15:
-            atom_types_[index] = P_3;
+            atom_types[index] = P_3;
             break;
         case 27:
-            atom_types_[index] = Co_oh;
+            atom_types[index] = Co_oh;
             break;
         case 44:
-            atom_types_[index] = Ru_oh;
+            atom_types[index] = Ru_oh;
             break;
         case 22:
-            atom_types_[index] = atom.neighbor_count() <= 4 ? Ti_th:
-                                                              Ti_oh;
+            atom_types[index] = atom.neighbor_count() <= 4 ? Ti_th:
+                                                             Ti_oh;
             break;
         case 24:
-            atom_types_[index] = atom.neighbor_count() <= 4 ? Cr_th:
-                                                              Cr_oh;
+            atom_types[index] = atom.neighbor_count() <= 4 ? Cr_th:
+                                                             Cr_oh;
             break;
         default:
-            atom_types_[index] = sybyl_mask.at(atom.type());
+            atom_types[index] = sybyl_mask.at(atom.type());
             break;
         }
     }
-}
 
-std::string Sybyl::name(size_t id) const {
-    return sybyl_unmask[id];
-}
-
-size_t Sybyl::id(const std::string& name) const {
-    return sybyl_mask.at(name);
-}
-
-std::unordered_set<size_t> Sybyl::unique_ids() const {
-    std::unordered_set<size_t> ret(atom_types_.cbegin(), atom_types_.cend());
-    return ret;
-}
-
-const std::vector<size_t>& Sybyl::all_ids() const {
-    return atom_types_;
+    return atom_types;
 }
 
 size_t Sybyl::assign_carbon_ord_(const Molecule& mol, AtomVertex atom){
@@ -446,4 +427,16 @@ size_t Sybyl::assign_sulfur_(const Molecule& mol, AtomVertex atom) {
     } 
 
     return S_2;
+}
+
+template<> std::string Spear::atomtype_name<Sybyl>() {
+    return std::string("Sybyl");
+}
+
+template<> std::string Spear::atomtype_name_for_id<Sybyl>(size_t id) {
+    return sybyl_unmask[id];
+}
+
+template<> size_t Spear::atomtype_id_for_name<Sybyl>(std::string name) {
+    return sybyl_mask.at(name);
 }

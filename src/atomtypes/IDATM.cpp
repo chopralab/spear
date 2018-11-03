@@ -260,31 +260,7 @@ static size_t assignBondOrderType(uint64_t atomic_number, chemfiles::Bond::BondO
     return current_type;
 }
 
-std::string IDATM::name() const {
-    return "IDATM";
-}
-
-std::string IDATM::name(size_t id) const {
-    if (id > idatm_mask.size()) {
-        throw std::range_error("Given id not valid!");
-    }
-    return idatm_unmask[id];
-}
-
-size_t IDATM::id(const std::string& name) const {
-    return idatm_mask.at(name);
-}
-
-std::unordered_set<size_t> IDATM::unique_ids() const {
-    std::unordered_set<size_t> ret(atom_types_.cbegin(), atom_types_.cend());
-    return ret;
-}
-
-const std::vector<size_t>& IDATM::all_ids() const {
-    return atom_types_;
-}
-
-void IDATM::type_atoms_3d(const Molecule& mol) {
+std::vector<size_t> IDATM::type_atoms_3d(const Molecule& mol) {
     // initialize idatm type in Atoms
     atom_types_ = std::vector<size_t>(mol.size(), (size_t)idatm::unk);
 
@@ -307,9 +283,11 @@ void IDATM::type_atoms_3d(const Molecule& mol) {
     pass9_(mol);
     pass10_(mol);
     pass11_(mol);
+
+    return atom_types_;
 }
 
-void IDATM::type_atoms_order(const Molecule& mol) {
+std::vector<size_t> IDATM::type_atoms_order(const Molecule& mol) {
     const auto& bond_orders = mol.frame().topology().bond_orders();
     const auto& bonds = mol.frame().topology().bonds();
 
@@ -419,6 +397,8 @@ void IDATM::type_atoms_order(const Molecule& mol) {
     pass9_(mol);
     pass10_(mol);
     pass11_(mol);
+
+    return atom_types_;
 }
 
 void IDATM::infallible_(const Molecule& mol) {
@@ -428,7 +408,7 @@ void IDATM::infallible_(const Molecule& mol) {
         if (atom.atomic_number() == 1) { // Hydrogen and deuterium
             bool bondedToCarbon = false;
             for (auto neighbor : atom) {
-                if (mol[neighbor].type() == "C") {
+                if (mol[neighbor].atomic_number() == 6) {
                     bondedToCarbon = true;
                     break;
                 }
@@ -1188,4 +1168,16 @@ void IDATM::pass11_(const Molecule& mol) {
             if (has_c3 && has_n3 && has_pox) atom_types_[index] = idatm::C3;
         }
     }
+}
+
+template<> std::string Spear::atomtype_name<IDATM>() {
+    return std::string("IDATM");
+}
+
+template<> std::string Spear::atomtype_name_for_id<IDATM>(size_t id) {
+    return idatm_unmask[id];
+}
+
+template<> size_t Spear::atomtype_id_for_name<IDATM>(std::string name) {
+    return idatm_mask.at(name);
 }
