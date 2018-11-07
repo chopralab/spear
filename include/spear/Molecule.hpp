@@ -15,10 +15,10 @@ using Graph = boost::adjacency_list<boost::setS, boost::vecS,boost::undirectedS,
                                     uint64_t, size_t>;
 using Traits = boost::graph_traits<Graph>;
 using VertexDescriptor = Traits::vertex_descriptor;
-typedef typename Traits::edge_descriptor EdgeDescriptor;
-typedef Traits::adjacency_iterator AdjacencyIterator;
-typedef Traits::edge_iterator EdgeIterator;
-typedef std::pair<AdjacencyIterator, AdjacencyIterator> AdjacencyIteratorPair;
+using EdgeDescriptor = Traits::edge_descriptor;
+using AdjacencyIterator = Traits::adjacency_iterator;
+using EdgeIterator = Traits::edge_iterator;
+using AdjacencyIteratorPair = std::pair<AdjacencyIterator, AdjacencyIterator>;
 
 class Molecule;
 
