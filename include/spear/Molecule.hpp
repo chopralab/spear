@@ -11,10 +11,10 @@
 
 namespace Spear {
 
-typedef boost::adjacency_list<boost::setS, boost::vecS,boost::undirectedS,
-                              uint64_t, size_t> Graph;
-typedef boost::graph_traits<Graph> Traits;
-typedef typename Traits::vertex_descriptor VertexDescriptor;
+using Graph = boost::adjacency_list<boost::setS, boost::vecS,boost::undirectedS,
+                                    uint64_t, size_t>;
+using Traits = boost::graph_traits<Graph>;
+using VertexDescriptor = Traits::vertex_descriptor;
 typedef typename Traits::edge_descriptor EdgeDescriptor;
 typedef Traits::adjacency_iterator AdjacencyIterator;
 typedef Traits::edge_iterator EdgeIterator;
@@ -34,6 +34,8 @@ public:
 
     const std::string& type() const;
     
+    const chemfiles::Vector3D& position() const;
+
     size_t atomic_number() const;
 
     size_t neighbor_count() const;
@@ -163,13 +165,17 @@ inline const std::string& AtomVertex::type() const {
     return br_->frame()[index_].type();
 }
 
+inline const chemfiles::Vector3D& AtomVertex::position() const {
+    return br_->frame().positions()[index_];
+}
+
 inline uint64_t AtomVertex::atomic_number() const {
     return *(br_->frame()[index_].atomic_number());
 }
 
 inline size_t AtomVertex::neighbor_count() const {
     auto tmp = neighbors();
-    return std::distance(tmp.first, tmp.second);
+    return static_cast<size_t>(std::distance(tmp.first, tmp.second));
 }
 
 inline AdjacencyIteratorPair AtomVertex::neighbors() const {

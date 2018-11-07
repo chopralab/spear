@@ -137,6 +137,10 @@ template<> std::string atomtype_name_for_id<IDATM>(size_t id);
 
 template<> size_t atomtype_id_for_name<IDATM>(std::string name);
 
+template<> size_t atomtype_id_count<IDATM>();
+
+template<> double van_der_waals<IDATM>(size_t id);
+
 }
 
 #endif

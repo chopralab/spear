@@ -213,7 +213,7 @@ static bool aromatic(const Molecule& mol, const std::set<size_t>& ring) {
         }
     }
     if (bonds == 0) return false;
-    double homas = 1.0 - (98.89 / bonds) * sum;
+    double homas = 1.0 - (98.89 / static_cast<double>(bonds)) * sum;
     bool is_aromatic = true;
     if (homas < 0.271) {
         is_aromatic = check_dihedrals_for_planarity(mol, ring);
@@ -262,9 +262,7 @@ static size_t assignBondOrderType(uint64_t atomic_number, chemfiles::Bond::BondO
 
 std::vector<size_t> IDATM::type_atoms_3d(const Molecule& mol) {
     // initialize idatm type in Atoms
-    atom_types_ = std::vector<size_t>(mol.size(), (size_t)idatm::unk);
-
-    auto indices = boost::get(boost::vertex_index, mol.graph());
+    atom_types_ = std::vector<size_t>(mol.size(), static_cast<size_t>(idatm::unk));
 
     // number of heavy atoms bonded
     heavys_ = std::vector<size_t>(mol.size(), 0);
@@ -291,7 +289,7 @@ std::vector<size_t> IDATM::type_atoms_order(const Molecule& mol) {
     const auto& bond_orders = mol.frame().topology().bond_orders();
     const auto& bonds = mol.frame().topology().bonds();
 
-    atom_types_ = std::vector<size_t>(mol.size(), (size_t)idatm::unk);
+    atom_types_ = std::vector<size_t>(mol.size(), static_cast<size_t>(idatm::unk));
     heavys_ = std::vector<size_t>(mol.size(), 0);
     mapped_ = std::vector<bool>(mol.size(), false);
 
@@ -439,7 +437,7 @@ void IDATM::infallible_(const Molecule& mol) {
         if (it != standard_residues.end()) {
             for (auto i : residue) {
                 // Hydrogens are mapped
-                if (!mapped_[i]) {
+                if (mapped_[i]) {
                     continue;
                 }
 
@@ -461,7 +459,7 @@ void IDATM::infallible_(const Molecule& mol) {
                 auto it2 = it->second.find(a.name());
                 if (it2 == it->second.end()) {
                     throw std::logic_error(
-                        "die : cannot find atom name " + a.name() +
+                        "Cannot find atom name " + a.name() +
                         " of template residue " + residue.name()
                     );
                 }
@@ -1180,4 +1178,72 @@ template<> std::string Spear::atomtype_name_for_id<IDATM>(size_t id) {
 
 template<> size_t Spear::atomtype_id_for_name<IDATM>(std::string name) {
     return idatm_mask.at(name);
+}
+
+template<> size_t atomtype_id_count<IDATM>() {
+    assert(idatm_mask.size() == idatm::unk + 1);
+    assert(idatm_mask.size() == sizeof(idatm_unmask) / sizeof(char*));
+    return idatm_mask.size();
+}
+
+template<> double Spear::van_der_waals<IDATM>(size_t id) {
+    switch (id) {
+        case idatm::Ag: return 1.72;
+        case idatm::Ar: return 1.88;
+        case idatm::As: return 1.85;
+        case idatm::Au: return 1.66;
+        case idatm::Br: return 1.85;
+
+        case idatm::C:  case idatm::C1:  case idatm::C1m: case idatm::C2:
+        case idatm::C3: case idatm::Cac: case idatm::Car: return 1.7;
+
+        case idatm::Cd: return 1.58;
+        case idatm::Cl: return 1.75;
+        case idatm::Cu: return 1.4;
+
+        case idatm::H: case idatm::HC:
+        case idatm::D: case idatm::DC: return 1.2;
+
+        case idatm::F: return 1.47;
+        case idatm::Ga: return 1.87;
+        case idatm::He: return 1.4; 
+        case idatm::Hg: return 1.55;
+        case idatm::I: return 1.98;
+        case idatm::In: return 1.93;
+        case idatm::K: return 2.75;
+        case idatm::Kr: return 2.02;
+        case idatm::Li: return 1.82;
+        case idatm::Mg: return 1.73;
+
+        case idatm::N:   case idatm::N1:  case idatm::N1p: case idatm::N2:
+        case idatm::N2p: case idatm::N3:  case idatm::N3p: case idatm::Ngp:
+        case idatm::Nox: case idatm::Npl: case idatm::Ntr: return 1.55;
+
+        case idatm::Na: return 2.27;
+        case idatm::Ne: return 1.54;
+        case idatm::Ni: return 1.63;
+
+        case idatm::O:   case idatm::O1: case idatm::O1p: case idatm::O2:
+        case idatm::O2m: case idatm::O3: case idatm::O3m: case idatm::Oar:
+        case idatm::Oarp: return 1.52;
+
+        case idatm::Pb: return 2.02;
+        case idatm::Pd: return 1.63;
+        case idatm::Pt: return 1.72;
+
+        case idatm::P:   case idatm::P3p: case idatm::Pac: case idatm::Pox:
+        case idatm::S:   case idatm::S2:  case idatm::S3:  case idatm::S3m:
+        case idatm::S3p: case idatm::Sac: case idatm::Sar: case idatm::Son:
+        case idatm::Sxd: return 1.8;
+
+        case idatm::Se: return 1.9;
+        case idatm::Si: return 2.1;
+        case idatm::Sn: return 2.17;
+        case idatm::Te: return 2.06;
+        case idatm::Tl: return 1.96;
+        case idatm::U: return 1.86;
+        case idatm::Xe: return 2.16;
+        case idatm::Zn: return 1.39;
+        default: return 2.0;
+    }
 }

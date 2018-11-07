@@ -12,6 +12,9 @@ namespace Spear {
 
 class SPEAR_EXPORT AtomType {
 public:
+
+    virtual ~AtomType() = default;
+
     /// Type the given molecule using 3D geometry
     virtual std::vector<size_t> type_atoms_3d(const Molecule& mol) = 0;
 
@@ -32,6 +35,16 @@ std::string atomtype_name_for_id(size_t id) {
 template<class Format>
 size_t atomtype_id_for_name(std::string name) {
     throw std::bad_function_call("atomtype_id_for_name is unimplemented for this format");
+}
+
+template<class Format>
+size_t atomtype_id_count() {
+    throw std::bad_function_call("atomtype_id_count is unimplemented for this format");
+}
+
+template<class Format>
+double van_der_waals(size_t id) {
+    throw std::bad_function_call("van_der_waals is unimplemented for this format");
 }
 
 }
