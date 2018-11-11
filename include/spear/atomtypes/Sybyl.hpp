@@ -28,6 +28,8 @@ template<> std::string atomtype_name_for_id<Sybyl>(size_t id);
 
 template<> size_t atomtype_id_for_name<Sybyl>(std::string name);
 
+template<> size_t atomtype_id_count<Sybyl>();
+
 }
 
 #endif

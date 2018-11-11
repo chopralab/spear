@@ -13,6 +13,10 @@ auto idatm_name = atomtype_name_for_id<IDATM>;
 auto idatm_type = atomtype_id_for_name<IDATM>;
 
 TEST_CASE("IDATM") {
+    SECTION("Atom Type Info") {
+        CHECK(atomtype_id_count<IDATM>() == 150);
+    }
+
     SECTION("Palmitic Acid") {
         auto traj = chemfiles::Trajectory("data/palmitic.sdf");
         auto mol = Molecule(traj.read());

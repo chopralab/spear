@@ -47,7 +47,7 @@ Molecule::Molecule(const chemfiles::Frame& frame) :
 
     std::map<size_t, VertexDescriptor> vertices;
     for (auto atom : frame) {
-        auto u = boost::add_vertex(VertexDescriptor{*(atom.atomic_number())}, graph_);
+        boost::add_vertex(VertexDescriptor{*(atom.atomic_number())}, graph_);
     }
 
     // Create the graph representation

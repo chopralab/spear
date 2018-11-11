@@ -7,13 +7,13 @@ enum sybyl {
     N_pl3, N_4, O_3, O_2,  O_co2, S_3, S_2, S_o, S_o2, P_3,
     Ti_th, Ti_oh, Cr_th, Cr_oh, Co_oh, Ru_oh, H,
 
-    Ac, Ag, Al, Am, Ar, As, At, Au, B, Ba, Be, Bh, Bi, Bk, Br,
-    Ca, Cd, Ce, Cf, Cm, Co, Cr, Cs, Cu, Db, DC, Ds, Dy, Er,
-    Es, Eu, F, Fe, Fm, Fr, Ga, Gd, Ge, He, Hf, Hg, Ho,
-    Hs, I, In, Ir, K, Kr, La, Li, Lr, Lu, Lw, Md, Mg, Mn, Mo, Mt,
-    Na, Nb, Nd, Ne, Ni, No, Np, Os, P, P3p, Pa, Pac, Pb, Pd, Pm, Po,
-    Pr, Pt, Pu, Ra, Rb, Re, Rf, Rh, Rn, Ru, Sb, Sc, Se, Sg, Si, Sm,
-    Sn, Sr, Ta, Tb, Tc, Te,Th, Ti, Tl, Tm, U,V, W, Xe, Y, Yb, Zn, Zr, Du
+    Ac, Ag, Al, Am, Ar, As, At, Au, B,  Ba, Be, Bh, Bi, Bk, Br,
+    Ca, Cd, Ce, Cf, Cm, Cs, Cu, Db, Ds, Dy, Er, Es, Eu, F,  Fe,
+    Fm, Fr, Ga, Gd, Ge, He, Hf, Hg, Ho, Hs, I,  In, Ir, K,  Kr,
+    La, Li, Lr, Lu, Lw, Md, Mg, Mn, Mo, Mt, Na, Nb, Nd, Ne, Ni,
+    No, Np, Os, Pa, Pb, Pd, Pm, Po, Pr, Pt, Pu, Ra, Rb, Re, Rf,
+    Rh, Rn, Sb, Sc, Se, Sg, Si, Sm, Sn, Sr, Ta, Tb, Tc, Te, Th,
+    Tl, Tm, U,V, W, Xe, Y, Yb, Zn, Zr, Du
 };
 
 const std::unordered_map<std::string, size_t> sybyl_mask{
@@ -28,7 +28,7 @@ const std::unordered_map<std::string, size_t> sybyl_mask{
     {"As", As},   {"At", At},   {"Au", Au},   {"B", B},    {"Ba", Ba},
     {"Be", Be},   {"Bh", Bh},   {"Bi", Bi},   {"Bk", Bk},  {"Br", Br},
     {"Ca", Ca},   {"Cd", Cd},   {"Ce", Ce},   {"Cf", Cf},  {"Cm", Cm},
-    {"Co", Co},   {"Cr", Cr},   {"Cs", Cs},   {"Cu", Cu},  {"Db", Db},
+    {"Cs", Cs},   {"Cu", Cu},   {"Db", Db},
     {"Ds", Ds},   {"Dy", Dy},   {"Er", Er},   {"Es", Es},  {"Eu", Eu},
     {"F", F},     {"Fe", Fe},   {"Fm", Fm},   {"Fr", Fr},  {"Ga", Ga},
     {"Gd", Gd},   {"Ge", Ge},   {"He", He},
@@ -37,32 +37,31 @@ const std::unordered_map<std::string, size_t> sybyl_mask{
     {"Li", Li},   {"Lr", Lr},   {"Lu", Lu},   {"Lw", Lw},  {"Md", Md},
     {"Mg", Mg},   {"Mn", Mn},   {"Mo", Mo},   {"Mt", Mt},  {"Na", Na},
     {"Nb", Nb},   {"Nd", Nd},   {"Ne", Ne},   {"Ni", Ni},  {"No", No},
-    {"Np", Np},   {"Pa", Pa},   {"Pb", Pb},   {"Pd", Pd},  {"Pm", Pm},
-    {"Po", Po},   {"Pr", Pr},   {"Pt", Pt},   {"Pu", Pu},  {"Ra", Ra},
-    {"Rb", Rb},   {"Re", Re},   {"Rf", Rf},   {"Rh", Rh},  {"Rn", Rn},
-    {"Ru", Ru},   {"Sb", Sb},   {"Sc", Sc},   {"Se", Se},  {"Sg", Sg},
+    {"Np", Np},   {"Os", Os},   {"Pa", Pa},   {"Pb", Pb},  {"Pd", Pd},
+    {"Pm", Pm},   {"Po", Po},   {"Pr", Pr},   {"Pt", Pt},  {"Pu", Pu},
+    {"Ra", Ra},   {"Rb", Rb},   {"Re", Re},   {"Rf", Rf},  {"Rh", Rh},
+    {"Rn", Rn},   {"Sb", Sb},   {"Sc", Sc},   {"Se", Se},  {"Sg", Sg},
     {"Si", Si},   {"Sm", Sm},   {"Sn", Sn},   {"Sr", Sr},  {"Ta", Ta},
-    {"Tb", Tb},   {"Tc", Tc},   {"Te", Te},   {"Th", Th},   {"Ti", Ti},
-    {"Tl", Tl},   {"Tm", Tm},   {"U", U},     {"V", V},     {"W", W},
-    {"Xe", Xe},   {"Y", Y},     {"Yb", Yb},   {"Zn", Zn},   {"Zr", Zr},
-    {"Du", Du},
+    {"Tb", Tb},   {"Tc", Tc},   {"Te", Te},   {"Th", Th},  {"Tl", Tl},
+    {"Tm", Tm},   {"U", U},     {"V", V},     {"W", W},    {"Xe", Xe},
+    {"Y", Y},     {"Yb", Yb},   {"Zn", Zn},   {"Zr", Zr},  {"Du", Du},
 };
 
 const char* const sybyl_unmask[] {
     "C.3",   "C.2", "C.1", "C.ar", "C.cat", "N.3", "N.2", "N.1", "N.ar", "N.am",
     "N.pl3", "N.4", "O.3", "O.2",  "O.co2", "S.3", "S.2", "S.o", "S.o2", "P.3",
-    "Ti.th", "Ti.oh", "Cr.th", "Cr.oh", "Co.oh", "Ru.oh", "H", "Du",
+    "Ti.th", "Ti.oh", "Cr.th", "Cr.oh", "Co.oh", "Ru.oh", "H",
 
     "Ac",  "Ag",  "Al",  "Am",  "Ar",  "As",  "At",  "Au",  "B",   "Ba",  "Be",
-    "Bh",  "Bi",  "Bk",  "Br",  "Ca",  "Cd",  "Ce",  "Cf",  "Cm",  "Co",  "Cr",
-    "Cs",  "Cu",  "Db",  "Ds",  "Dy",  "Er",  "Es",  "Eu",  "F",   "Fe",  "Fm",
-    "Fr",  "Ga",  "Gd",  "Ge",  "He",  "Hf",  "Hg",  "Ho",  "Hs",
-    "I",   "In",  "Ir",  "K",   "Kr",  "La",  "Li",  "Lr",  "Lu",  "Lw",  "Md",
-    "Mg",  "Mn",  "Mo",  "Mt",  "Na",  "Nb",  "Nd",  "Ne",  "Ni",  "No",  "Np",
-    "Os",  "Pa",  "Pb",  "Pd",  "Pm",  "Po",  "Pr",  "Pt",  "Pu",  "Ra",  "Rb", 
-    "Re",  "Rf",  "Rh",  "Rn",  "Ru",  "Sb",  "Sc",  "Se",  "Sg",  "Si",  "Sm",
-    "Sn",  "Sr",  "Ta",  "Tb",  "Tc",  "Te",  "Th",  "Ti",  "Tl",  "Tm",  "U",
-    "V",   "W",   "Xe",  "Y",   "Yb",  "Zn",  "Zr",  "Du",
+    "Bh",  "Bi",  "Bk",  "Br",  "Ca",  "Cd",  "Ce",  "Cf",  "Cm",  "Cs",  "Cu",
+    "Db",  "Ds",  "Dy",  "Er",  "Es",  "Eu",  "F",   "Fe",  "Fm",  "Fr",  "Ga",
+    "Gd",  "Ge",  "He",  "Hf",  "Hg",  "Ho",  "Hs",  "I",   "In",  "Ir",  "K",
+    "Kr",  "La",  "Li",  "Lr",  "Lu",  "Lw",  "Md",  "Mg",  "Mn",  "Mo",  "Mt",
+    "Na",  "Nb",  "Nd",  "Ne",  "Ni",  "No",  "Np",  "Os",  "Pa",  "Pb",  "Pd",
+    "Pm",  "Po",  "Pr",  "Pt",  "Pu",  "Ra",  "Rb",  "Re",  "Rf",  "Rh",  "Rn",
+    "Sb",  "Sc",  "Se",  "Sg",  "Si",  "Sm",  "Sn",  "Sr",  "Ta",  "Tb",  "Tc",
+    "Te",  "Th",  "Tl",  "Tm",  "U",   "V",   "W",   "Xe",  "Y",   "Yb",  "Zn",
+    "Zr",  "Du",
 };
 
 static size_t num_nonmetal(const Molecule& mol, AtomVertex atom) {
@@ -269,7 +268,6 @@ size_t Sybyl::assign_nitrogen_ord_(const Molecule& mol, AtomVertex atom) {
     }
 
     auto numnonmetal = num_nonmetal(mol, atom);
-    auto neighbor_count = atom.neighbor_count();
 
     if (numnonmetal >= 4 && num_double == 0 && num_triple == 0) {
         return N_4;
@@ -323,8 +321,8 @@ size_t Sybyl::assign_carbon_3d_(const Molecule& mol, AtomVertex atom){
             }
         }
 
-        avgAngle /= angCount;
-        avgAngle *= 180 / 3.14149;
+        avgAngle /= static_cast<double>(angCount);
+        avgAngle *= 180.0 / 3.14149;
 
         if (avgAngle > 160.0) {
             return C_1;
@@ -378,8 +376,8 @@ size_t Sybyl::assign_nitrogen_3d_(const Molecule& mol, AtomVertex atom) {
         }
     }
 
-    avgAngle /= angCount;
-    avgAngle *= 180 / 3.14149;
+    avgAngle /= static_cast<double>(angCount);
+    avgAngle *= 180.0 / 3.14149;
 
     if (avgAngle > 160.0) {
         return N_1;
@@ -439,4 +437,10 @@ template<> std::string Spear::atomtype_name_for_id<Sybyl>(size_t id) {
 
 template<> size_t Spear::atomtype_id_for_name<Sybyl>(std::string name) {
     return sybyl_mask.at(name);
+}
+
+template<> size_t atomtype_id_count<Sybyl>() {
+    assert(sybyl_mask.size() == sybyl::Du + 1);
+    assert(sybyl_mask.size() == sizeof(sybyl_unmask) / sizeof(char*));
+    return sybyl_mask.size();
 }

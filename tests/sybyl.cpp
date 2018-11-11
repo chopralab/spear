@@ -12,6 +12,10 @@ using namespace Spear;
 auto sybyl_name = atomtype_name_for_id<Sybyl>;
 auto sybyl_type = atomtype_id_for_name<Sybyl>;
 
+TEST_CASE("Sybyl count") {
+    CHECK(atomtype_id_count<Sybyl>() == 128);
+}
+
 TEST_CASE("SYBYL") {
     auto traj = chemfiles::Trajectory("data/sybyl_test.mol2");
     auto mol = Spear::Molecule(traj.read());
