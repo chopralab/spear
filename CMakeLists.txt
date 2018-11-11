@@ -158,6 +158,8 @@ add_custom_target(uninstall
     COMMAND ${CMAKE_COMMAND} -P ${PROJECT_BINARY_DIR}/uninstall.cmake
 )
 
+add_subdirectory(share)
+
 if(SPEAR_BUILD_DOCUMENTATION)
     add_subdirectory(doc)
 endif()

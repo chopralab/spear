@@ -26,11 +26,8 @@ TEST_CASE("Protein-Ligand Score") {
     std::copy(ltypes.begin(), ltypes.end(), std::inserter(all_types, all_types.begin()));
     all_types.erase(47);
     all_types.erase(48);
-    for (auto a : all_types) {
-        std::cout << atomtype_name_for_id<IDATM>(a) << std::endl;
-    }
 
-    std::ifstream csd_distrib("data/newformat2.dat");
+    std::ifstream csd_distrib("share/csd_distributions.dat");
 
     AtomicDistributions atomic_distrib = read_atomic_distributions<IDATM>(csd_distrib);
     Bernard12 scoring_func(Bernard12::Options(Bernard12::RADIAL | Bernard12::MEAN | Bernard12::REDUCED), 6.0, atomic_distrib, all_types);

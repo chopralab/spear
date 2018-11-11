@@ -1,7 +1,7 @@
 function(spear_define_test _name_)
     add_test(NAME ${_name_}
         COMMAND ${RUNNER_COMMAND} ${_name_}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
 
     if(WIN32)
@@ -35,6 +35,16 @@ function(spear_cpp_test _file_)
     spear_unit_test(${_name_} ${_file_})
     target_link_libraries(${_name_} spear chemfiles)
 endfunction()
+
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_BINARY_DIR}/share share
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/data data
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
 
 file(GLOB all_test_files
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
