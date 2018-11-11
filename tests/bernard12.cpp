@@ -17,13 +17,16 @@ TEST_CASE("Protein-Ligand Score") {
     auto ltraj = chemfiles::Trajectory("data/3qox_ligand.sdf");
     auto ligand = Molecule(ltraj.read());
 
-    IDATM pidatm, lidatm;
-    auto ptypes = pidatm.type_atoms_3d(protein);
-    auto ltypes = lidatm.type_atoms_3d(ligand);
+    auto ptypes = IDATM(protein);
+    ptypes.type_atoms_3d();
+    auto ltypes = IDATM(ligand);
+    ltypes.type_atoms_3d();
 
     std::unordered_set<size_t> all_types;
-    std::copy(ptypes.begin(), ptypes.end(), std::inserter(all_types, all_types.begin()));
-    std::copy(ltypes.begin(), ltypes.end(), std::inserter(all_types, all_types.begin()));
+    std::copy(ptypes.cbegin(), ptypes.cend(), std::inserter(all_types, all_types.begin()));
+    std::copy(ltypes.cbegin(), ltypes.cend(), std::inserter(all_types, all_types.begin()));
+
+    // Remove hydrogen types
     all_types.erase(47);
     all_types.erase(48);
 
@@ -31,5 +34,5 @@ TEST_CASE("Protein-Ligand Score") {
 
     AtomicDistributions atomic_distrib = read_atomic_distributions<IDATM>(csd_distrib);
     Bernard12 scoring_func(Bernard12::Options(Bernard12::RADIAL | Bernard12::MEAN | Bernard12::REDUCED), 6.0, atomic_distrib, all_types);
-    CHECK(std::fabs(scoring_func.score(protein, ptypes, ligand, ltypes) - -61.8901) < 1e-3);
+    CHECK(std::fabs(scoring_func.score(protein, ptypes.all_types(), ligand, ltypes.all_types()) - -61.8901) < 1e-3);
 }

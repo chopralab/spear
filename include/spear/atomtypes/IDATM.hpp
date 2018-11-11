@@ -10,6 +10,8 @@ namespace Spear {
 class SPEAR_EXPORT IDATM : public AtomType {
 public:
 
+    IDATM(const Molecule& mol);
+
     /// algorithm based on E.C. Meng / R.A. Lewis paper
     /// "Determination of Molecular Topology and Atomic Hybridization
     /// States from Heavy Atom Coordinates", J. Comp. Chem., v12#7, 891-898
@@ -20,15 +22,31 @@ public:
     ///   Carbons in aromatic rings are type Car.  Aromatic oxygens are Oar.
     /// still missing types: C1-,O1+,O1
 
-    std::vector<size_t> type_atoms_3d(const Molecule& mol) override;
+    void type_atoms_3d() override;
 
-    std::vector<size_t> type_atoms_order(const Molecule& mol) override;
+    void type_atoms_order() override;
+
+    const std::vector<size_t>& all_types() const override {
+        return atom_types_;
+    }
+
+    size_t operator[](size_t atom_id) const override {
+        return atom_types_[atom_id];
+    }
+
+    std::vector<size_t>::const_iterator cbegin() const override {
+        return atom_types_.cbegin();
+    }
+
+    std::vector<size_t>::const_iterator cend() const override {
+        return atom_types_.cend();
+    }
 
 private:
     /// infallible pass:  type hydrogens / deuteriums and compute number of
     /// heavy atoms connected to each atom.
     /// also applies templated residues and marks them are mapped
-    void infallible_(const Molecule& mol);
+    void infallible_();
 
     /// valence pass: elements d valences > 1
     /// also fills the 'redo' array for hard to determine types
@@ -64,17 +82,17 @@ private:
     ///	C may be sp3 (C3), sp2 (C2), or sp (C1)
     ///	N may be sp3 (N3), sp2 or planar (Npl), or sp (N1)
     ///	O and S are sp3 (O3 and S3, respectively)
-    std::vector<size_t> valence_(const Molecule& mol);
+    std::vector<size_t> valence_();
 
     /// terminal pass: determine types of valence 1 atoms.  These were typed by
     /// element only in previous pass, but can be typed more accurately
     /// now that the atoms they are bonded to have been typed.
     /// Bond lengths are used in this pass to perform this assignment.
-    void terminal_(const Molecule& mol, std::vector<size_t>& redo_);
+    void terminal_(std::vector<size_t>& redo_);
 
     /// Re-examine all atoms with non-zero 'redo' values and
     ///   retype them if necessary
-    void redo_(const Molecule& mol, const std::vector<size_t>& redo_);
+    void redo_(const std::vector<size_t>& redo_);
 
     /// change isolated sp2 carbons to sp3 since it is
     /// impossible for an atom to be sp2 hybrizided if all its
@@ -82,7 +100,7 @@ private:
     /// be double bonded to a carboxylate carbon, phosphate phosphorus,
     /// sulfate sulfur, sulfone sulfur, sulfoxide sulfur, or sp1 carbon.
     /// Addition not in original idatm: Nox also
-    void fix_C2_(const Molecule& mol);
+    void fix_C2_();
 
     /// 1) make decisions about the charge states of nitrogens.  If an
     ///    sp3 nitrogen is bonded to sp3 carbons and/or hydrogens and/or
@@ -96,30 +114,33 @@ private:
     /// 2) make carboxyl oxygens negatively charged even if the proton is
     ///    present (the pKa of the carboxyl group is probably low enough
     ///    that the unprotonated form predominates at physiological pH).
-    void charges_(const Molecule& mol);
+    void charges_();
 
     /// Assign aromaticity
     ///
     /// 1) Check that all the atoms of the ring are planar types
     /// 2) Check bond lengths around the ring; see if they are
     ///    consistent with aromatic bond lengths
-    void aromatic_(const Molecule& mol);
+    void aromatic_();
 
     /// Split off heavy-atom-valence-Npls that have no hydrogens as type N2.
     /// Discrimination criteria is the average bond length of the two
     /// heavy-atom bonds (shorter implies more double-bond character,
     /// thereby no hydrogen).
-    void pass8_(const Molecule& mol);
+    void fix_N2_();
 
     /// "pass 9": Assign aromatic types 
-    void pass9_(const Molecule& mol);
+    void heteroaromatics_();
 
     /// "pass 10": change O2- to O3- for sulfates, phosphates, N-oxide, S3- for
     /// thiophosphate and other terminal atoms now that we have more types.
-    void pass10_(const Molecule& mol);
+    void fix_tetrahedrals_();
 
     /// "pass 11": Additional Special groups
-    void pass11_(const Molecule& mol);
+    void fix_special_();
+
+    /// Original molecule to be typed
+    const Molecule& mol_;
 
     std::vector<size_t> atom_types_;
     std::multimap<size_t, size_t> aromatic_ring_sizes_;

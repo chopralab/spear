@@ -18,10 +18,11 @@ TEST_CASE("Sybyl count") {
 
 TEST_CASE("SYBYL") {
     auto traj = chemfiles::Trajectory("data/sybyl_test.mol2");
-    auto mol = Spear::Molecule(traj.read());
+    auto mol = Molecule(traj.read());
 
-    Spear::Sybyl sybyl;
-	auto alltypes = sybyl.type_atoms_order(mol);
+    Sybyl sybyl(mol);
+    sybyl.type_atoms_order();
+	auto alltypes = sybyl.all_types();
 	CHECK(alltypes.size() == mol.size());
 
 	auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());

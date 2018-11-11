@@ -21,8 +21,9 @@ TEST_CASE("IDATM") {
         auto traj = chemfiles::Trajectory("data/palmitic.sdf");
         auto mol = Molecule(traj.read());
 
-        IDATM idatm;
-        auto alltypes = idatm.type_atoms_3d(mol);
+        IDATM idatm(mol);
+        idatm.type_atoms_3d();
+        auto alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 
         auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
@@ -37,7 +38,9 @@ TEST_CASE("IDATM") {
             CHECK(atomtype_name_for_id<IDATM>(alltypes[i]) == "C3");
         }
 
-        auto alltypes_2 = idatm.type_atoms_order(mol);
+        IDATM idatm2(mol);
+        idatm2.type_atoms_order();
+        auto alltypes_2 = idatm2.all_types();
         CHECK(alltypes == alltypes_2);
     }
 
@@ -45,9 +48,10 @@ TEST_CASE("IDATM") {
         auto traj = chemfiles::Trajectory("data/tibolone.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        Spear::IDATM idatm;
-		auto alltypes = idatm.type_atoms_3d(mol);
-		CHECK(alltypes.size() == mol.size());
+        IDATM idatm(mol);
+        idatm.type_atoms_3d();
+        auto alltypes = idatm.all_types();
+        CHECK(alltypes.size() == mol.size());
 
         auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
         CHECK(unique_types.size() == 5);
@@ -57,7 +61,9 @@ TEST_CASE("IDATM") {
         CHECK(unique_types.count(idatm_type("O2")) != 0);
         CHECK(unique_types.count(idatm_type("O3")) != 0);
 
-        auto alltypes_2 = idatm.type_atoms_order(mol);
+        IDATM idatm2(mol);
+        idatm2.type_atoms_order();
+        auto alltypes_2 = idatm2.all_types();
         CHECK(alltypes == alltypes_2);
     }
 
@@ -65,9 +71,10 @@ TEST_CASE("IDATM") {
         auto traj = chemfiles::Trajectory("data/pazopanib.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        Spear::IDATM idatm;
-		auto alltypes = idatm.type_atoms_3d(mol);
-		CHECK(alltypes.size() == mol.size());
+        IDATM idatm(mol);
+        idatm.type_atoms_3d();
+        auto alltypes = idatm.all_types();
+        CHECK(alltypes.size() == mol.size());
 
         auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
         CHECK(unique_types.size() == 6);
@@ -99,7 +106,9 @@ TEST_CASE("IDATM") {
             }
         }
 
-        auto alltypes_2 = idatm.type_atoms_order(mol);
+        IDATM idatm2(mol);
+        idatm2.type_atoms_order();
+        auto alltypes_2 = idatm2.all_types();
         CHECK(alltypes == alltypes_2);
     }
 
@@ -107,9 +116,10 @@ TEST_CASE("IDATM") {
         auto traj = chemfiles::Trajectory("data/aromatics.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        Spear::IDATM idatm;
-		auto alltypes = idatm.type_atoms_3d(mol);
-		CHECK(alltypes.size() == mol.size());
+        IDATM idatm(mol);
+        idatm.type_atoms_3d();
+        auto alltypes = idatm.all_types();
+        CHECK(alltypes.size() == mol.size());
 
         auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
         CHECK(unique_types.size() == 10);
@@ -124,17 +134,21 @@ TEST_CASE("IDATM") {
         CHECK(unique_types.count(idatm_type("Sar")) != 0);
         CHECK(unique_types.count(idatm_type("H")) != 0);
 
-		auto alltypes_2 = idatm.type_atoms_order(mol);
-		CHECK(alltypes == alltypes_2);
+        IDATM idatm2(mol);
+        idatm2.type_atoms_order();
+        auto alltypes_2 = idatm2.all_types();
+std::cout << "72: " << idatm_name(47) << " 73: " << idatm_name(48) << std::endl;
+        CHECK(alltypes == alltypes_2);
 	}
 
     SECTION("Oxides") {
         auto traj = chemfiles::Trajectory("data/oxides.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-		Spear::IDATM idatm;
-		auto alltypes = idatm.type_atoms_3d(mol);
-		CHECK(alltypes.size() == mol.size());
+        IDATM idatm(mol);
+        idatm.type_atoms_3d();
+        auto alltypes = idatm.all_types();
+        CHECK(alltypes.size() == mol.size());
 
 		auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
 		CHECK(unique_types.size() == 10);
@@ -149,17 +163,20 @@ TEST_CASE("IDATM") {
         CHECK(unique_types.count(idatm_type("Sac")) != 0);
         CHECK(unique_types.count(idatm_type("Sxd")) != 0);
 
-		auto alltypes_2 = idatm.type_atoms_order(mol);
-		CHECK(alltypes == alltypes_2);
+        IDATM idatm2(mol);
+        idatm2.type_atoms_order();
+        auto alltypes_2 = idatm2.all_types();
+        CHECK(alltypes == alltypes_2);
 	}
 
     SECTION("POB Problem case") {
         auto traj = chemfiles::Trajectory("data/pob.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-		Spear::IDATM idatm;
-		auto alltypes = idatm.type_atoms_3d(mol);
-		CHECK(alltypes.size() == mol.size());
+        IDATM idatm(mol);
+        idatm.type_atoms_3d();
+        auto alltypes = idatm.all_types();
+        CHECK(alltypes.size() == mol.size());
 
 		auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
 		CHECK(unique_types.size() == 8);
@@ -180,9 +197,10 @@ TEST_CASE("IDATM") {
         auto traj = chemfiles::Trajectory("data/0t8.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-		Spear::IDATM idatm;
-		auto alltypes = idatm.type_atoms_3d(mol);
-		CHECK(alltypes.size() == mol.size());
+        IDATM idatm(mol);
+        idatm.type_atoms_3d();
+        auto alltypes = idatm.all_types();
+        CHECK(alltypes.size() == mol.size());
 
 		auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
 		CHECK(unique_types.size() == 6);

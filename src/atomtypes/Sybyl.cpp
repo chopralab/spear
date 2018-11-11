@@ -113,94 +113,94 @@ static bool is_decloc(const Spear::AtomVertex& atom,
     return false;
 }
 
-std::vector<size_t> Sybyl::type_atoms_3d(const Molecule& mol) {
-    auto atom_types = type_atoms_order(mol);
-    for (auto atom : mol) {
+Sybyl::Sybyl(const Molecule& mol) :
+    atom_types_(mol.size(), sybyl::Du), mol_(mol)
+{}
+
+void Sybyl::type_atoms_3d() {
+    type_atoms_order();
+    for (auto atom : mol_) {
         auto index = atom.index();
         switch (atom.atomic_number()) {
         case 6:
-            atom_types[index] = assign_carbon_3d_(mol, atom);
+            atom_types_[index] = assign_carbon_3d_(atom);
             break;
         case 7:
-            atom_types[index] = assign_nitrogen_3d_(mol, atom);
+            atom_types_[index] = assign_nitrogen_3d_(atom);
             break;
         case 8:
-            atom_types[index] = assign_oxygen_(mol, atom);
+            atom_types_[index] = assign_oxygen_(atom);
             break;
         case 16:
-            atom_types[index] = assign_sulfur_(mol, atom);
+            atom_types_[index] = assign_sulfur_(atom);
             break;
         default:
             break;
         }
     }
-    return atom_types;
 }
 
-std::vector<size_t> Sybyl::type_atoms_order(const Molecule& mol) {
-    std::vector<size_t> atom_types(mol.size(), Du);
-    for (auto atom : mol) {
+void Sybyl::type_atoms_order() {
+    for (auto atom : mol_) {
         auto index = atom.index();
         switch (atom.atomic_number()) {
         case 1:
-            atom_types[index] = H;
+            atom_types_[index] = H;
             break;
         case 6:
-            atom_types[index] = assign_carbon_ord_(mol, atom);
+            atom_types_[index] = assign_carbon_ord_(atom);
             break;
         case 7:
-            atom_types[index] = assign_nitrogen_ord_(mol, atom);
+            atom_types_[index] = assign_nitrogen_ord_(atom);
             break;
         case 8:
-            atom_types[index] = assign_oxygen_(mol, atom);
+            atom_types_[index] = assign_oxygen_(atom);
             break;
         case 16:
-            atom_types[index] = assign_sulfur_(mol, atom);
+            atom_types_[index] = assign_sulfur_(atom);
             break;
         case 15:
-            atom_types[index] = P_3;
+            atom_types_[index] = P_3;
             break;
         case 27:
-            atom_types[index] = Co_oh;
+            atom_types_[index] = Co_oh;
             break;
         case 44:
-            atom_types[index] = Ru_oh;
+            atom_types_[index] = Ru_oh;
             break;
         case 22:
-            atom_types[index] = atom.neighbor_count() <= 4 ? Ti_th:
+            atom_types_[index] = atom.neighbor_count() <= 4 ? Ti_th:
                                                              Ti_oh;
             break;
         case 24:
-            atom_types[index] = atom.neighbor_count() <= 4 ? Cr_th:
+            atom_types_[index] = atom.neighbor_count() <= 4 ? Cr_th:
                                                              Cr_oh;
             break;
         default:
-            atom_types[index] = sybyl_mask.at(atom.type());
+            atom_types_[index] = sybyl_mask.at(atom.type());
             break;
         }
     }
-
-    return atom_types;
 }
 
-size_t Sybyl::assign_carbon_ord_(const Molecule& mol, AtomVertex atom){
+size_t Sybyl::assign_carbon_ord_(AtomVertex atom){
     size_t num_double = 0, num_triple = 0, num_aromatic = 0;
     size_t num_nitrogen = 0;
 
-    const auto& bonds = mol.frame().topology().bonds();
-    const auto& bond_orders = mol.frame().topology().bond_orders();
+    const auto& bonds = mol_.frame().topology().bonds();
+    const auto& bond_orders = mol_.frame().topology().bond_orders();
 
     for (size_t i = 0; i < bonds.size(); ++i) {
         if (bonds[i][0] != atom.index() && bonds[i][1] != atom.index()) {
             continue;
         }
 
-        if (mol[bonds[i][0]].atomic_number() == 7) {
-            num_nitrogen += (freeOxygens(mol, mol[bonds[i][0]]) == 0);
+        if (mol_[bonds[i][0]].atomic_number() == 7) {
+            num_nitrogen += (freeOxygens(mol_, mol_[bonds[i][0]]) == 0);
         }
 
-        if (mol[bonds[i][1]].atomic_number() == 7) {
-            num_nitrogen += (freeOxygens(mol, mol[bonds[i][1]]) == 0);
+        if (mol_[bonds[i][1]].atomic_number() == 7) {
+            num_nitrogen += (freeOxygens(mol_, mol_[bonds[i][1]]) == 0);
         }
 
         if (bond_orders[i] == chemfiles::Bond::DOUBLE) {
@@ -234,26 +234,26 @@ size_t Sybyl::assign_carbon_ord_(const Molecule& mol, AtomVertex atom){
     return C_2;
 }
 
-size_t Sybyl::assign_nitrogen_ord_(const Molecule& mol, AtomVertex atom) {
+size_t Sybyl::assign_nitrogen_ord_(AtomVertex atom) {
     size_t num_double = 0, num_triple = 0, num_aromatic = 0;
     size_t num_amide = 0, num_deloc = 0;
 
-    const auto& bonds = mol.frame().topology().bonds();
-    const auto& bond_orders = mol.frame().topology().bond_orders();
+    const auto& bonds = mol_.frame().topology().bonds();
+    const auto& bond_orders = mol_.frame().topology().bond_orders();
 
     for (size_t i = 0; i < bonds.size(); ++i) {
         if (bonds[i][0] != atom.index() && bonds[i][1] != atom.index()) {
             continue;
         }
 
-        if (mol[bonds[i][0]].atomic_number() == 6) {
-            num_amide += (freeOxygens(mol, mol[bonds[i][0]]) == 0);
-            num_deloc += is_decloc(mol[bonds[i][0]], bonds, bond_orders);
+        if (mol_[bonds[i][0]].atomic_number() == 6) {
+            num_amide += (freeOxygens(mol_, mol_[bonds[i][0]]) == 0);
+            num_deloc += is_decloc(mol_[bonds[i][0]], bonds, bond_orders);
         }
 
-        if (mol[bonds[i][1]].atomic_number() == 6) {
-            num_amide += (freeOxygens(mol, mol[bonds[i][1]]) == 0);
-            num_deloc += is_decloc(mol[bonds[i][0]], bonds, bond_orders);
+        if (mol_[bonds[i][1]].atomic_number() == 6) {
+            num_amide += (freeOxygens(mol_, mol_[bonds[i][1]]) == 0);
+            num_deloc += is_decloc(mol_[bonds[i][0]], bonds, bond_orders);
         }
 
         if (bond_orders[i] == chemfiles::Bond::DOUBLE) {
@@ -267,7 +267,7 @@ size_t Sybyl::assign_nitrogen_ord_(const Molecule& mol, AtomVertex atom) {
         }
     }
 
-    auto numnonmetal = num_nonmetal(mol, atom);
+    auto numnonmetal = num_nonmetal(mol_, atom);
 
     if (numnonmetal >= 4 && num_double == 0 && num_triple == 0) {
         return N_4;
@@ -300,12 +300,12 @@ size_t Sybyl::assign_nitrogen_ord_(const Molecule& mol, AtomVertex atom) {
     return N_2;
 }
 
-size_t Sybyl::assign_carbon_3d_(const Molecule& mol, AtomVertex atom){
+size_t Sybyl::assign_carbon_3d_(AtomVertex atom) {
     auto num_neighbors = atom.neighbor_count();
     if (num_neighbors >= 4) {
         return C_3;
     } else if (num_neighbors == 1) {
-        auto dist = mol.frame().distance(atom.index(), atom[0]);
+        auto dist = mol_.frame().distance(atom.index(), atom[0]);
         if (dist > 1.41)
             return C_3;
         if (dist <= 1.22)
@@ -316,7 +316,7 @@ size_t Sybyl::assign_carbon_3d_(const Molecule& mol, AtomVertex atom){
         size_t angCount = 0;
         for (size_t n1 = 0; n1 < atom.neighbor_count(); ++n1) {
             for (size_t n2 = n1 + 1; n2 < atom.neighbor_count(); ++n2) {
-                avgAngle += mol.frame().angle(atom[n1], atom.index(), atom[n2]);
+                avgAngle += mol_.frame().angle(atom[n1], atom.index(), atom[n2]);
                 ++angCount;
             }
         }
@@ -336,28 +336,28 @@ size_t Sybyl::assign_carbon_3d_(const Molecule& mol, AtomVertex atom){
     }
 }
 
-size_t Sybyl::assign_nitrogen_3d_(const Molecule& mol, AtomVertex atom) {
-    auto numnonmetal = num_nonmetal(mol, atom);
+size_t Sybyl::assign_nitrogen_3d_(AtomVertex atom) {
+    auto numnonmetal = num_nonmetal(mol_, atom);
     if (numnonmetal == 4) {
         return N_4;
     } else if (numnonmetal == 1) {
-        auto dist = mol.frame().distance(atom.index(), atom[0]);
+        auto dist = mol_.frame().distance(atom.index(), atom[0]);
         if (dist > 1.2)
             return N_3;
         return N_1;
     } else if (numnonmetal == 3) {
         for (auto neighbor : atom) {
-            auto bondee = mol[neighbor];
+            auto bondee = mol_[neighbor];
             if (bondee.atomic_number() == 6 &&
-                freeOxygens(mol, bondee) == 1) {
+                freeOxygens(mol_, bondee) == 1) {
                 return N_am;
             }
         }
 
         auto sumAngle = 0.0;
-        sumAngle += mol.frame().angle(atom[0], atom.index(), atom[1]);
-        sumAngle += mol.frame().angle(atom[0], atom.index(), atom[2]);
-        sumAngle += mol.frame().angle(atom[1], atom.index(), atom[2]);
+        sumAngle += mol_.frame().angle(atom[0], atom.index(), atom[1]);
+        sumAngle += mol_.frame().angle(atom[0], atom.index(), atom[2]);
+        sumAngle += mol_.frame().angle(atom[1], atom.index(), atom[2]);
         sumAngle *= 180 / 3.14149;
 
         if (sumAngle >= 350.0) {
@@ -371,7 +371,7 @@ size_t Sybyl::assign_nitrogen_3d_(const Molecule& mol, AtomVertex atom) {
     size_t angCount = 0;
     for (size_t n1 = 0; n1 < atom.neighbor_count(); ++n1) {
         for (size_t n2 = n1 + 1; n2 < atom.neighbor_count(); ++n2) {
-            avgAngle += mol.frame().angle(atom[n1], atom.index(), atom[n2]);
+            avgAngle += mol_.frame().angle(atom[n1], atom.index(), atom[n2]);
             ++angCount;
         }
     }
@@ -386,11 +386,11 @@ size_t Sybyl::assign_nitrogen_3d_(const Molecule& mol, AtomVertex atom) {
     return N_2;
 }
 
-size_t Sybyl::assign_oxygen_(const Molecule& mol, AtomVertex atom) {
-    auto numnonmetal = num_nonmetal(mol, atom);
+size_t Sybyl::assign_oxygen_(AtomVertex atom) {
+    auto numnonmetal = num_nonmetal(mol_, atom);
     if (numnonmetal == 1) {
-        auto bondee = mol[atom[0]];
-        size_t freeOxy = freeOxygens(mol, atom);
+        auto bondee = mol_[atom[0]];
+        size_t freeOxy = freeOxygens(mol_, atom);
 
         if (bondee.atomic_number() == 6 &&
             bondee.neighbor_count() == 3 && freeOxy >= 2) {
@@ -409,14 +409,14 @@ size_t Sybyl::assign_oxygen_(const Molecule& mol, AtomVertex atom) {
     return O_2;
 }
 
-size_t Sybyl::assign_sulfur_(const Molecule& mol, AtomVertex atom) {
-    auto numnonmetal = num_nonmetal(mol, atom);
+size_t Sybyl::assign_sulfur_(AtomVertex atom) {
+    auto numnonmetal = num_nonmetal(mol_, atom);
 
-    if (numnonmetal == 3 && freeOxygens(mol, atom) == 1) {
+    if (numnonmetal == 3 && freeOxygens(mol_, atom) == 1) {
         return S_o;
     }
 
-    if (numnonmetal == 4 && freeOxygens(mol, atom) == 2) {
+    if (numnonmetal == 4 && freeOxygens(mol_, atom) == 2) {
         return S_o2;
     }
 

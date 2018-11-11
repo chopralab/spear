@@ -16,10 +16,21 @@ public:
     virtual ~AtomType() = default;
 
     /// Type the given molecule using 3D geometry
-    virtual std::vector<size_t> type_atoms_3d(const Molecule& mol) = 0;
+    virtual void type_atoms_3d() = 0;
 
     /// Type the given molecule using bond orders
-    virtual std::vector<size_t> type_atoms_order(const Molecule& mol) = 0;
+    virtual void type_atoms_order() = 0;
+
+    virtual const std::vector<size_t>& all_types() const = 0;
+
+    /// Retreive the type of a given typed atom
+    virtual size_t operator[](size_t atom_id) const = 0;
+
+    /// Beginning of all atomtypes
+    virtual std::vector<size_t>::const_iterator cbegin() const = 0;
+
+    /// Ending of all atomtypes
+    virtual std::vector<size_t>::const_iterator cend() const = 0;
 };
 
 template<class Format>
