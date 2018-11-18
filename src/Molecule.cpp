@@ -53,8 +53,8 @@ Molecule::Molecule(const chemfiles::Frame& frame) :
     // Create the graph representation
     auto bonds = topo.bonds();
     for ( size_t i = 0; i < bonds.size(); ++i) {
-        auto e = boost::add_edge(bonds[i][0], bonds[i][1], graph_);
-        graph_[e.first] = topo.bond_orders()[i];
+        boost::add_edge(bonds[i][0], bonds[i][1],
+            EdgeProperty(topo.bond_orders()[i]), graph_);
     }
 }
 
@@ -74,16 +74,16 @@ std::vector<Spear::EdgeDescriptor> Molecule::get_bonds_in(const std::set<size_t>
     std::vector<EdgeDescriptor> ret;
 
     std::copy_if(begin, end, std::back_inserter(ret),
-    [&atoms, this](EdgeDescriptor e){
-        auto target = boost::target(e, graph_);
-        auto source = boost::source(e, graph_);
-        if (atoms.count(target) == 0) {
-            return false;
-        }
-        if (atoms.count(source) == 0) {
-            return false;
-        }
-        return true;
+        [&atoms, this](EdgeDescriptor e){
+            auto target = boost::target(e, graph_);
+            auto source = boost::source(e, graph_);
+            if (atoms.count(target) == 0) {
+                return false;
+            }
+            if (atoms.count(source) == 0) {
+                return false;
+            }
+            return true;
     });
 
     return ret;

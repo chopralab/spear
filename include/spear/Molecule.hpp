@@ -8,17 +8,30 @@
 
 #include <vector>
 #include <boost/graph/undirected_graph.hpp>
+#include <boost/graph/mcgregor_common_subgraphs.hpp>
 
 namespace Spear {
 
+// Note: If more atom/bond properties are need other than number and order,
+// change the lines below:
+using VertexProperty = boost::property<boost::vertex_name_t, uint64_t>;
+using EdgeProperty = boost::property<boost::edge_name_t, uint64_t>;
+
 using Graph = boost::adjacency_list<boost::setS, boost::vecS,boost::undirectedS,
-                                    uint64_t, size_t>;
+                                    VertexProperty, EdgeProperty>;
+
 using Traits = boost::graph_traits<Graph>;
 using VertexDescriptor = Traits::vertex_descriptor;
 using EdgeDescriptor = Traits::edge_descriptor;
 using AdjacencyIterator = Traits::adjacency_iterator;
 using EdgeIterator = Traits::edge_iterator;
 using AdjacencyIteratorPair = std::pair<AdjacencyIterator, AdjacencyIterator>;
+
+using VertexNameMap = boost::property_map<Graph, boost::vertex_name_t>::type ;
+using VertexComparison = boost::property_map_equivalent<VertexNameMap, VertexNameMap>;
+  
+using EdgeNameMap = boost::property_map<Graph, boost::edge_name_t>::type;
+using EdgeComparison = boost::property_map_equivalent<EdgeNameMap, EdgeNameMap>;
 
 class Molecule;
 

@@ -137,7 +137,6 @@ TEST_CASE("IDATM") {
         IDATM idatm2(mol);
         idatm2.type_atoms_order();
         auto alltypes_2 = idatm2.all_types();
-std::cout << "72: " << idatm_name(47) << " 73: " << idatm_name(48) << std::endl;
         CHECK(alltypes == alltypes_2);
 	}
 
