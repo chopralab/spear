@@ -170,11 +170,11 @@ void Sybyl::type_atoms_order() {
             break;
         case 22:
             atom_types_[index] = atom.neighbor_count() <= 4 ? Ti_th:
-                                                             Ti_oh;
+                                                              Ti_oh;
             break;
         case 24:
             atom_types_[index] = atom.neighbor_count() <= 4 ? Cr_th:
-                                                             Cr_oh;
+                                                              Cr_oh;
             break;
         default:
             atom_types_[index] = sybyl_mask.at(atom.type());
@@ -247,13 +247,29 @@ size_t Sybyl::assign_nitrogen_ord_(AtomVertex atom) {
         }
 
         if (mol_[bonds[i][0]].atomic_number() == 6) {
-            num_amide += (freeOxygens(mol_, mol_[bonds[i][0]]) == 0);
+            num_amide += (freeOxygens(mol_, mol_[bonds[i][0]]) != 0);
             num_deloc += is_decloc(mol_[bonds[i][0]], bonds, bond_orders);
+            size_t num_nitrogens = 0;
+            for (auto bondee_bondee : mol_[bonds[i][0]]) {
+                num_nitrogens += mol_[bondee_bondee].atomic_number() == 7;
+            }
+
+            if (num_nitrogens >= 3 && bond_orders[i] == 2) {
+                return N_pl3;
+            }
         }
 
         if (mol_[bonds[i][1]].atomic_number() == 6) {
-            num_amide += (freeOxygens(mol_, mol_[bonds[i][1]]) == 0);
-            num_deloc += is_decloc(mol_[bonds[i][0]], bonds, bond_orders);
+            num_amide += (freeOxygens(mol_, mol_[bonds[i][1]]) != 0);
+            num_deloc += is_decloc(mol_[bonds[i][1]], bonds, bond_orders);
+            size_t num_nitrogens = 0;
+            for (auto bondee_bondee : mol_[bonds[i][1]]) {
+                num_nitrogens += mol_[bondee_bondee].atomic_number() == 7;
+            }
+
+            if (num_nitrogens >= 3 && bond_orders[i] == 2) {
+                return N_pl3;
+            }
         }
 
         if (bond_orders[i] == chemfiles::Bond::DOUBLE) {
@@ -290,7 +306,8 @@ size_t Sybyl::assign_nitrogen_ord_(AtomVertex atom) {
     }
 
     if (numnonmetal == 3) {
-        if (num_double != 0 || num_triple != 0 || num_aromatic != 0 || num_deloc != 0) {
+        if (num_double != 0 || num_triple != 0 || num_aromatic != 0 ||
+            num_deloc != 0) {
             return N_pl3;
         }
 
