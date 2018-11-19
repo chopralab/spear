@@ -3,6 +3,7 @@
 #ifndef SPEAR_ATOMTYPE_HPP
 #define SPEAR_ATOMTYPE_HPP
 
+#include <vector>
 #include <functional>   // std::bad_function_call
 
 #include "spear/exports.hpp"

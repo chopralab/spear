@@ -4,6 +4,8 @@
 #include <boost/graph/hawick_circuits.hpp>
 #include <boost/graph/undirected_graph.hpp>
 
+#include "spear/AtomType.hpp"
+
 using namespace Spear;
 
 // The cycle_printer is a visitor that will print the path that comprises
@@ -56,6 +58,10 @@ Molecule::Molecule(const chemfiles::Frame& frame) :
         boost::add_edge(bonds[i][0], bonds[i][1],
             EdgeProperty(topo.bond_orders()[i]), graph_);
     }
+}
+
+void Molecule::delete_AtomType::operator()(AtomType* p) {
+    delete p;
 }
 
 const std::set<std::set<size_t>> Molecule::rings() const {

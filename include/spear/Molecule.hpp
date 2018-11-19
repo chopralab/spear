@@ -4,9 +4,12 @@
 #define SPEAR_MOLECULE_HPP
 
 #include "spear/exports.hpp"
-#include "chemfiles/Frame.hpp"
 
 #include <vector>
+
+#include "chemfiles/Frame.hpp"
+#include "chemfiles/external/optional.hpp"
+
 #include <boost/graph/undirected_graph.hpp>
 
 namespace Spear {
@@ -27,6 +30,9 @@ using EdgeIterator = Traits::edge_iterator;
 using AdjacencyIteratorPair = std::pair<AdjacencyIterator, AdjacencyIterator>;
 
 class Molecule;
+class AtomType;
+
+using chemfiles::optional;
 
 class AtomVertex {
 public:
@@ -124,39 +130,34 @@ public:
 
     std::vector<EdgeDescriptor> get_bonds_in(const std::set<size_t>& atoms) const;
 
-    size_t size() const {
-        return frame_.size();
-    }
+    template<class atomtype, typename typemode>
+    std::string add_atomtype(typemode mode);
 
-    AtomVertex operator[](size_t index) const {
-        if (index >= size()) {
-            throw std::out_of_range("Index given to Molecule::operator[] is too large.");
-        }
-        return AtomVertex(this, index);
-    }
+    optional<const AtomType*> get_atomtype(const std::string& name) const;
 
-    iterator begin() const {
-        return iterator(this, 0);
-    }
+    size_t size() const;
 
-    iterator end() const {
-        return iterator(this, size());
-    }
+    AtomVertex operator[](size_t index) const;
 
-    iterator cbegin() const {
-        return iterator(this, 0);
-    }
+    iterator begin() const;
 
-    iterator cend() const {
-        return iterator(this, size());
-    }
+    iterator end() const;
+
+    iterator cbegin() const;
+
+    iterator cend() const;
 
 private:
     chemfiles::Frame frame_;
     
     Graph graph_;
 
-    std::vector<size_t> atom_types_;
+    struct delete_AtomType {
+        void operator()(AtomType* p);
+    };
+
+    typedef std::unique_ptr<AtomType, delete_AtomType> unqiue_AtomType;
+    std::unordered_map<std::string, unqiue_AtomType> atom_types_;
 };
 
 inline AtomVertex::AtomVertex(const Molecule* br, size_t index) :
@@ -312,6 +313,49 @@ inline AtomVertex Molecule::iterator::operator[](difference_type rhs) const {
     iterator tmp(*this);
     tmp += rhs;
     return *tmp;
+}
+
+template<class atomtype, typename typemode>
+inline std::string Molecule::add_atomtype(typemode mode) {
+    auto typed_atoms = new atomtype(*this, mode);
+    auto name = typed_atoms->name();
+    atom_types_[name] = std::unique_ptr<atomtype, delete_AtomType>(typed_atoms);
+    return name;
+}
+
+inline optional<const AtomType*> Molecule::get_atomtype(const std::string& name) const {
+    auto types = atom_types_.find(name);
+    if (types == atom_types_.end()) {
+        return chemfiles::nullopt;
+    }
+    return types->second.get();
+}
+
+inline size_t Molecule::size() const {
+    return frame_.size();
+}
+
+inline AtomVertex Molecule::operator[](size_t index) const {
+    if (index >= size()) {
+        throw std::out_of_range("Index given to Molecule::operator[] is too large.");
+    }
+    return AtomVertex(this, index);
+}
+
+inline Molecule::iterator Molecule::begin() const {
+    return iterator(this, 0);
+}
+
+inline Molecule::iterator Molecule::end() const {
+    return iterator(this, size());
+}
+
+inline Molecule::iterator Molecule::cbegin() const {
+    return iterator(this, 0);
+}
+
+inline Molecule::iterator Molecule::cend() const {
+    return iterator(this, size());
 }
 
 }
