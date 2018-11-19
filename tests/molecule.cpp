@@ -20,33 +20,33 @@ TEST_CASE("Molecule") {
 
         // Bidirectional iterator
         auto first = *(begin++);
-        CHECK(first.index() == 0);
+        CHECK(first == 0);
         CHECK(first.name() == "C");
         CHECK(first.neighbor_count() == 1);
         CHECK(first.atomic_number() == 6);
 
         auto third = *(++begin);
-        CHECK(third.index() == 2);
+        CHECK(third == 2);
         CHECK(third.name() == "C");
         CHECK(third.neighbor_count() == 2);
         CHECK(third.atomic_number() == 6);
 
         auto last_atom_vertex = *(--end);
-        CHECK(last_atom_vertex.index() == 17);
+        CHECK(last_atom_vertex == 17);
         CHECK(last_atom_vertex.name() == "O");
         CHECK(last_atom_vertex.neighbor_count() == 1);
         CHECK(last_atom_vertex.atomic_number() == 8);
         --end;
         --end;
         auto carbonyl = *(end--);
-        CHECK(carbonyl.index() == 15);
+        CHECK(carbonyl == 15);
         CHECK(carbonyl.name() == "C");
         CHECK(carbonyl.neighbor_count() == 3);
         CHECK(carbonyl.atomic_number() == 6);
 
         // Random access iterator
         CHECK_THROWS(begin[1000]);
-        CHECK(begin[2].index() == 4);
+        CHECK(begin[2] == 4);
 
         CHECK(end > begin);
         CHECK(begin < end);

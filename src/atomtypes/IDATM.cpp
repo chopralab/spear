@@ -286,57 +286,56 @@ void IDATM::type_atoms_order() {
     infallible_();
 
     for (const auto atom : mol_) {
-        auto index = atom.index();
-        if (mapped_[index]) continue;
+        if (mapped_[atom]) continue;
 
         auto freeOs = freeOxygens(mol_, atom, heavys_);
         auto valence = atom.neighbor_count();
 
         switch (atom.atomic_number()) {
             case 6:
-                atom_types_[index] = idatm::C3;
+                atom_types_[atom] = idatm::C3;
                 break;
             case 7:
                 if (valence == 4) {
-                    atom_types_[index] = freeOs >= 1 ? idatm::Nox
-                                                     : idatm::N3p;
+                    atom_types_[atom] = freeOs >= 1 ? idatm::Nox
+                                                    : idatm::N3p;
                 } else if (valence == 3) {
-                    atom_types_[index] = freeOs >= 2 ? idatm::Ntr
-                                                     : idatm::N3;
+                    atom_types_[atom] = freeOs >= 2 ? idatm::Ntr
+                                                    : idatm::N3;
                 } else {
-                    atom_types_[index] = idatm::N3;
+                    atom_types_[atom] = idatm::N3;
                 }
                 break;
             case 8:
-                atom_types_[index] = idatm::O3;
+                atom_types_[atom] = idatm::O3;
                 break;
             case 15:
                 if (valence == 4) {
                     if (freeOs >= 2) { // phostphate
-                        atom_types_[index] = idatm::Pac;
+                        atom_types_[atom] = idatm::Pac;
                     } else if (freeOs == 1) { // P-oxide
-                        atom_types_[index] = idatm::Pox;
+                        atom_types_[atom] = idatm::Pox;
                     } else { // Formally positive SP3 phospohrus
-                        atom_types_[index] = idatm::P3p;
+                        atom_types_[atom] = idatm::P3p;
                     }
                 } else {
-                    atom_types_[index] = idatm::P;
+                    atom_types_[atom] = idatm::P;
                 }
                 break;
             case 16:
                 if (valence == 4) {
                     if (freeOs >= 3) { // Sulfate
-                        atom_types_[index] = idatm::Sac;
+                        atom_types_[atom] = idatm::Sac;
                     } else if (freeOs >= 1) { // Sulfone
-                        atom_types_[index] = idatm::Son;
+                        atom_types_[atom] = idatm::Son;
                     } else { // We don't know! Other!
-                        atom_types_[index] = idatm::S;
+                        atom_types_[atom] = idatm::S;
                     }
                 } else if (valence == 3) {
-                    atom_types_[index] = freeOs > 0 ? idatm::Sxd
+                    atom_types_[atom] = freeOs > 0 ? idatm::Sxd
                                                     : idatm::S3p;
                 } else {
-                    atom_types_[index] = idatm::S3;
+                    atom_types_[atom] = idatm::S3;
                 }
                 break;
             default:
@@ -403,10 +402,10 @@ void IDATM::infallible_() {
             const auto& type = atom.type();
             bool isHyd = (std::toupper(type[0], loc) == 'H');
 
-            atom_types_[atom.index()] = bondedToCarbon ? (isHyd ? HC: DC)
-                                                       : (isHyd ? H : D);
+            atom_types_[atom] = bondedToCarbon ? (isHyd ? HC: DC)
+                                               : (isHyd ? H : D);
 
-            mapped_[atom.index()] = true;
+            mapped_[atom] = true;
 
             continue;
         }
@@ -416,7 +415,7 @@ void IDATM::infallible_() {
             if (mol_[neighbor].atomic_number() > 1) heavyCount++;
         }
 
-        heavys_[atom.index()] = heavyCount;
+        heavys_[atom] = heavyCount;
     }
 
     // Use templates for "infallible" typing of standard residues
@@ -457,10 +456,8 @@ void IDATM::infallible_() {
     }
 
     for (auto atom : mol_) {
-        auto index = atom.index();
-
         // Hydrogens, standard residues
-        if (mapped_[index]) {
+        if (mapped_[atom]) {
             continue;
         }
 
@@ -469,8 +466,8 @@ void IDATM::infallible_() {
         if ((element >= 2 && element <= 4) ||
             (element >= 10 && element <= 14) ||
             element >= 17) {
-            atom_types_[index] = idatm_mask.at(atom.type());
-            mapped_[index] = true; // infallible type
+            atom_types_[atom] = idatm_mask.at(atom.type());
+            mapped_[atom] = true; // infallible type
             continue;
         }
     }
@@ -480,10 +477,8 @@ void IDATM::infallible_() {
 std::vector<size_t> IDATM::valence_() {
     std::vector<size_t> redo(mol_.size());
     for (auto atom : mol_) {
-        auto index = atom.index();
-
         // Hydrogens, standard residues
-        if (mapped_[index]) {
+        if (mapped_[atom]) {
             continue;
         }
 
@@ -493,32 +488,32 @@ std::vector<size_t> IDATM::valence_() {
         auto freeOs = freeOxygens(mol_, atom, heavys_);
         if (valence == 4) { // assume tetrahedral
             if (element == 6) {
-                atom_types_[index] = idatm::C3; // must be sp3 carbon
+                atom_types_[atom] = idatm::C3; // must be sp3 carbon
             } else if (element == 7) {
-                atom_types_[index] = freeOs >= 1 ? idatm::Nox
+                atom_types_[atom] = freeOs >= 1 ? idatm::Nox
                                                  : idatm::N3p;
             } else if (element == 15) {
                 if (freeOs >= 2) { // phostphate
-                    atom_types_[index] = idatm::Pac;
+                    atom_types_[atom] = idatm::Pac;
                 } else if (freeOs == 1) { // P-oxide
-                    atom_types_[index] = idatm::Pox;
+                    atom_types_[atom] = idatm::Pox;
                 } else { // Formally positive SP3 phospohrus
-                    atom_types_[index] = idatm::P3p;
+                    atom_types_[atom] = idatm::P3p;
                 }
             } else if (element == 16) {
                 if (freeOs >= 3) { // Sulfate
-                    atom_types_[index] = idatm::Sac;
+                    atom_types_[atom] = idatm::Sac;
                 } else if (freeOs >= 1) { // Sulfone
-                    atom_types_[index] = idatm::Son;
+                    atom_types_[atom] = idatm::Son;
                 } else { // We don't know! Other!
-                    atom_types_[index] = idatm::S;
+                    atom_types_[atom] = idatm::S;
                 }
             }
         } else if (valence == 3) {
             auto avgAngle = 0.0;
             for (size_t n1 = 0; n1 < 3; ++n1) {
                 for (size_t n2 = n1 + 1; n2 < 3; ++n2) {
-                    avgAngle += mol_.frame().angle(atom[n1], index, atom[n2]);
+                    avgAngle += mol_.frame().angle(atom[n1], atom, atom[n2]);
                 }
             }
             avgAngle /= 3.0;
@@ -526,54 +521,54 @@ std::vector<size_t> IDATM::valence_() {
 
             if (element == 6) {
                 if (avgAngle < angle23val1) { // angle significantly < 120?
-                    atom_types_[index] = idatm::C3; // Then tetrahedral
+                    atom_types_[atom] = idatm::C3; // Then tetrahedral
                 } else { // Most likely trigonal planar (some expceptions)
-                    atom_types_[index] = freeOs >= 2 ? idatm::Cac
-                                                     : idatm::C2;
+                    atom_types_[atom] = freeOs >= 2 ? idatm::Cac
+                                                    : idatm::C2;
                 }
             } else if (element == 7) {
                 if (avgAngle < angle23val1) {
-                    atom_types_[index] = idatm::N3; // likely tetrahedral
+                    atom_types_[atom] = idatm::N3; // likely tetrahedral
                 } else { 
-                    atom_types_[index] = freeOs >= 2 ? idatm::Ntr
-                                                     : idatm::Npl;
+                    atom_types_[atom] = freeOs >= 2 ? idatm::Ntr
+                                                    : idatm::Npl;
                 }
             } else if (element == 16) { // sulfoxide or formally positive sp3 S
-                 atom_types_[index] = freeOs > 0 ? idatm::Sxd
-                                                 : idatm::S3p;
+                 atom_types_[atom] = freeOs > 0 ? idatm::Sxd
+                                                : idatm::S3p;
             }
         } else if (valence == 2) {
-            double ang = mol_.frame().angle(atom[0], index, atom[1]) * 180 / 3.14159;
+            double ang = mol_.frame().angle(atom[0], atom, atom[1]) * 180 / 3.14159;
             if (element == 6) {
                 if (ang < angle23val1) { // could be tetralhedral, let's redo
-                    atom_types_[index] = idatm::C3;
-                    redo[index] = 1;
+                    atom_types_[atom] = idatm::C3;
+                    redo[atom] = 1;
                 } else if (ang < angle12val) { // Signficantly less than 180o
-                    atom_types_[index] = idatm::C2;
+                    atom_types_[atom] = idatm::C2;
                     if (ang < angle23val2) { // Angle is too small for comfort
-                        redo[index] = 3;
+                        redo[atom] = 3;
                     }
                 } else { // It's near 180o, so sp carbon
-                    atom_types_[index] = idatm::C1;
+                    atom_types_[atom] = idatm::C1;
                 }
             } else if (element == 7) {
                 if (ang < angle23val1) { // Check if its tetralhedral, redo
-                    atom_types_[index] = idatm::N3;
-                    redo[index] = 2;
+                    atom_types_[atom] = idatm::N3;
+                    redo[atom] = 2;
                 } else { // Is it near 180o?
-                    atom_types_[index] = ang < angle12val ? idatm::Npl
-                                                          : idatm::N1;
+                    atom_types_[atom] = ang < angle12val ? idatm::Npl
+                                                         : idatm::N1;
                 }
             } else if (element == 8) { // Valence of two = tetrahedral
-                atom_types_[index] = idatm::O3;
+                atom_types_[atom] = idatm::O3;
             } else if (element == 16) {
-                atom_types_[index] = idatm::S3;
+                atom_types_[atom] = idatm::S3;
             }
         }
 
         // For valence 1, ensure that a default type gets assigned.
-        if (atom_types_[index] == idatm::unk) {
-            atom_types_[index] = idatm_mask.at(atom.type());
+        if (atom_types_[atom] == idatm::unk) {
+            atom_types_[atom] = idatm_mask.at(atom.type());
         }
     }
 
@@ -587,69 +582,68 @@ void IDATM::terminal_(std::vector<size_t>& redo) {
 
         if (neighbor_count != 1) continue; // only terminal atoms!
 
-        auto bondee = mol_[atom[0]];
-        auto len = mol_.frame().distance(atom.index(), bondee.index());
-        auto bondeeType = atom_types_[bondee.index()];
-        auto index = atom.index();
+        auto bondee = atom[0];
+        auto len = mol_.frame().distance(atom, bondee);
+        auto bondeeType = atom_types_[bondee];
 
-        if (atom_types_[index] == idatm::C) { // Default Carbon
-            if (mapped_[index]) continue;
+        if (atom_types_[atom] == idatm::C) { // Default Carbon
+            if (mapped_[atom]) continue;
             if (len <= p3c1c1 && bondeeType == idatm::C1) { // Check length
-               atom_types_[index] = idatm::C1;
+               atom_types_[atom] = idatm::C1;
             } else if (len <= p3c2c && bondee.atomic_number() == 6) {
-                atom_types_[index] = idatm::C2;
+                atom_types_[atom] = idatm::C2;
             } else if (len <= p3c2n && bondee.atomic_number() == 7) {
-                atom_types_[index] = idatm::C2;
+                atom_types_[atom] = idatm::C2;
             } else {
-                atom_types_[index] = idatm::C3;
+                atom_types_[atom] = idatm::C3;
             }
-        } else if (atom_types_[index] == idatm::N) {
-            if (mapped_[index]) continue;
+        } else if (atom_types_[atom] == idatm::N) {
+            if (mapped_[atom]) continue;
             if (len <= p3n1c1 && bondeeType == idatm::C1) {
-                atom_types_[index] = idatm::N1;
+                atom_types_[atom] = idatm::N1;
             } else if (len > p3n3c &&
                        (bondeeType == idatm::C2 ||
                         bondeeType == idatm::C3)) {
-                atom_types_[index] = idatm::N3;
+                atom_types_[atom] = idatm::N3;
             } else if ((len > p3n3n3 && bondeeType == idatm::N3) ||
                        (len > p3n3n2 && bondeeType == idatm::Npl)) {
-                atom_types_[index] = idatm::N3;
+                atom_types_[atom] = idatm::N3;
             } else {
-                atom_types_[index] = idatm::Npl;
+                atom_types_[atom] = idatm::Npl;
             }
-        } else if (atom_types_[index] == idatm::O) {
+        } else if (atom_types_[atom] == idatm::O) {
             if (bondeeType == idatm::Cac ||
                 bondeeType == idatm::Pac ||
                 bondeeType == idatm::Sac ||
                 bondeeType == idatm::Ntr) {
-                if (!mapped_[index]) atom_types_[index] = idatm::O2m;
+                if (!mapped_[atom]) atom_types_[atom] = idatm::O2m;
             } else if (bondeeType == idatm::Nox ||
                        bondeeType == idatm::Pox ||
                        bondeeType == idatm::Son ||
                        bondeeType == idatm::Sxd) {
-                if (!mapped_[index]) atom_types_[index] = idatm::O2;
+                if (!mapped_[atom]) atom_types_[atom] = idatm::O2;
             } else if (len <= p3o2c2 && bondee.atomic_number() == 6) {
-                if (!mapped_[index]) atom_types_[index] = idatm::O2;
-                if (!mapped_[bondee.index()])
-                    atom_types_[bondee.index()] = idatm::C2;
-                redo[bondee.index()] = 0; // Don't redo bondee, we are sure.
+                if (!mapped_[atom]) atom_types_[atom] = idatm::O2;
+                if (!mapped_[bondee])
+                    atom_types_[bondee] = idatm::C2;
+                redo[bondee] = 0; // Don't redo bondee, we are sure.
             } else if (len <= p3o2as && bondee.type() == "As") {
-                if (!mapped_[index]) atom_types_[index] = idatm::O2;
+                if (!mapped_[atom]) atom_types_[atom] = idatm::O2;
             } else {
-                if (!mapped_[index]) atom_types_[index] = idatm::O3;
+                if (!mapped_[atom]) atom_types_[atom] = idatm::O3;
             }
-        } else if (atom_types_[index] == idatm::S) {
+        } else if (atom_types_[atom] == idatm::S) {
             if (bondee.atomic_number() == 15) {
-                if (!mapped_[index]) atom_types_[index] = idatm::S2;
+                if (!mapped_[atom]) atom_types_[atom] = idatm::S2;
             } else if (len <= p3s2c2 && bondee.atomic_number() == 6) {
-                if (!mapped_[index]) atom_types_[index] = idatm::S2;
-                if (!mapped_[bondee.index()])
-                    atom_types_[bondee.index()] = idatm::C2;
-                redo[bondee.index()] = 0; // Don't redo bondee, we are sure.
+                if (!mapped_[atom]) atom_types_[atom] = idatm::S2;
+                if (!mapped_[bondee])
+                    atom_types_[bondee] = idatm::C2;
+                redo[bondee] = 0; // Don't redo bondee, we are sure.
             } else if (len <= p3s2as && bondee.type() == "As") {
-                if (!mapped_[index]) atom_types_[index] = idatm::S2;
+                if (!mapped_[atom]) atom_types_[atom] = idatm::S2;
             } else {
-                if (!mapped_[index]) atom_types_[index] = idatm::S3;
+                if (!mapped_[atom]) atom_types_[atom] = idatm::S3;
             }
         }
     }
@@ -657,36 +651,35 @@ void IDATM::terminal_(std::vector<size_t>& redo) {
 
 void IDATM::redo_(const std::vector<size_t>& redo) {
     for (auto atom : mol_) {
-        size_t index = atom.index();
-        if (mapped_[index]) continue;
-        if (redo[index] == 0) continue;
+        if (mapped_[atom]) continue;
+        if (redo[atom] == 0) continue;
 
         bool c3able = false;
         for (auto bondee : atom) {
-            auto len = mol_.frame().distance(index, bondee);
+            auto len = mol_.frame().distance(atom, bondee);
             auto bondeeElement = *(mol_.frame()[bondee].atomic_number());
 
-            if (redo[index] == 1) { // Tetrahedral or planar carbon?
+            if (redo[atom] == 1) { // Tetrahedral or planar carbon?
                 if ((len > p4c3c && bondeeElement == 6) ||
                     (len > p4c3n && bondeeElement == 7) ||
                     (len > p4c3o && bondeeElement == 8)) {
-                    atom_types_[index] = idatm::C3;
+                    atom_types_[atom] = idatm::C3;
                     break; // Done for this redo
                 }
                 if ((len <= p4c2c && bondeeElement == 6) ||
                     (len <= p4c2n && bondeeElement == 7)) {
-                    atom_types_[index] = idatm::C2;
+                    atom_types_[atom] = idatm::C2;
                 }
-            } else if (redo[index] == 2) { // Tetrahedral or planar nitrogen?
+            } else if (redo[atom] == 2) { // Tetrahedral or planar nitrogen?
                 if ((len <= p4n2c && bondeeElement == 6) ||
                     (len <= p4n2n && bondeeElement == 7)) {
-                    atom_types_[index] = idatm::Npl;
+                    atom_types_[atom] = idatm::Npl;
                     break; // Done for this redo
                 }
             } else {
                 if ((len <= p4c2c && bondeeElement == 6) ||
                     (len <= p4c2n && bondeeElement == 7)) {
-                    atom_types_[index] = idatm::C2;
+                    atom_types_[atom] = idatm::C2;
                     c3able = false;
                     break;
                 }
@@ -699,21 +692,20 @@ void IDATM::redo_(const std::vector<size_t>& redo) {
                 if (len > p4ccnd && bondeeElement == 6) c3able = true;
             }
         }
-        if (c3able) atom_types_[index] = idatm::C3;
+        if (c3able) atom_types_[atom] = idatm::C3;
     }
 }
 
 void IDATM::fix_C2_() {
     for (auto atom : mol_) {
-        auto index = atom.index();
-        if (atom_types_[index] != idatm::C2) continue;
+        if (atom_types_[atom] != idatm::C2) continue;
 
         if (freeOxygens(mol_, atom, heavys_) >= 2) {
-            atom_types_[index] = idatm::Cac;
+            atom_types_[atom] = idatm::Cac;
             continue;
         }
 
-        if (mapped_[index]) continue;
+        if (mapped_[atom]) continue;
 
         bool c2possible = false;
         for (auto bondee : atom) {
@@ -722,15 +714,14 @@ void IDATM::fix_C2_() {
                 break;
             }
         }
-        if (!c2possible) atom_types_[index] = idatm::C3;
+        if (!c2possible) atom_types_[atom] = idatm::C3;
     }
 }
 
 void IDATM::charges_() {
     for (auto atom : mol_) {
-        auto index = atom.index();
-        if (atom_types_[index] == idatm::N3) {
-            if (mapped_[index]) continue;
+        if (atom_types_[atom] == idatm::N3) {
+            if (mapped_[atom]) continue;
             bool positive = true;
             auto c2_index = mol_.size();
             for (auto bondee : atom) {
@@ -743,12 +734,12 @@ void IDATM::charges_() {
                     c2_index = bondee;
                 }
             }
-            if (positive) atom_types_[index] = idatm::N3p;
+            if (positive) atom_types_[atom] = idatm::N3p;
 
             if (c2_index != mol_.size() && freeOxygens(mol_, mol_[c2_index], heavys_) == 1) {
-                atom_types_[index] = idatm::Npl;
+                atom_types_[atom] = idatm::Npl;
             }
-        } else if (atom_types_[index] == idatm::C2) {
+        } else if (atom_types_[atom] == idatm::C2) {
             int numNpls = 0;
             bool hasN2 = false;
             for (auto bondee : atom) {
@@ -773,7 +764,7 @@ void IDATM::charges_() {
                     for (auto bondee2 : mol_[bondee]) {
                         if ((atom_types_[bondee2] == idatm::C2 ||
                             atom_types_[bondee2] == idatm::Npl) &&
-                            bondee2 != index) {
+                            bondee2 != atom) {
                             atom_types_[bondee] = idatm::Npl;
                             noplus = true;
                             break;
@@ -790,7 +781,7 @@ void IDATM::charges_() {
                     }
                 }
             }
-        } else if (atom_types_[index] == idatm::Cac) {
+        } else if (atom_types_[atom] == idatm::Cac) {
             for (auto bondee : atom) {
                 if (mapped_[bondee]) continue;
                 if (mol_[bondee].atomic_number() == 8 && heavys_[bondee] == 1) {
@@ -861,13 +852,9 @@ void IDATM::aromatic_() {
 
 void IDATM::fix_N2_() {
     for (auto atom : mol_) {
-        auto index = atom.index();
-        if (mapped_[index]) continue;
-
-        if (atom_types_[index] != idatm::Npl) continue;
-
-        if (heavys_[index] != 2) continue;
-
+        if (mapped_[atom]) continue;
+        if (atom_types_[atom] != idatm::Npl) continue;
+        if (heavys_[atom] != 2) continue;
         if (atom.neighbor_count() > 2) continue;
 
         // are both bonded heavy atoms sp3?  If so -> Npl
@@ -900,17 +887,17 @@ void IDATM::fix_N2_() {
         }
         auto avgLen = 0.0;
         for (auto bondee : atom) {
-            auto len = mol_.frame().distance(index, bondee);
+            auto len = mol_.frame().distance(atom, bondee);
             avgLen += len;
         }
         avgLen /= 2.0;
         if (bothC) {
-            if (avgLen <= p8cc2n2h) atom_types_[index] = idatm::N2;
+            if (avgLen <= p8cc2n2h) atom_types_[atom] = idatm::N2;
         } else if (bothN) {
-            if (avgLen <= p8nn2n2h) atom_types_[index] = idatm::N2;
+            if (avgLen <= p8nn2n2h) atom_types_[atom] = idatm::N2;
         } else if (avgLen <= p8cn2n2h) {
             // one N, one C
-            atom_types_[index] = idatm::N2;
+            atom_types_[atom] = idatm::N2;
         }
     }
 }
@@ -986,64 +973,63 @@ void IDATM::heteroaromatics_() {
 
 void IDATM::fix_tetrahedrals_() {
     for (auto atom : mol_) {
-        if (mapped_[atom.index()]) continue;
-        if (heavys_[atom.index()] != 1) continue;
+        if (mapped_[atom]) continue;
+        if (heavys_[atom] != 1) continue;
 
-        auto index = atom.index();
         auto bondee = atom[0];
 
         // resonance equivalent terminal oxygen on tetrahedral
         // center (phosphate, sulfate, sulfone...)
         if (atom.atomic_number() == 8 &&
             oxygenConjugatedTetra.count(atom_types_[bondee]) != 0) {
-            atom_types_[index] = idatm::O3m;
+            atom_types_[atom] = idatm::O3m;
         }
 
         // change terminal C3 bound to C1, which in turn is
         // bound to any C but C1 (Ligand ID: 1DJ, Atom Name:
         // CAA) to C1
-        if (atom_types_[index] == idatm::C3 &&
+        if (atom_types_[atom] == idatm::C3 &&
             atom_types_[bondee] == idatm::C1 &&
             heavys_[bondee] == 2) {
 
-            // Not the current index
-            auto bondee_bondee = mol_[bondee][0] == index ?
-                                 mol_[bondee][1] : mol_[bondee][0];
+            // Not the current atom
+            auto bondee_bondee = bondee[0] == atom ?
+                                 bondee[1] : bondee[0];
 
-            // Change current index if needed!
+            // Change current atom if needed!
             if (atom_types_[bondee_bondee] != idatm::C1) {
-                atom_types_[atom.index()] = idatm::C1;
+                atom_types_[atom] = idatm::C1;
             }
         }
 
         // change 2-substituted Npl bound to isolated C2 to N2
-        if (atom_types_[index] == idatm::C2 &&
+        if (atom_types_[atom] == idatm::C2 &&
             atom_types_[bondee] == idatm::Npl &&
             heavys_[bondee] == 3) {
 
-            if ((mol_[bondee][0] == index || atom_types_[mol_[bondee][0]] == idatm::C3) &&
-                (mol_[bondee][1] == index || atom_types_[mol_[bondee][1]] == idatm::C3) &&
-                (mol_[bondee][2] == index || atom_types_[mol_[bondee][2]] == idatm::C3)) {
+            if ((bondee[0] == atom || atom_types_[bondee[0]] == idatm::C3) &&
+                (bondee[1] == atom || atom_types_[bondee[1]] == idatm::C3) &&
+                (bondee[2] == atom || atom_types_[bondee[2]] == idatm::C3)) {
 
                 atom_types_[bondee] = idatm::N2;
             }
         }
 
         // change 1-substituted Npl (terminal -N=N=N) to N1 (e.g. azide)
-        if ((atom_types_[index] == idatm::Npl || atom_types_[index] == idatm::N2)
+        if ((atom_types_[atom] == idatm::Npl || atom_types_[atom] == idatm::N2)
             && heavys_[bondee] == 2 && mol_[bondee].atomic_number() == 7) {
 
-            auto bondee_bondee = mol_[bondee][0] == index ?
-                                 mol_[bondee][1] : mol_[bondee][0];
+            auto bondee_bondee = bondee[0] == atom ?
+                                 bondee[1] : bondee[0];
 
-            if (mol_[bondee_bondee].atomic_number() == 7) {
-                atom_types_[index] = idatm::N1;
+            if (bondee_bondee.atomic_number() == 7) {
+                atom_types_[atom] = idatm::N1;
             }
         }
 
-        if (atom_types_[index] == idatm::N3 &&
+        if (atom_types_[atom] == idatm::N3 &&
             atom_types_[bondee] == idatm::Son) {
-            atom_types_[index] = idatm::Npl;
+            atom_types_[atom] = idatm::Npl;
         }
 
         // terminal sulfur on tetrahedral center (thiophosphate)
@@ -1051,19 +1037,17 @@ void IDATM::fix_tetrahedrals_() {
             (atom_types_[bondee] == idatm::P3p ||
              atom_types_[bondee] == idatm::Pox ||
              atom_types_[bondee] == idatm::Pac)) {
-            atom_types_[atom.index()] = idatm::S3m;
+            atom_types_[atom] = idatm::S3m;
         }
     }
 }
 
 void IDATM::fix_special_() {
     for (auto atom : mol_) {
-        auto index = atom.index();
-
-        if (mapped_[index]) continue;
+        if (mapped_[atom]) continue;
 
         // Correct peptide bond
-        if (atom_types_[index] == idatm::C2) {
+        if (atom_types_[atom] == idatm::C2) {
 
             // Check for a tautomer!!!!
             auto n2_index = mol_.size(), o3_index = mol_.size(); // size = invalid
@@ -1079,15 +1063,15 @@ void IDATM::fix_special_() {
         }
 
         // Middle azide: change 2-substituted N1 to N1+ (e.g. azide)
-        if (atom_types_[index] == idatm::N1 && atom.neighbor_count() == 2) {
-            if (mol_[atom[0]].atomic_number() == 7 &&
-                mol_[atom[1]].atomic_number() == 7) {
-                atom_types_[index] = idatm::N1p;
+        if (atom_types_[atom] == idatm::N1 && atom.neighbor_count() == 2) {
+            if (atom[0].atomic_number() == 7 &&
+                atom[1].atomic_number() == 7) {
+                atom_types_[atom] = idatm::N1p;
             }
         }
 
         // change 3-substituted Npl (eg first nitrogen in -N(-H)=N=N) to N2+)
-        if ((atom_types_[index] == idatm::Npl || atom_types_[index] == idatm::N2)
+        if ((atom_types_[atom] == idatm::Npl || atom_types_[atom] == idatm::N2)
             && atom.neighbor_count() == 3) {
             auto has_n1 = false, has_h = false;
             for (auto bondee : atom) {
@@ -1095,7 +1079,7 @@ void IDATM::fix_special_() {
                 if (atom_types_[bondee] == idatm::N1p)has_n1 = true;
                 if (mol_[bondee].atomic_number() == 1) has_h = true;
             }
-            if (has_n1 && has_h) atom_types_[index] = idatm::N2p;
+            if (has_n1 && has_h) atom_types_[atom] = idatm::N2p;
         }
 
         // (R-)P(=N-)(=N-). We need to change the Ns from Npl to N2
@@ -1143,7 +1127,7 @@ void IDATM::fix_special_() {
         }
 
         // Special ligand POB case
-        if (atom_types_[index] == idatm::C2 && atom.neighbor_count() == 3) {
+        if (atom_types_[atom] == idatm::C2 && atom.neighbor_count() == 3) {
             auto has_n3 = false, has_pox = false, has_c3 = false;
             for (auto bondee : atom) {
                 if (atom_types_[bondee] == idatm::Pox) has_pox = true;
@@ -1151,7 +1135,7 @@ void IDATM::fix_special_() {
                 if (atom_types_[bondee] == idatm::N3)  has_n3 = true;
             }
 
-            if (has_c3 && has_n3 && has_pox) atom_types_[index] = idatm::C3;
+            if (has_c3 && has_n3 && has_pox) atom_types_[atom] = idatm::C3;
         }
     }
 }

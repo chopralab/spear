@@ -130,7 +130,7 @@ double Bernard12::score(
             if (ignore_hydro && atom2.atomic_number() == 1) continue;
             auto dist = (atom1.position() - atom2.position()).norm();
 
-            auto atom_pair = std::minmax(types1[atom1.index()], types2[atom2.index()]);
+            auto atom_pair = std::minmax(types1[atom1], types2[atom2]);
             auto idx = static_cast<size_t>(dist / step_in_file_);
             auto distrution = energies_scoring_.find(atom_pair);
 

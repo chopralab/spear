@@ -32,10 +32,6 @@ class AtomVertex {
 public:
     AtomVertex(const Molecule* br, size_t index);
 
-    size_t index() const {
-        return index_;
-    }
-
     const std::string& name() const;
 
     const std::string& type() const;
@@ -48,7 +44,11 @@ public:
     
     AdjacencyIteratorPair neighbors() const;
 
-    size_t operator[](size_t) const;
+    bool operator==(const AtomVertex& rhs) const;
+
+    AtomVertex operator[](size_t) const;
+
+    operator size_t() const;
     
     AdjacencyIterator begin() const;
     
@@ -188,10 +188,18 @@ inline AdjacencyIteratorPair AtomVertex::neighbors() const {
     return boost::adjacent_vertices(index_, br_->graph());
 }
 
-inline size_t AtomVertex::operator[](size_t i) const {
+inline bool AtomVertex::operator==(const AtomVertex& rhs) const {
+    return (br_ == rhs.br_ && index_ == rhs.index_);
+}
+
+inline AtomVertex AtomVertex::operator[](size_t i) const {
     auto tmp = begin();
     std::advance(tmp, i);
-    return *(tmp);
+    return AtomVertex(br_, *(tmp));
+}
+
+inline AtomVertex::operator size_t() const {
+    return index_;
 }
 
 inline AdjacencyIterator AtomVertex::begin() const {
