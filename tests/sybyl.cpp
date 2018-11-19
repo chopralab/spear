@@ -20,8 +20,7 @@ TEST_CASE("SYBYL") {
     auto traj = chemfiles::Trajectory("data/sybyl_test.mol2");
     auto mol = Molecule(traj.read());
 
-    Sybyl sybyl(mol);
-    sybyl.type_atoms_order();
+    Sybyl sybyl(mol, AtomType::TOPOLOGY);
 	auto alltypes = sybyl.all_types();
 	CHECK(alltypes.size() == mol.size());
 

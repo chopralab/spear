@@ -7,24 +7,25 @@
 
 namespace Spear {
 
+
+/// algorithm based on E.C. Meng / R.A. Lewis paper
+/// "Determination of Molecular Topology and Atomic Hybridization
+/// States from Heavy Atom Coordinates", J. Comp. Chem., v12#7, 891-898
+/// and on example code from idatm.f implementation by E.C. Meng
+
+/// differences: No boron types.  Double-bonded Npls are split off
+///   as N2.  Sox split into Sxd (sulfoxide), and Son (sulfone).
+///   Carbons in aromatic rings are type Car.  Aromatic oxygens are Oar.
+/// still missing types: C1-,O1+,O1
+
 class SPEAR_EXPORT IDATM : public AtomType {
 public:
 
-    IDATM(const Molecule& mol);
+    IDATM(const Molecule& mol, TypingMode mode);
 
-    /// algorithm based on E.C. Meng / R.A. Lewis paper
-    /// "Determination of Molecular Topology and Atomic Hybridization
-    /// States from Heavy Atom Coordinates", J. Comp. Chem., v12#7, 891-898
-    /// and on example code from idatm.f implementation by E.C. Meng
-
-    /// differences: No boron types.  Double-bonded Npls are split off
-    ///   as N2.  Sox split into Sxd (sulfoxide), and Son (sulfone).
-    ///   Carbons in aromatic rings are type Car.  Aromatic oxygens are Oar.
-    /// still missing types: C1-,O1+,O1
-
-    void type_atoms_3d() override;
-
-    void type_atoms_order() override;
+    const std::string& name() const override {
+        return name_;
+    }
 
     const std::vector<size_t>& all_types() const override {
         return atom_types_;
@@ -43,6 +44,14 @@ public:
     }
 
 private:
+
+    /// Algorithm to type the molecule based on the 3D positioning of atoms
+    /// and makes extensive use of coordinates to determine atom type.
+    void type_atoms_3d_();
+
+    /// Algorithm to type the molecule based on the previously given bond order
+    void type_atoms_topo_();
+
     /// infallible pass:  type hydrogens / deuteriums and compute number of
     /// heavy atoms connected to each atom.
     /// also applies templated residues and marks them are mapped
@@ -150,9 +159,10 @@ private:
 
     /// Have we typed the atom?
     std::vector<bool> mapped_;
-};
 
-template<> std::string atomtype_name<IDATM>();
+    /// Generated name based on initialization
+    std::string name_;
+};
 
 template<> std::string atomtype_name_for_id<IDATM>(size_t id);
 

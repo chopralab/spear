@@ -13,14 +13,19 @@ namespace Spear {
 class SPEAR_EXPORT AtomType {
 public:
 
+    enum TypingMode {
+        GEOMETRY,
+        TOPOLOGY,
+        AUTO
+    };
+
     virtual ~AtomType() = default;
 
-    /// Type the given molecule using 3D geometry
-    virtual void type_atoms_3d() = 0;
+    /// Get the name of atom type. This maybe dependant on how the type was
+    /// initialized or how it is going to be used.
+    virtual const std::string& name() const = 0;    
 
-    /// Type the given molecule using bond orders
-    virtual void type_atoms_order() = 0;
-
+    /// Return a vector of all the atom type ids represented by the atom type
     virtual const std::vector<size_t>& all_types() const = 0;
 
     /// Retreive the type of a given typed atom
@@ -32,11 +37,6 @@ public:
     /// Ending of all atomtypes
     virtual std::vector<size_t>::const_iterator cend() const = 0;
 };
-
-template<class Format>
-std::string atomtype_name() {
-    throw std::bad_function_call("atomtype_name is unimplemented for this format");
-}
 
 template<class Format>
 std::string atomtype_name_for_id(size_t id) {

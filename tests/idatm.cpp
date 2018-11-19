@@ -21,8 +21,7 @@ TEST_CASE("IDATM") {
         auto traj = chemfiles::Trajectory("data/palmitic.sdf");
         auto mol = Molecule(traj.read());
 
-        IDATM idatm(mol);
-        idatm.type_atoms_3d();
+        IDATM idatm(mol, AtomType::GEOMETRY);
         auto alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 
@@ -38,8 +37,7 @@ TEST_CASE("IDATM") {
             CHECK(atomtype_name_for_id<IDATM>(alltypes[i]) == "C3");
         }
 
-        IDATM idatm2(mol);
-        idatm2.type_atoms_order();
+        IDATM idatm2(mol, AtomType::TOPOLOGY);
         auto alltypes_2 = idatm2.all_types();
         CHECK(alltypes == alltypes_2);
     }
@@ -48,8 +46,7 @@ TEST_CASE("IDATM") {
         auto traj = chemfiles::Trajectory("data/tibolone.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        IDATM idatm(mol);
-        idatm.type_atoms_3d();
+        IDATM idatm(mol, AtomType::GEOMETRY);
         auto alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 
@@ -61,8 +58,7 @@ TEST_CASE("IDATM") {
         CHECK(unique_types.count(idatm_type("O2")) != 0);
         CHECK(unique_types.count(idatm_type("O3")) != 0);
 
-        IDATM idatm2(mol);
-        idatm2.type_atoms_order();
+        IDATM idatm2(mol, AtomType::TOPOLOGY);
         auto alltypes_2 = idatm2.all_types();
         CHECK(alltypes == alltypes_2);
     }
@@ -71,8 +67,7 @@ TEST_CASE("IDATM") {
         auto traj = chemfiles::Trajectory("data/pazopanib.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        IDATM idatm(mol);
-        idatm.type_atoms_3d();
+        IDATM idatm(mol, AtomType::GEOMETRY);
         auto alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 
@@ -106,8 +101,7 @@ TEST_CASE("IDATM") {
             }
         }
 
-        IDATM idatm2(mol);
-        idatm2.type_atoms_order();
+        IDATM idatm2(mol, AtomType::TOPOLOGY);
         auto alltypes_2 = idatm2.all_types();
         CHECK(alltypes == alltypes_2);
     }
@@ -116,8 +110,7 @@ TEST_CASE("IDATM") {
         auto traj = chemfiles::Trajectory("data/aromatics.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        IDATM idatm(mol);
-        idatm.type_atoms_3d();
+        IDATM idatm(mol, AtomType::GEOMETRY);
         auto alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 
@@ -134,8 +127,7 @@ TEST_CASE("IDATM") {
         CHECK(unique_types.count(idatm_type("Sar")) != 0);
         CHECK(unique_types.count(idatm_type("H")) != 0);
 
-        IDATM idatm2(mol);
-        idatm2.type_atoms_order();
+        IDATM idatm2(mol, AtomType::TOPOLOGY);
         auto alltypes_2 = idatm2.all_types();
         CHECK(alltypes == alltypes_2);
 	}
@@ -144,8 +136,7 @@ TEST_CASE("IDATM") {
         auto traj = chemfiles::Trajectory("data/oxides.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        IDATM idatm(mol);
-        idatm.type_atoms_3d();
+        IDATM idatm(mol, AtomType::GEOMETRY);
         auto alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 
@@ -162,8 +153,7 @@ TEST_CASE("IDATM") {
         CHECK(unique_types.count(idatm_type("Sac")) != 0);
         CHECK(unique_types.count(idatm_type("Sxd")) != 0);
 
-        IDATM idatm2(mol);
-        idatm2.type_atoms_order();
+        IDATM idatm2(mol, AtomType::TOPOLOGY);
         auto alltypes_2 = idatm2.all_types();
         CHECK(alltypes == alltypes_2);
 	}
@@ -172,8 +162,7 @@ TEST_CASE("IDATM") {
         auto traj = chemfiles::Trajectory("data/pob.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        IDATM idatm(mol);
-        idatm.type_atoms_3d();
+        IDATM idatm(mol, AtomType::GEOMETRY);
         auto alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 
@@ -196,8 +185,7 @@ TEST_CASE("IDATM") {
         auto traj = chemfiles::Trajectory("data/0t8.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        IDATM idatm(mol);
-        idatm.type_atoms_3d();
+        IDATM idatm(mol, AtomType::GEOMETRY);
         auto alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 

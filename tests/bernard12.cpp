@@ -17,10 +17,8 @@ TEST_CASE("Protein-Ligand Score") {
     auto ltraj = chemfiles::Trajectory("data/3qox_ligand.sdf");
     auto ligand = Molecule(ltraj.read());
 
-    auto ptypes = IDATM(protein);
-    ptypes.type_atoms_3d();
-    auto ltypes = IDATM(ligand);
-    ltypes.type_atoms_3d();
+    auto ptypes = IDATM(protein, AtomType::GEOMETRY);
+    auto ltypes = IDATM(ligand, AtomType::GEOMETRY);
 
     std::unordered_set<size_t> all_types;
     std::copy(ptypes.cbegin(), ptypes.cend(), std::inserter(all_types, all_types.begin()));

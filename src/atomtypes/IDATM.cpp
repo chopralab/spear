@@ -260,12 +260,26 @@ static size_t assignBondOrderType(uint64_t atomic_number, chemfiles::Bond::BondO
     return current_type;
 }
 
-IDATM::IDATM(const Molecule& mol) :
+IDATM::IDATM(const Molecule& mol, TypingMode mode) :
     mol_(mol), atom_types_(mol.size(), idatm::unk), heavys_(mol.size(), 0),
     mapped_(mol.size(), false)
-{}
+{
+    switch (mode) {
+    case GEOMETRY:
+        name_ = "IDATM_geometry";
+        type_atoms_3d_();
+        break;
+    case TOPOLOGY:
+        name_ = "IDATM_topology";
+        type_atoms_topo_();
+        break;
+    default:
+        throw std::invalid_argument("Unknown mode");
+        break;
+    }
+}
 
-void IDATM::type_atoms_3d() {
+void IDATM::type_atoms_3d_() {
     infallible_();
     auto redo = valence_();
     terminal_(redo);
@@ -279,7 +293,7 @@ void IDATM::type_atoms_3d() {
     fix_special_();
 }
 
-void IDATM::type_atoms_order() {
+void IDATM::type_atoms_topo_() {
     const auto& bond_orders = mol_.frame().topology().bond_orders();
     const auto& bonds = mol_.frame().topology().bonds();
 
@@ -1138,10 +1152,6 @@ void IDATM::fix_special_() {
             if (has_c3 && has_n3 && has_pox) atom_types_[atom] = idatm::C3;
         }
     }
-}
-
-template<> std::string Spear::atomtype_name<IDATM>() {
-    return std::string("IDATM");
 }
 
 template<> std::string Spear::atomtype_name_for_id<IDATM>(size_t id) {

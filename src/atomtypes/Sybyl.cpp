@@ -113,12 +113,25 @@ static bool is_decloc(const Spear::AtomVertex& atom,
     return false;
 }
 
-Sybyl::Sybyl(const Molecule& mol) :
-    atom_types_(mol.size(), sybyl::Du), mol_(mol)
-{}
+Sybyl::Sybyl(const Molecule& mol, TypingMode mode) :
+    atom_types_(mol.size(), sybyl::Du), mol_(mol) {
+    switch (mode) {
+    case GEOMETRY:
+        name_ = "Sybyl_geometry";
+        type_atoms_3d_();
+        break;
+    case TOPOLOGY:
+        name_ = "Sybyl_topology";
+        type_atoms_topo_();
+        break;
+    default:
+        throw std::invalid_argument("Unknown mode");
+        break;
+    }
+}
 
-void Sybyl::type_atoms_3d() {
-    type_atoms_order();
+void Sybyl::type_atoms_3d_() {
+    type_atoms_topo_();
     for (auto atom : mol_) {
         switch (atom.atomic_number()) {
         case 6:
@@ -127,29 +140,23 @@ void Sybyl::type_atoms_3d() {
         case 7:
             atom_types_[atom] = assign_nitrogen_3d_(atom);
             break;
-        case 8:
-            atom_types_[atom] = assign_oxygen_(atom);
-            break;
-        case 16:
-            atom_types_[atom] = assign_sulfur_(atom);
-            break;
         default:
             break;
         }
     }
 }
 
-void Sybyl::type_atoms_order() {
+void Sybyl::type_atoms_topo_() {
     for (auto atom : mol_) {
         switch (atom.atomic_number()) {
         case 1:
             atom_types_[atom] = H;
             break;
         case 6:
-            atom_types_[atom] = assign_carbon_ord_(atom);
+            atom_types_[atom] = assign_carbon_topo_(atom);
             break;
         case 7:
-            atom_types_[atom] = assign_nitrogen_ord_(atom);
+            atom_types_[atom] = assign_nitrogen_topo_(atom);
             break;
         case 8:
             atom_types_[atom] = assign_oxygen_(atom);
@@ -181,7 +188,7 @@ void Sybyl::type_atoms_order() {
     }
 }
 
-size_t Sybyl::assign_carbon_ord_(AtomVertex atom){
+size_t Sybyl::assign_carbon_topo_(AtomVertex atom){
     size_t num_double = 0, num_triple = 0, num_aromatic = 0;
     size_t num_nitrogen = 0;
 
@@ -232,7 +239,7 @@ size_t Sybyl::assign_carbon_ord_(AtomVertex atom){
     return C_2;
 }
 
-size_t Sybyl::assign_nitrogen_ord_(AtomVertex atom) {
+size_t Sybyl::assign_nitrogen_topo_(AtomVertex atom) {
     size_t num_double = 0, num_triple = 0, num_aromatic = 0;
     size_t num_amide = 0, num_deloc = 0;
 
@@ -440,10 +447,6 @@ size_t Sybyl::assign_sulfur_(AtomVertex atom) {
     } 
 
     return S_2;
-}
-
-template<> std::string Spear::atomtype_name<Sybyl>() {
-    return std::string("Sybyl");
 }
 
 template<> std::string Spear::atomtype_name_for_id<Sybyl>(size_t id) {

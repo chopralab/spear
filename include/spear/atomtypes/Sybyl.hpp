@@ -8,10 +8,11 @@ namespace Spear {
 class SPEAR_EXPORT Sybyl : public AtomType {
 public:
 
-    Sybyl(const Molecule& mol);
+    Sybyl(const Molecule& mol, TypingMode mode);
 
-    void type_atoms_3d() override;
-    void type_atoms_order() override;
+    const std::string& name() const override {
+        return name_;
+    }
 
     const std::vector<size_t>& all_types() const override {
         return atom_types_;
@@ -30,8 +31,12 @@ public:
     }
 
 private:
-    size_t assign_carbon_ord_(AtomVertex atom);
-    size_t assign_nitrogen_ord_(AtomVertex atom);
+
+    void type_atoms_3d_();
+    void type_atoms_topo_();
+
+    size_t assign_carbon_topo_(AtomVertex atom);
+    size_t assign_nitrogen_topo_(AtomVertex atom);
 
     size_t assign_carbon_3d_(AtomVertex atom);
     size_t assign_nitrogen_3d_(AtomVertex atom);
@@ -43,9 +48,10 @@ private:
 
     /// Original molecule to be typed
     const Molecule& mol_;
-};
 
-template<> std::string atomtype_name<Sybyl>();
+    /// Generated name
+    std::string name_;
+};
 
 template<> std::string atomtype_name_for_id<Sybyl>(size_t id);
 
