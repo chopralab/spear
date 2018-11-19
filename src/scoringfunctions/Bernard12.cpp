@@ -5,9 +5,10 @@
 using namespace Spear;
 
 Bernard12::Bernard12(Options opt, double cutoff,
-              const AtomicDistributions& atom_dist,
+              const AtomicDistributions& atom_dist, const std::string& atomtype,
               const std::unordered_set<size_t>& allowed_atoms):
-            options_(opt), dist_cutoff_(cutoff), allowed_atoms_(allowed_atoms) {
+            options_(opt), dist_cutoff_(cutoff), allowed_atoms_(allowed_atoms),
+            atomtype_(atomtype) {
     compile_scoring_function_(atom_dist);
 }
 
@@ -95,7 +96,6 @@ void Bernard12::compile_scoring_function_(const AtomicDistributions& distributio
             std::vector<double>(pair_dist.second.size(), std::numeric_limits<double>::lowest());
 
         for (size_t i = 0; i < pair_dist.second.size(); ++i) {
-
             if (sum_gij_of_r[pair_dist.first] < eps) {
                 energies_scoring_[pair_dist.first][i] = 0;
             } else if (pair_dist.second[i] < eps && (i + 1 < repulsion_idx)) {
@@ -116,12 +116,16 @@ void Bernard12::compile_scoring_function_(const AtomicDistributions& distributio
     }
 }
 
-double Bernard12::score(
-    const Molecule& mol1,
-    const std::vector<size_t>& types1,
-    const Molecule& mol2,
-    const std::vector<size_t>& types2
-) {
+double Bernard12::score(const Molecule& mol1, const Molecule& mol2) {
+    auto opt_types1 = mol1.get_atomtype(atomtype_);
+    auto opt_types2 = mol2.get_atomtype(atomtype_);
+
+    if (!opt_types1 || !opt_types2) {
+        throw std::invalid_argument("Correct atom types not present in molecule");
+    }
+
+    auto& types1 = (*opt_types1)->all_types();
+    auto& types2 = (*opt_types2)->all_types();
 
     auto energy_sum = 0.0;
     for (auto atom1 : mol1) {

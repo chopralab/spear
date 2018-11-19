@@ -13,16 +13,20 @@ using namespace Spear;
 TEST_CASE("Protein-Ligand Score") {
     auto ptraj = chemfiles::Trajectory("data/3qox_pocket.pdb");
     auto protein = Molecule(ptraj.read());
+    auto atomtype_name = protein.add_atomtype<IDATM>(AtomType::GEOMETRY);
 
     auto ltraj = chemfiles::Trajectory("data/3qox_ligand.sdf");
     auto ligand = Molecule(ltraj.read());
+    auto atomtype_name2 = ligand.add_atomtype<IDATM>(AtomType::GEOMETRY);
 
-    auto ptypes = IDATM(protein, AtomType::GEOMETRY);
-    auto ltypes = IDATM(ligand, AtomType::GEOMETRY);
+    CHECK(atomtype_name == atomtype_name2);
+
+    auto ptypes = protein.get_atomtype(atomtype_name);
+    auto ltypes = ligand.get_atomtype(atomtype_name);
 
     std::unordered_set<size_t> all_types;
-    std::copy(ptypes.cbegin(), ptypes.cend(), std::inserter(all_types, all_types.begin()));
-    std::copy(ltypes.cbegin(), ltypes.cend(), std::inserter(all_types, all_types.begin()));
+    std::copy((*ptypes)->cbegin(), (*ptypes)->cend(), std::inserter(all_types, all_types.begin()));
+    std::copy((*ltypes)->cbegin(), (*ltypes)->cend(), std::inserter(all_types, all_types.begin()));
 
     // Remove hydrogen types
     all_types.erase(47);
@@ -31,6 +35,11 @@ TEST_CASE("Protein-Ligand Score") {
     std::ifstream csd_distrib("share/csd_distributions.dat");
 
     AtomicDistributions atomic_distrib = read_atomic_distributions<IDATM>(csd_distrib);
-    Bernard12 scoring_func(Bernard12::Options(Bernard12::RADIAL | Bernard12::MEAN | Bernard12::REDUCED), 6.0, atomic_distrib, all_types);
-    CHECK(std::fabs(scoring_func.score(protein, ptypes.all_types(), ligand, ltypes.all_types()) - -61.8901) < 1e-3);
+    auto options = Bernard12::Options(Bernard12::RADIAL | Bernard12::MEAN | Bernard12::REDUCED);
+    Bernard12 scoring_func(options, 6.0, atomic_distrib, atomtype_name, all_types);
+    CHECK(std::fabs(scoring_func.score(protein, ligand) - -61.8901) < 1e-3);
+
+    auto junk = chemfiles::Trajectory("data/3qox_pocket.pdb");
+    auto junk2 = Molecule(junk.read());
+    CHECK_THROWS(scoring_func.score(protein, junk2));
 }

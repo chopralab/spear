@@ -19,15 +19,10 @@ public:
     };
 
     Bernard12(Options opt, double cutoff,
-              const AtomicDistributions& atom_dist,
+              const AtomicDistributions& atom_dist, const std::string& atomtype,
               const std::unordered_set<size_t>& allowed_atoms = std::unordered_set<size_t>());
 
-    double score(
-        const Molecule& mol1,
-        const std::vector<size_t>& types1,
-        const Molecule& mol2,
-        const std::vector<size_t>& types2
-    ) override;
+    double score(const Molecule& mol1, const Molecule& mol2) override;
 
     bool ignore_hydro = false;
 private:
@@ -38,6 +33,7 @@ private:
     double dist_cutoff_;
     double step_in_file_;
     std::unordered_set<size_t> allowed_atoms_;
+    const std::string atomtype_;
 
     void compile_scoring_function_(const AtomicDistributions& distributions);
 };

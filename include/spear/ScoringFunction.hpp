@@ -16,12 +16,7 @@ public:
     virtual ~ScoringFunction() = default;
 
     /// Calculate the score of a given molecule
-    virtual double score(
-        const Molecule& mol1,
-        const std::vector<size_t>& types1,
-        const Molecule& mol2,
-        const std::vector<size_t>& types2
-    ) = 0;
+    virtual double score( const Molecule& mol1, const Molecule& mol2) = 0;
 };
 
 template<class ScoringFunction>
