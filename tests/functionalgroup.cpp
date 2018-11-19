@@ -50,4 +50,25 @@ TEST_CASE("Functional Group") {
         auto wild_grp = Spear::find_functional_groups(mol, wildcard);
         CHECK(wild_grp.size() == 6); // forced again
     }
+
+    SECTION("Pazopanib") {
+        auto traj = chemfiles::Trajectory("data/pazopanib.sdf");
+        auto mol = Spear::Molecule(traj.read());
+
+        Spear::FunctionalGroup aromatic_C_N("C:N");
+        auto a_C_N_grp = Spear::find_functional_groups(mol, aromatic_C_N);
+        CHECK(a_C_N_grp.size() == 6); // 6 aromatic carbon-nitrogen bonds!
+
+        Spear::FunctionalGroup aromatic_ring_sym("C1:N:C(-N):N:C:C:1");
+        auto ring_sym_grp = Spear::find_functional_groups(mol, aromatic_ring_sym);
+        CHECK(ring_sym_grp.size() == 2); // Symmetric, there's two possibilities
+
+        Spear::FunctionalGroup aromatic_ring("C1:N:C(-N):N:C(-N):C:1");
+        auto ring_grp = Spear::find_functional_groups(mol, aromatic_ring);
+        CHECK(ring_grp.size() == 1); // No longer symmetric!
+
+        Spear::FunctionalGroup sulfonamide("S(=O)(=O)-N");
+        auto so2n_grp = Spear::find_functional_groups(mol, sulfonamide);
+        CHECK(so2n_grp.size() == 2); // Oxygens are symmetric
+    }
 }
