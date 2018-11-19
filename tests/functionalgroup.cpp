@@ -9,19 +9,23 @@ TEST_CASE("Functional Group") {
         auto traj = chemfiles::Trajectory("data/tibolone.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        Spear::FunctionalGroup tib_OH("CCO");
+        Spear::FunctionalGroup tib_O("CCO");
+        auto o_grp = Spear::find_functional_groups(mol, tib_O);
+        CHECK(o_grp.size() == 5); // Bond order not set, matches C-O and C=O!!!
+
+        Spear::FunctionalGroup tib_OH("C-C-O");
         auto oh_grp = Spear::find_functional_groups(mol, tib_OH);
-        CHECK(oh_grp.size() == 3);
+        CHECK(oh_grp.size() == 3); // Only matches C-O!!!
 
         Spear::FunctionalGroup alkene("C=C");
         auto alkene_grp = Spear::find_functional_groups(mol, alkene);
         CHECK(alkene_grp.size() == 2); // two orders of the same bond
 
-        Spear::FunctionalGroup ketone("CC(=O)C");
+        Spear::FunctionalGroup ketone("C-C(=O)-C");
         auto ketone_grp = Spear::find_functional_groups(mol, ketone);
         CHECK(ketone_grp.size() == 2); // two orders of the same bond
 
-        Spear::FunctionalGroup alkyne("CC#C"); // Force a order for the alkyne
+        Spear::FunctionalGroup alkyne("C-C#C"); // Force a order for the alkyne
         auto alkyne_grp = Spear::find_functional_groups(mol, alkyne);
         CHECK(alkyne_grp.size() == 1); // just one now
 
@@ -41,5 +45,9 @@ TEST_CASE("Functional Group") {
         Spear::FunctionalGroup fused_ring_oh("C12CCC(O)C1CCCC2");
         fused_grp = Spear::find_functional_groups(mol, fused_ring_oh);
         CHECK(fused_grp.size() == 1); // forced again
+
+        Spear::FunctionalGroup wildcard("C-C(=*)-C");
+        auto wild_grp = Spear::find_functional_groups(mol, wildcard);
+        CHECK(wild_grp.size() == 6); // forced again
     }
 }

@@ -8,7 +8,6 @@
 
 #include <vector>
 #include <boost/graph/undirected_graph.hpp>
-#include <boost/graph/mcgregor_common_subgraphs.hpp>
 
 namespace Spear {
 
@@ -26,12 +25,6 @@ using EdgeDescriptor = Traits::edge_descriptor;
 using AdjacencyIterator = Traits::adjacency_iterator;
 using EdgeIterator = Traits::edge_iterator;
 using AdjacencyIteratorPair = std::pair<AdjacencyIterator, AdjacencyIterator>;
-
-using VertexNameMap = boost::property_map<Graph, boost::vertex_name_t>::type ;
-using VertexComparison = boost::property_map_equivalent<VertexNameMap, VertexNameMap>;
-  
-using EdgeNameMap = boost::property_map<Graph, boost::edge_name_t>::type;
-using EdgeComparison = boost::property_map_equivalent<EdgeNameMap, EdgeNameMap>;
 
 class Molecule;
 
