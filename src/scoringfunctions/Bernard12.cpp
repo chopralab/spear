@@ -2,6 +2,8 @@
 
 #include <fstream>
 
+#include "spear/Grid.hpp"
+
 using namespace Spear;
 
 Bernard12::Bernard12(Options opt, double cutoff,
@@ -116,7 +118,7 @@ void Bernard12::compile_scoring_function_(const AtomicDistributions& distributio
     }
 }
 
-double Bernard12::score(const Molecule& mol1, const Molecule& mol2) {
+double Bernard12::score(const Grid& grid, const Molecule& mol1, const Molecule& mol2) {
     auto opt_types1 = mol1.get_atomtype(atomtype_);
     auto opt_types2 = mol2.get_atomtype(atomtype_);
 
@@ -128,10 +130,12 @@ double Bernard12::score(const Molecule& mol1, const Molecule& mol2) {
     auto& types2 = (*opt_types2)->all_types();
 
     auto energy_sum = 0.0;
-    for (auto atom1 : mol1) {
-        if (ignore_hydro && atom1.atomic_number() == 1) continue;
-        for (auto atom2 : mol2) {
-            if (ignore_hydro && atom2.atomic_number() == 1) continue;
+    for (auto atom2 : mol2) {
+        if (ignore_hydro && atom2.atomic_number() == 1) continue;
+        auto neighbors = grid.neighbors(atom2.position(), dist_cutoff_);
+        for (auto neighbor : neighbors) {
+            auto atom1 = mol1[neighbor];
+            if (ignore_hydro && atom1.atomic_number() == 1) continue;
             auto dist = (atom1.position() - atom2.position()).norm();
 
             auto atom_pair = std::minmax(types1[atom1], types2[atom2]);

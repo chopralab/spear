@@ -25,17 +25,21 @@ struct SPEAR_EXPORT GridPoint : public std::array<uint64_t, 3> {
               double dist = 0) {
 
         auto shifted = point - min + Vector3D(dist, dist, dist);
-        (*this)[0] = shifted[0] < 0.0    ? 0.0 :
-                     shifted[0] > max[0] ? max[0] :
-                     std::floor(shifted[0] / step[0]);
+        auto xcrd = shifted[0] < 0.0    ? 0.0 :
+                    shifted[0] > max[0] ? max[0] :
+                    std::floor(shifted[0] / step[0]);
 
-        (*this)[1] = shifted[1] < 0.0    ? 0.0 :
-                     shifted[1] > max[1] ? max[1] :
-                     std::floor(shifted[1] / step[1]);
+        auto ycrd = shifted[1] < 0.0    ? 0.0 :
+                    shifted[1] > max[1] ? max[1] :
+                    std::floor(shifted[1] / step[1]);
 
-        (*this)[2] = shifted[2] < 0.0    ? 0.0 :
-                     shifted[2] > max[2] ? max[2] :
-                     std::floor(shifted[2] / step[2]);
+        auto zcrd = shifted[2] < 0.0    ? 0.0 :
+                    shifted[2] > max[2] ? max[2] :
+                    std::floor(shifted[2] / step[2]);
+
+        (*this)[0] = static_cast<uint64_t>(xcrd);
+        (*this)[1] = static_cast<uint64_t>(ycrd);
+        (*this)[2] = static_cast<uint64_t>(zcrd);
     }
 
     GridPoint(uint64_t i, uint64_t j, uint64_t k)

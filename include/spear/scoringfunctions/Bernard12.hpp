@@ -2,9 +2,14 @@
 #define SPEAR_BERNARD12_HPP
 
 #include "spear/ScoringFunction.hpp"
+
+#include <unordered_set>
+
 #include "spear/AtomicDistributions.hpp"
 
 namespace Spear {
+
+class AtomicDistributions;
 
 class SPEAR_EXPORT Bernard12 : public ScoringFunction {
 public:
@@ -22,7 +27,7 @@ public:
               const AtomicDistributions& atom_dist, const std::string& atomtype,
               const std::unordered_set<size_t>& allowed_atoms = std::unordered_set<size_t>());
 
-    double score(const Molecule& mol1, const Molecule& mol2) override;
+    double score(const Grid& grid, const Molecule& mol1, const Molecule& mol2) override;
 
     bool ignore_hydro = false;
 private:
