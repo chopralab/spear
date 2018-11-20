@@ -5,8 +5,11 @@
 
 #include "spear/AtomType.hpp"
 
+#include <map>
+
 namespace Spear {
 
+class Molecule;
 
 /// algorithm based on E.C. Meng / R.A. Lewis paper
 /// "Determination of Molecular Topology and Atomic Hybridization

@@ -60,10 +60,6 @@ Molecule::Molecule(const chemfiles::Frame& frame) :
     }
 }
 
-void Molecule::delete_AtomType::operator()(AtomType* p) {
-    delete p;
-}
-
 const std::set<std::set<size_t>> Molecule::rings() const {
     std::set<std::set<size_t>> ret_rings;
 

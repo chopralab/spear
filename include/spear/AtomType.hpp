@@ -7,7 +7,6 @@
 #include <functional>   // std::bad_function_call
 
 #include "spear/exports.hpp"
-#include "spear/Molecule.hpp"
 
 namespace Spear {
 

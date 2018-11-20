@@ -3,6 +3,8 @@
 #include <string>
 #include <locale>
 
+#include "spear/Molecule.hpp"
+
 using namespace Spear;
 
 #define RNA_CORE {"P","Pac"},{"OP1","O3-"},{"OP2","O3-"},\

@@ -1,5 +1,7 @@
 #include "spear/atomtypes/Sybyl.hpp"
 
+#include "spear/Molecule.hpp"
+
 using namespace Spear;
 
 enum sybyl {
@@ -188,7 +190,7 @@ void Sybyl::type_atoms_topo_() {
     }
 }
 
-size_t Sybyl::assign_carbon_topo_(AtomVertex atom){
+size_t Sybyl::assign_carbon_topo_(AtomVertex& atom){
     size_t num_double = 0, num_triple = 0, num_aromatic = 0;
     size_t num_nitrogen = 0;
 
@@ -239,7 +241,7 @@ size_t Sybyl::assign_carbon_topo_(AtomVertex atom){
     return C_2;
 }
 
-size_t Sybyl::assign_nitrogen_topo_(AtomVertex atom) {
+size_t Sybyl::assign_nitrogen_topo_(AtomVertex& atom) {
     size_t num_double = 0, num_triple = 0, num_aromatic = 0;
     size_t num_amide = 0, num_deloc = 0;
 
@@ -322,7 +324,7 @@ size_t Sybyl::assign_nitrogen_topo_(AtomVertex atom) {
     return N_2;
 }
 
-size_t Sybyl::assign_carbon_3d_(AtomVertex atom) {
+size_t Sybyl::assign_carbon_3d_(AtomVertex& atom) {
     auto num_neighbors = atom.neighbor_count();
     if (num_neighbors >= 4) {
         return C_3;
@@ -358,7 +360,7 @@ size_t Sybyl::assign_carbon_3d_(AtomVertex atom) {
     }
 }
 
-size_t Sybyl::assign_nitrogen_3d_(AtomVertex atom) {
+size_t Sybyl::assign_nitrogen_3d_(AtomVertex& atom) {
     auto numnonmetal = num_nonmetal(mol_, atom);
     if (numnonmetal == 4) {
         return N_4;
@@ -408,7 +410,7 @@ size_t Sybyl::assign_nitrogen_3d_(AtomVertex atom) {
     return N_2;
 }
 
-size_t Sybyl::assign_oxygen_(AtomVertex atom) {
+size_t Sybyl::assign_oxygen_(AtomVertex& atom) {
     auto numnonmetal = num_nonmetal(mol_, atom);
     if (numnonmetal == 1) {
         auto bondee = atom[0];
@@ -431,7 +433,7 @@ size_t Sybyl::assign_oxygen_(AtomVertex atom) {
     return O_2;
 }
 
-size_t Sybyl::assign_sulfur_(AtomVertex atom) {
+size_t Sybyl::assign_sulfur_(AtomVertex& atom) {
     auto numnonmetal = num_nonmetal(mol_, atom);
 
     if (numnonmetal == 3 && freeOxygens(mol_, atom) == 1) {

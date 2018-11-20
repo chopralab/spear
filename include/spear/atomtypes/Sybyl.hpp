@@ -5,6 +5,9 @@
 
 namespace Spear {
 
+class AtomVertex;
+class Molecule;
+
 class SPEAR_EXPORT Sybyl : public AtomType {
 public:
 
@@ -35,13 +38,13 @@ private:
     void type_atoms_3d_();
     void type_atoms_topo_();
 
-    size_t assign_carbon_topo_(AtomVertex atom);
-    size_t assign_nitrogen_topo_(AtomVertex atom);
+    size_t assign_carbon_topo_(AtomVertex& atom);
+    size_t assign_nitrogen_topo_(AtomVertex& atom);
 
-    size_t assign_carbon_3d_(AtomVertex atom);
-    size_t assign_nitrogen_3d_(AtomVertex atom);
-    size_t assign_oxygen_(AtomVertex atom);
-    size_t assign_sulfur_(AtomVertex atom);
+    size_t assign_carbon_3d_(AtomVertex& atom);
+    size_t assign_nitrogen_3d_(AtomVertex& atom);
+    size_t assign_oxygen_(AtomVertex& atom);
+    size_t assign_sulfur_(AtomVertex& atom);
 
     /// Vector to hold all atom types
     std::vector<size_t> atom_types_;

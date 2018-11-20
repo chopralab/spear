@@ -12,6 +12,8 @@
 
 #include <boost/graph/undirected_graph.hpp>
 
+#include "spear/AtomType.hpp"
+
 namespace Spear {
 
 // Note: If more atom/bond properties are need other than number and order,
@@ -30,7 +32,6 @@ using EdgeIterator = Traits::edge_iterator;
 using AdjacencyIteratorPair = std::pair<AdjacencyIterator, AdjacencyIterator>;
 
 class Molecule;
-class AtomType;
 
 using chemfiles::optional;
 
@@ -152,11 +153,7 @@ private:
     
     Graph graph_;
 
-    struct delete_AtomType {
-        void operator()(AtomType* p);
-    };
-
-    typedef std::unique_ptr<AtomType, delete_AtomType> unqiue_AtomType;
+    typedef std::unique_ptr<AtomType> unqiue_AtomType;
     std::unordered_map<std::string, unqiue_AtomType> atom_types_;
 };
 
@@ -319,7 +316,7 @@ template<class atomtype, typename typemode>
 inline std::string Molecule::add_atomtype(typemode mode) {
     auto typed_atoms = new atomtype(*this, mode);
     auto name = typed_atoms->name();
-    atom_types_[name] = std::unique_ptr<atomtype, delete_AtomType>(typed_atoms);
+    atom_types_[name] = std::unique_ptr<atomtype>(typed_atoms);
     return name;
 }
 
