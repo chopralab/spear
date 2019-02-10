@@ -69,11 +69,15 @@ private:
 class SPEAR_EXPORT Molecule {
 public:
 
-    class iterator : public std::iterator<std::random_access_iterator_tag, AtomVertex> {
+    class iterator {
     public:
 
-        using difference_type =
-            std::iterator<std::random_access_iterator_tag, AtomVertex>::difference_type;
+        using difference_type = std::ptrdiff_t;
+
+        using iterator_category = std::random_access_iterator_tag;
+        using value_type = AtomVertex;
+        using pointer = AtomVertex*;
+        using reference = AtomVertex&;
 
         iterator(const Molecule* base_mol, size_t i = 0) : index_(i), base_mol_(base_mol) {
         }
