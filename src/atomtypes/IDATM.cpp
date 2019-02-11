@@ -1156,6 +1156,30 @@ void IDATM::fix_special_() {
     }
 }
 
+bool IDATM::is_aromatic(size_t atom_id) const {
+    switch (atom_types_[atom_id]) {
+        case idatm::Car: return true; break;
+        case idatm::Oar: return true; break;
+        case idatm::Oarp: return true; break;
+        case idatm::Sar: return true; break;
+        case idatm::N2: break; // Need special checks...
+        case idatm::N2p: break;
+        case idatm::Npl: break;
+        case idatm::P: break;
+        default: return false; break;
+    }
+
+    auto aro_search = aromatic_ring_sizes_.find(atom_id);
+    if (aro_search != aromatic_ring_sizes_.end()) {
+        return true;
+    }
+    return false;
+}
+
+Hybridization IDATM::hybridization(size_t atom_id) const {
+    return Hybridization::UNKNOWN;
+}
+
 template<> std::string Spear::atomtype_name_for_id<IDATM>(size_t id) {
     return idatm_unmask[id];
 }

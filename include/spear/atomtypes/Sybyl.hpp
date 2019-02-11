@@ -21,6 +21,10 @@ public:
         return atom_types_;
     }
 
+    bool is_aromatic(size_t atom_id) const override;
+
+    Hybridization hybridization(size_t atom_id) const override;
+
     size_t operator[](size_t atom_id) const override {
         return atom_types_[atom_id];
     }

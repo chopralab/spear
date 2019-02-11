@@ -10,6 +10,16 @@
 
 namespace Spear {
 
+enum Hybridization {
+    UNKNOWN = 0,
+    FORCED  = 1,
+    SP      = 2,
+    SP2     = 3,
+    SP3     = 4,
+    SP3D    = 5,
+    SP3D2   = 6,
+};
+
 class SPEAR_EXPORT AtomType {
 public:
 
@@ -28,6 +38,12 @@ public:
     /// Return a vector of all the atom type ids represented by the atom type
     virtual const std::vector<size_t>& all_types() const = 0;
 
+    /// Is the given atom aromatic in the typing scheme?
+    virtual bool is_aromatic(size_t atom_id) const = 0;
+
+    /// Return the hybridization of the atom
+    virtual Hybridization hybridization(size_t atom_id) const = 0;
+
     /// Retreive the type of a given typed atom
     virtual size_t operator[](size_t atom_id) const = 0;
 
@@ -38,24 +54,30 @@ public:
     virtual std::vector<size_t>::const_iterator cend() const = 0;
 };
 
+class FormatFeatureUnimplemented : public std::logic_error {
+public:
+    FormatFeatureUnimplemented(const std::string& s) :
+        std::logic_error(s + " is unimplemented for this format.") {}
+};
+
 template<class Format>
 std::string atomtype_name_for_id(size_t id) {
-    throw std::bad_function_call("atomtype_name_for_id is unimplemented for this format");
+    throw FormatFeatureUnimplemented("atomtype_name_for_id");
 }
 
 template<class Format>
 size_t atomtype_id_for_name(std::string name) {
-    throw std::bad_function_call("atomtype_id_for_name is unimplemented for this format");
+    throw FormatFeatureUnimplemented("atomtype_id_for_name");
 }
 
 template<class Format>
 size_t atomtype_id_count() {
-    throw std::bad_function_call("atomtype_id_count is unimplemented for this format");
+    throw FormatFeatureUnimplemented("atomtype_id_count");
 }
 
 template<class Format>
 double van_der_waals(size_t id) {
-    throw std::bad_function_call("van_der_waals is unimplemented for this format");
+    throw FormatFeatureUnimplemented("van_der_waals");
 }
 
 }

@@ -451,6 +451,18 @@ size_t Sybyl::assign_sulfur_(AtomVertex& atom) {
     return S_2;
 }
 
+bool Sybyl::is_aromatic(size_t atom_id) const {
+    switch (atom_types_[atom_id]) {
+        case sybyl::C_ar: return true; break;
+        case sybyl::N_ar: return true; break;
+        default: return false; break;
+    } //TODO: Maybe add the ability to check for presence in ring?
+}
+
+Hybridization Sybyl::hybridization(size_t atom_id) const {
+    return Hybridization::UNKNOWN;
+}
+
 template<> std::string Spear::atomtype_name_for_id<Sybyl>(size_t id) {
     return sybyl_unmask[id];
 }

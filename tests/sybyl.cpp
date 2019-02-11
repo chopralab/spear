@@ -28,12 +28,15 @@ TEST_CASE("SYBYL") {
     CHECK(unique_types.size() == 12);
 
     CHECK(sybyl_name(alltypes[0]) == "C.ar");
+    CHECK(sybyl.is_aromatic(0));
     CHECK(sybyl_name(alltypes[1]) == "C.ar");
     CHECK(sybyl_name(alltypes[2]) == "N.ar");
+    CHECK(sybyl.is_aromatic(2));
     CHECK(sybyl_name(alltypes[3]) == "C.ar");
     CHECK(sybyl_name(alltypes[4]) == "C.ar");
     CHECK(sybyl_name(alltypes[5]) == "C.ar");
     CHECK(sybyl_name(alltypes[6]) == "N.pl3");
+    CHECK(!sybyl.is_aromatic(6));
     CHECK(sybyl_name(alltypes[7]) == "C.3");
     CHECK(sybyl_name(alltypes[8]) == "N.pl3");
     CHECK(sybyl_name(alltypes[9]) == "C.2");

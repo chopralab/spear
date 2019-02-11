@@ -84,18 +84,23 @@ TEST_CASE("IDATM") {
         for (auto ring : rings) {
             for (auto atom : ring) {
                 if (ring.size() == 6) {
-                    if (mol[atom].atomic_number() == 6)
+                    if (mol[atom].atomic_number() == 6) {
                         CHECK(idatm_name(alltypes[atom]) == "Car");
-                    else if (mol[atom].atomic_number() == 7)
+                        CHECK(idatm.is_aromatic(atom));
+                    } else if (mol[atom].atomic_number() == 7) {
                         CHECK(idatm_name(alltypes[atom]) == "N2");
-                    else
+                        CHECK(idatm.is_aromatic(atom));
+                    } else {
                         CHECK(0);
+                    }
                 } else if (ring.size() == 5) {
                     if (mol[atom].atomic_number() != 7) continue;
                     if (mol[atom].neighbor_count() == 3) {
                         CHECK(idatm_name(alltypes[atom]) == "Npl");
+                        CHECK(idatm.is_aromatic(atom));
                     } else {
                         CHECK(idatm_name(alltypes[atom]) == "N2");
+                        CHECK(idatm.is_aromatic(atom));
                     }
                 }
             }
@@ -126,6 +131,13 @@ TEST_CASE("IDATM") {
         CHECK(unique_types.count(idatm_type("N1+")) != 0);
         CHECK(unique_types.count(idatm_type("Sar")) != 0);
         CHECK(unique_types.count(idatm_type("H")) != 0);
+
+        auto rings = mol.rings();
+        for (auto ring : rings) {
+            for (auto atom : ring) {
+                CHECK(idatm.is_aromatic(atom));
+            }
+        }
 
         IDATM idatm2(mol, AtomType::TOPOLOGY);
         auto alltypes_2 = idatm2.all_types();

@@ -38,6 +38,10 @@ public:
         return atom_types_[atom_id];
     }
 
+    bool is_aromatic(size_t atom_id) const override;
+
+    Hybridization hybridization(size_t atom_id) const override;
+
     std::vector<size_t>::const_iterator cbegin() const override {
         return atom_types_.cbegin();
     }
