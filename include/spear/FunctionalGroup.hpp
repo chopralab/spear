@@ -15,9 +15,11 @@
 
 namespace Spear {
 
+using AtomPropertyCompare = std::function<bool(const AtomVertex&)>;
+
 class FunctionalGroup {
     Graph graph_;
-
+    std::list<std::list<AtomPropertyCompare>> properties_;
 public:
     FunctionalGroup(const std::string& smiles) {
         using chemfiles::find_in_periodic_table;
@@ -31,8 +33,22 @@ public:
         size_t previous = 0;
         size_t bond_order = Bond::UNKNOWN;
         bool first_atom = true;
+        bool in_prop_list = false;
 
         for (size_t i = 0; i < smiles.size(); ++i) {
+            if (in_prop_list && smiles[i] == 'X' && i != smiles.size() - 1) {
+                auto bonds = static_cast<size_t>(smiles[i + 1] - '0');
+
+                // Add a lambda function to compare the bond counts
+                properties_.back().emplace_back(
+                    [bonds](const AtomVertex& a1) {
+                        return a1.neighbor_count() == bonds;
+                    }
+                );
+                i++;
+                continue;
+            }
+
             if (std::isupper(smiles[i]) || smiles[i] == '*') {
                 if (smiles[i] != '*') {
                     size_t element_length =
@@ -59,6 +75,7 @@ public:
                 first_atom = false;
                 previous = current;
                 bond_order = Bond::UNKNOWN;
+                properties_.push_back(std::list<AtomPropertyCompare>());
                 continue;
             }
 
@@ -83,12 +100,12 @@ public:
             case '/': break;
             case '\\': break;
             case '%': break;
-            case '-': bond_order = Bond::SINGLE; break;
+            case '-': bond_order = Bond::SINGLE; break; // We don't support charges
             case '=': bond_order = Bond::DOUBLE; break;
             case '#': bond_order = Bond::TRIPLE; break;
             case ':': bond_order = Bond::AROMATIC; break;
-            case '[': break;
-            case ']': break;
+            case '[': in_prop_list = true; break;
+            case ']': in_prop_list = false; break;
             case '+': break;
             case '(':
                 paren_backs.push(previous);
@@ -105,25 +122,57 @@ public:
     const Graph& graph() const {
         return graph_;
     }
+
+    const std::list<AtomPropertyCompare>& properties(size_t i) const {
+        auto start = properties_.cbegin();
+        std::advance(start, i);
+        return *start;
+    }
 };
 
+/// This Functor is run when the graph matching algorithm finds a potential
+/// FunctionalGroup. It is responsible for populating the found_groups list
+/// and performing final checks for properties in the functional group.
 struct FunctionalGroupFinder {
     FunctionalGroupFinder(const Molecule& mol, const FunctionalGroup& fg,
         std::list<std::vector<size_t>>& found_groups):
     mol_(mol), fg_(fg), found_groups_(found_groups) {
     }
 
+    // Map1 should be the functional group
+    // Map2 should be the molecule
+    // Therefore, fg_to_mol coverts the functional group mapping to the molecule
     template <typename Map1To2, typename Map2To1>
-    bool operator()(Map1To2 f, Map2To1) {
+    bool operator()(Map1To2 fg_to_mol, Map2To1) {
 
         std::vector<size_t> group;
+
+        // Prepare to loop through the functional group
         group.reserve(boost::num_vertices(fg_.graph()));
         auto verticies_iter = boost::vertices(fg_.graph());
 
+        // Add the **molecule** index to the group, *not* the functional groups
+        // v is an interator through the functional group
         for (auto v = verticies_iter.first; v != verticies_iter.second; ++v) {
-            group.push_back(boost::get(boost::vertex_index_t(), mol_.graph(), boost::get(f, *v)));
+
+            const auto& mol_id = boost::get(fg_to_mol, *v); // v is the functional group index
+            const auto& mol_index = boost::get(boost::vertex_index_t(), mol_.graph(), mol_id);
+
+            // Final property check
+            auto fg_index = boost::get(boost::vertex_index_t(), fg_.graph(), *v);
+            const auto& props = fg_.properties(fg_index);
+            for (const auto& prop : props) {
+                if (!prop(mol_[mol_index])) {
+                    // Don't add the group, get out!
+                    return true;
+                }
+            }
+
+            // All tests for this functional group atom -> molecular atom passed
+            group.push_back(mol_index);
         }
 
+        // All tests for all atoms have passed
         found_groups_.emplace_back(group);
         return true;
     }
@@ -134,10 +183,14 @@ private:
     std::list<std::vector<size_t>>& found_groups_;
 };
 
+
+/// This Functor compares the properties of an edge (bond) or vertex(atom).
+/// The template arguments should be automatically deduced when a comparison
+/// structure is initialized using the **compare_topology** function.
 template <typename PropertyFirst, typename PropertySecond, typename IgnoreType>
-struct CompareProperty {
+struct CompareTopology {
   
-    CompareProperty(const PropertyFirst property_map1,
+    CompareTopology(const PropertyFirst property_map1,
                     const PropertySecond property_map2,
                     const IgnoreType ignore) :
     property1_(property_map1), property2_(property_map2), ignore_(ignore) {}
@@ -156,34 +209,39 @@ private:
     const IgnoreType ignore_;
 };
 
+/// This is a convience function for creating CompareTopology Functors.
 template <typename PropertyFirst, typename PropertySecond, typename IgnoreType>
-CompareProperty<PropertyFirst, PropertySecond, IgnoreType>
-compare_property(const PropertyFirst property1,
+CompareTopology<PropertyFirst, PropertySecond, IgnoreType>
+compare_topology(const PropertyFirst property1,
                  const PropertySecond property2,
                  const IgnoreType ignore) {
-    return CompareProperty<PropertyFirst, PropertySecond, IgnoreType>
+    return CompareTopology<PropertyFirst, PropertySecond, IgnoreType>
         (property1, property2, ignore);
 }
 
 std::list<std::vector<size_t>> find_functional_groups(const Molecule& mol, const FunctionalGroup& fg) {
+
+    // Initial objects to hold the found functional groups
     std::list<std::vector<size_t>> found_groups;
     FunctionalGroupFinder callback(mol, fg, found_groups);
 
-    const auto& graph1 = fg.graph();
-    const auto& graph2 = mol.graph();
+    const auto& fg_graph = fg.graph();
+    const auto& mol_graph = mol.graph();
 
+    // Make comparison functions
     auto vertex_comp =
-        compare_property(boost::get(boost::vertex_name, graph1),
-                         boost::get(boost::vertex_name, graph2),
+        compare_topology(boost::get(boost::vertex_name, fg_graph),
+                         boost::get(boost::vertex_name, mol_graph),
                          uint64_t(0));
 
     auto edge_comp =
-        compare_property(boost::get(boost::edge_name, graph1),
-                         boost::get(boost::edge_name, graph2),
+        compare_topology(boost::get(boost::edge_name, fg_graph),
+                         boost::get(boost::edge_name, mol_graph),
                          uint64_t(0));
 
-    boost::vf2_subgraph_iso(graph1, graph2, callback,
-        boost::vertex_order_by_mult(graph1),
+    // Find subgraphs
+    boost::vf2_subgraph_iso(fg_graph, mol_graph, callback,
+        boost::vertex_order_by_mult(fg_graph),
         boost::edges_equivalent(edge_comp).vertices_equivalent(vertex_comp));
 
     return found_groups;

@@ -70,5 +70,17 @@ TEST_CASE("Functional Group") {
         Spear::FunctionalGroup sulfonamide("S(=O)(=O)-N");
         auto so2n_grp = Spear::find_functional_groups(mol, sulfonamide);
         CHECK(so2n_grp.size() == 2); // Oxygens are symmetric
+
+        Spear::FunctionalGroup N_with_3_bonds("[NX3]");
+        auto N_3_grp = Spear::find_functional_groups(mol, N_with_3_bonds);
+        CHECK(N_3_grp.size() == 2); // Only two nitrogens have three explicit(non-H) bonds
+
+        Spear::FunctionalGroup N_with_2_bonds("[NX2]");
+        auto N_2_grp = Spear::find_functional_groups(mol, N_with_2_bonds);
+        CHECK(N_2_grp.size() == 4); // Four nitrogens have three explicit(non-H) bonds
+
+        Spear::FunctionalGroup N_with_1_bonds("[NX1]");
+        auto N_1_grp = Spear::find_functional_groups(mol, N_with_1_bonds);
+        CHECK(N_1_grp.size() == 1); // sulfonamide nitrogen!
     }
 }
