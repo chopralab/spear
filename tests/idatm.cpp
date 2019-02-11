@@ -84,23 +84,24 @@ TEST_CASE("IDATM") {
         for (auto ring : rings) {
             for (auto atom : ring) {
                 if (ring.size() == 6) {
+                    CHECK(idatm.hybridization(atom) == Hybridization::SP2);
                     if (mol[atom].atomic_number() == 6) {
                         CHECK(idatm_name(alltypes[atom]) == "Car");
                         CHECK(idatm.is_aromatic(atom));
                     } else if (mol[atom].atomic_number() == 7) {
                         CHECK(idatm_name(alltypes[atom]) == "N2");
                         CHECK(idatm.is_aromatic(atom));
-                    } else {
-                        CHECK(0);
                     }
                 } else if (ring.size() == 5) {
                     if (mol[atom].atomic_number() != 7) continue;
                     if (mol[atom].neighbor_count() == 3) {
                         CHECK(idatm_name(alltypes[atom]) == "Npl");
                         CHECK(idatm.is_aromatic(atom));
+                        CHECK(idatm.hybridization(atom) == Hybridization::SP3);
                     } else {
                         CHECK(idatm_name(alltypes[atom]) == "N2");
                         CHECK(idatm.is_aromatic(atom));
+                        CHECK(idatm.hybridization(atom) == Hybridization::SP2);
                     }
                 }
             }
@@ -120,11 +121,10 @@ TEST_CASE("IDATM") {
         CHECK(alltypes.size() == mol.size());
 
         auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
-        CHECK(unique_types.size() == 10);
+        CHECK(unique_types.size() == 9);
         CHECK(unique_types.count(idatm_type("Car")) != 0);
         CHECK(unique_types.count(idatm_type("Oar")) != 0);
         CHECK(unique_types.count(idatm_type("Oar+")) != 0);
-        CHECK(unique_types.count(idatm_type("O3-")) != 0);
         CHECK(unique_types.count(idatm_type("N2")) != 0);
         CHECK(unique_types.count(idatm_type("N2+")) != 0);
         CHECK(unique_types.count(idatm_type("N1")) != 0);
@@ -136,6 +136,10 @@ TEST_CASE("IDATM") {
         for (auto ring : rings) {
             for (auto atom : ring) {
                 CHECK(idatm.is_aromatic(atom));
+                bool is_possible = 
+                    (idatm.hybridization(atom) == Hybridization::SP2) ||
+                    (idatm.hybridization(atom) == Hybridization::SP3) ;
+                CHECK(is_possible);
             }
         }
 

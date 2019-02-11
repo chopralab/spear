@@ -29,20 +29,24 @@ TEST_CASE("SYBYL") {
 
     CHECK(sybyl_name(alltypes[0]) == "C.ar");
     CHECK(sybyl.is_aromatic(0));
+    CHECK(sybyl.hybridization(0) == Hybridization::SP2);
     CHECK(sybyl_name(alltypes[1]) == "C.ar");
     CHECK(sybyl_name(alltypes[2]) == "N.ar");
     CHECK(sybyl.is_aromatic(2));
+    CHECK(sybyl.hybridization(2) == Hybridization::SP2);
     CHECK(sybyl_name(alltypes[3]) == "C.ar");
     CHECK(sybyl_name(alltypes[4]) == "C.ar");
     CHECK(sybyl_name(alltypes[5]) == "C.ar");
     CHECK(sybyl_name(alltypes[6]) == "N.pl3");
     CHECK(!sybyl.is_aromatic(6));
+    CHECK(sybyl.hybridization(6) == Hybridization::SP3);
     CHECK(sybyl_name(alltypes[7]) == "C.3");
     CHECK(sybyl_name(alltypes[8]) == "N.pl3");
     CHECK(sybyl_name(alltypes[9]) == "C.2");
     CHECK(sybyl_name(alltypes[10]) == "N.am");
     CHECK(sybyl_name(alltypes[11]) == "O.2");
     CHECK(sybyl_name(alltypes[12]) == "C.cat");
+    CHECK(sybyl.hybridization(12) == Hybridization::SP2);
     CHECK(sybyl_name(alltypes[13]) == "N.pl3");
     CHECK(sybyl_name(alltypes[14]) == "N.pl3");
     CHECK(sybyl_name(alltypes[15]) == "C.2");
@@ -50,9 +54,11 @@ TEST_CASE("SYBYL") {
     CHECK(sybyl_name(alltypes[17]) == "C.3");
     CHECK(sybyl_name(alltypes[18]) == "C.3");
     CHECK(sybyl_name(alltypes[19]) == "C.1");
+    CHECK(sybyl.hybridization(19) == Hybridization::SP);
     CHECK(sybyl_name(alltypes[20]) == "N.1");
     CHECK(sybyl_name(alltypes[21]) == "C.3");
     CHECK(sybyl_name(alltypes[22]) == "Fe");
+    CHECK(sybyl.hybridization(22) == Hybridization::FORCED);
     CHECK(sybyl_name(alltypes[23]) == "C.3");
     CHECK(sybyl_name(alltypes[24]) == "H");
 }

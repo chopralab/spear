@@ -1177,7 +1177,33 @@ bool IDATM::is_aromatic(size_t atom_id) const {
 }
 
 Hybridization IDATM::hybridization(size_t atom_id) const {
-    return Hybridization::UNKNOWN;
+    switch (atom_types_[atom_id]) {
+        case idatm::C:  case idatm::N:    case idatm::O:    case idatm::S:
+        case idatm::unk:
+        return Hybridization::UNKNOWN;
+        break;
+
+        case idatm::C1: case idatm::C1m:  case idatm::N1:   case idatm::N1p:
+        case idatm::O1p:
+        return Hybridization::SP;
+        break;
+
+        case idatm::C2:  case idatm::Car: case idatm::Cac:  case idatm::N2:
+        case idatm::N2p: case idatm::Ntr: case idatm::Ngp:
+        case idatm::O2:  case idatm::O2m: case idatm::Oarp: case idatm::Pox:
+        case idatm::S2:  case idatm::Sxd:
+        return Hybridization::SP2;
+        break;
+
+        case idatm::C3:  case idatm::N3:  case idatm::N3p: case idatm::Nox:
+        case idatm::Npl: case idatm::O3:  case idatm::O3m: case idatm::Oar:
+        case idatm::P3p: case idatm::S3:  case idatm::S3m: case idatm::S3p:
+        case idatm::Son: case idatm::Sac: case idatm::Sar: case idatm::Pac:
+        return Hybridization::SP3;
+        break;
+
+        default: return Hybridization::FORCED; break;
+    }
 }
 
 template<> std::string Spear::atomtype_name_for_id<IDATM>(size_t id) {

@@ -460,7 +460,30 @@ bool Sybyl::is_aromatic(size_t atom_id) const {
 }
 
 Hybridization Sybyl::hybridization(size_t atom_id) const {
-    return Hybridization::UNKNOWN;
+    switch (atom_types_[atom_id]) {
+        case sybyl::C_1: case sybyl::N_1:
+        return Hybridization::SP;
+        break;
+
+        case sybyl::C_2:  case sybyl::N_2:  case sybyl::O_2:   case sybyl::S_2:
+        case sybyl::C_ar: case sybyl::N_ar: case sybyl::O_co2: case sybyl::S_o:
+        case sybyl::C_cat:
+        return Hybridization::SP2;
+        break;
+
+        case sybyl::C_3:   case sybyl::N_3: case sybyl::N_4:   case sybyl::O_3:
+        case sybyl::S_3:   case sybyl::P_3: case sybyl::Ti_th: case sybyl::Cr_th:
+        case sybyl::N_pl3: case sybyl::N_am:
+        return Hybridization::SP3;
+        break;
+
+        case sybyl::S_o2: case sybyl::Ti_oh: case sybyl::Cr_oh: case sybyl::Co_oh:
+        case sybyl::Ru_oh:
+        return Hybridization::SP3D2;
+        break;
+
+        default: return Hybridization::FORCED; break;
+    }
 }
 
 template<> std::string Spear::atomtype_name_for_id<Sybyl>(size_t id) {
