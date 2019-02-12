@@ -53,6 +53,8 @@ public:
 
     bool is_aromatic() const;
 
+    size_t expected_bonds() const;
+
     bool operator==(const AtomVertex& rhs) const;
 
     AtomVertex operator[](size_t) const;
@@ -169,6 +171,11 @@ private:
     std::string default_atomtype_;
 };
 
+/******************************************************************************
+ * Implemenation of
+ * AtomVertex
+ ******************************************************************************/
+
 inline AtomVertex::AtomVertex(const Molecule* br, size_t index) :
     index_(index), br_(br) {
 }
@@ -224,6 +231,11 @@ inline AdjacencyIterator AtomVertex::begin() const {
 inline AdjacencyIterator AtomVertex::end() const {
     return boost::adjacent_vertices(index_, br_->graph()).second;
 }
+
+/******************************************************************************
+ * Implemenation of
+ * Molecule::iterator
+ ******************************************************************************/
 
 inline bool Molecule::iterator::operator==(const iterator& rhs) const {
     return (base_mol_ == rhs.base_mol_ && index_ == rhs.index_);
@@ -328,6 +340,11 @@ inline AtomVertex Molecule::iterator::operator[](difference_type rhs) const {
     tmp += rhs;
     return *tmp;
 }
+
+/******************************************************************************
+ * Implemenation of
+ * Molecule
+ ******************************************************************************/
 
 template<class atomtype, typename typemode>
 inline std::string Molecule::add_atomtype(typemode mode) {

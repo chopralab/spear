@@ -44,6 +44,19 @@ FunctionalGroup::FunctionalGroup(const std::string& smiles) {
             continue;
         }
 
+        if (in_prop_list && smiles[i] == 'X' && i != smiles.size() - 1) {
+            auto bonds = static_cast<size_t>(smiles[i + 1] - '0');
+
+            // Add a lambda function to compare the bond counts
+            properties_.back().emplace_back(
+                [bonds](const AtomVertex& a1) {
+                    return a1.expected_bonds() == bonds;
+                }
+            );
+            i++;
+            continue;
+        }
+
         if (smiles[i] == 'a' || smiles[i] == 'A') {
             bool should_be_aromatic = std::islower(smiles[i]);
             if (!in_prop_list) {

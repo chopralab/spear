@@ -8,6 +8,64 @@
 
 using namespace Spear;
 
+size_t AtomVertex::expected_bonds() const {
+    auto atomic_num = atomic_number();
+
+    switch(atomic_num) {
+        case 1:  // Hydrogen
+        case 9:  // Fluorine
+        case 17: // Chlorine
+        case 35: // Bromine
+        case 53: // Iodine
+        return 1;
+        break;
+
+        case 5:  // Boron
+        case 13: // Aluminium
+        return 3;
+        break;
+
+        default: break;
+    }
+
+    auto hybridization_state = br_->get_default_atomtype()->hybridization(index_);
+
+    if(atomic_num == 6) { // Carbon
+        switch (hybridization_state) {
+            case Hybridization::SP: return 2; break;
+            case Hybridization::SP2: return 3; break;
+            case Hybridization::SP3: return 4; break;
+            default: return 0; break;
+        }
+    }
+
+    if(atomic_num == 7) { // Nitrogen
+        switch (hybridization_state) {
+            case Hybridization::SP: return 1; break;
+            case Hybridization::SP2: return 2; break;
+            case Hybridization::SP3: return 3; break;
+            default: return 0; break;
+        }
+    }
+
+    if(atomic_num == 8) { // Oxygen
+        switch (hybridization_state) {
+            case Hybridization::SP: return 1; break;
+            case Hybridization::SP2: return 1; break;
+            case Hybridization::SP3: return 2; break;
+            default: return 0; break;
+        }
+    }
+
+    if(atomic_num == 15 || atomic_num == 16) { // Phosphorus and Sulfur
+        if (is_aromatic()) return 2;
+        return neighbor_count(); // Hard to tell, but things shouldn't be protonated
+    }
+
+    // Give up....
+    return static_cast<size_t>(hybridization_state);
+}
+
 // The cycle_printer is a visitor that will print the path that comprises
 // the cycle. Note that the back() vertex of the path is not the same as
 // the front(). It is implicit in the listing of vertices that the back()
