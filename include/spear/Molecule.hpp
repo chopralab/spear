@@ -51,6 +51,8 @@ public:
     
     AdjacencyIteratorPair neighbors() const;
 
+    bool is_aromatic() const;
+
     bool operator==(const AtomVertex& rhs) const;
 
     AtomVertex operator[](size_t) const;
@@ -140,6 +142,10 @@ public:
 
     optional<const AtomType*> get_atomtype(const std::string& name) const;
 
+    void set_default_atomtype(const std::string& name);
+
+    const AtomType* get_default_atomtype() const;
+
     size_t size() const;
 
     AtomVertex operator[](size_t index) const;
@@ -159,6 +165,8 @@ private:
 
     typedef std::unique_ptr<AtomType> unqiue_AtomType;
     std::unordered_map<std::string, unqiue_AtomType> atom_types_;
+
+    std::string default_atomtype_;
 };
 
 inline AtomVertex::AtomVertex(const Molecule* br, size_t index) :
@@ -188,6 +196,11 @@ inline size_t AtomVertex::neighbor_count() const {
 
 inline AdjacencyIteratorPair AtomVertex::neighbors() const {
     return boost::adjacent_vertices(index_, br_->graph());
+}
+
+inline bool AtomVertex::is_aromatic() const {
+    auto types = br_->get_default_atomtype();
+    return types->is_aromatic(index_);
 }
 
 inline bool AtomVertex::operator==(const AtomVertex& rhs) const {
@@ -321,6 +334,11 @@ inline std::string Molecule::add_atomtype(typemode mode) {
     auto typed_atoms = new atomtype(*this, mode);
     auto name = typed_atoms->name();
     atom_types_[name] = std::unique_ptr<atomtype>(typed_atoms);
+
+    if (default_atomtype_.empty()) {
+        default_atomtype_ = name;
+    }
+
     return name;
 }
 
@@ -329,6 +347,24 @@ inline optional<const AtomType*> Molecule::get_atomtype(const std::string& name)
     if (types == atom_types_.end()) {
         return chemfiles::nullopt;
     }
+    return types->second.get();
+}
+
+inline void Molecule::set_default_atomtype(const std::string& name) {
+    auto types = atom_types_.find(name);
+    if (types == atom_types_.end()) {
+        throw std::runtime_error("Atom type " + name + " is not availible.");
+    }
+    default_atomtype_ = name;
+}
+
+inline const AtomType* Molecule::get_default_atomtype() const {
+
+    if (default_atomtype_.empty()) {
+        throw std::runtime_error("No atom types are availible.");
+    }
+
+    auto types = atom_types_.find(default_atomtype_);
     return types->second.get();
 }
 

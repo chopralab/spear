@@ -35,8 +35,24 @@ public:
         bool first_atom = true;
         bool in_prop_list = false;
 
+        auto add_atom = 
+        [this, &first_atom, &bond_order, &previous, &current](uint64_t atom) {
+            add_vertex(atom, graph_);
+
+            if (!first_atom) {
+                boost::add_edge(previous, ++current,
+                EdgeProperty(bond_order), graph_);
+            }
+
+            first_atom = false;
+            previous = current;
+            bond_order = Bond::UNKNOWN;
+            properties_.push_back(std::list<AtomPropertyCompare>());
+
+        };
+
         for (size_t i = 0; i < smiles.size(); ++i) {
-            if (in_prop_list && smiles[i] == 'X' && i != smiles.size() - 1) {
+            if (in_prop_list && smiles[i] == 'D' && i != smiles.size() - 1) {
                 auto bonds = static_cast<size_t>(smiles[i + 1] - '0');
 
                 // Add a lambda function to compare the bond counts
@@ -49,33 +65,50 @@ public:
                 continue;
             }
 
-            if (std::isupper(smiles[i]) || smiles[i] == '*') {
-                if (smiles[i] != '*') {
-                    size_t element_length =
-                        i + 1 < smiles.size() && std::islower(smiles[i+1])? 2 : 1;
+            if (smiles[i] == 'a' || smiles[i] == 'A') {
+                bool should_be_aromatic = std::islower(smiles[i]);
+                if (!in_prop_list) {
+                    add_atom(0);
+                }
 
-                    auto element_name = smiles.substr(i, element_length);
-
-                    auto temp = chemfiles::Atom("", element_name);
-                    if (temp.atomic_number()) {
-                        add_vertex(*(temp.atomic_number()), graph_);
-                    } else {
-                        throw std::invalid_argument("Element not found: " + element_name);
+                properties_.back().emplace_back(
+                    [should_be_aromatic](const AtomVertex& a1) {
+                        return a1.is_aromatic() == should_be_aromatic;
                     }
-                    i += element_length - 1;
+                );
+
+                continue;
+            }
+
+            if (std::islower(smiles[i])) {
+                auto temp = chemfiles::Atom("", smiles.substr(i, 1));
+                if (temp.atomic_number()) {
+                    add_atom(*(temp.atomic_number()));
                 } else {
-                    add_vertex(0, graph_);
+                    throw std::invalid_argument("Element not found: " + smiles[i]);
                 }
+                properties_.back().emplace_back(
+                    [](const AtomVertex& a1) {
+                        return a1.is_aromatic();
+                    }
+                );
+                continue;
+            }
 
-                if (!first_atom) {
-                    boost::add_edge(previous, ++current,
-                        EdgeProperty(bond_order), graph_);
+            // Unlike a smiles string, C does not imply aliphatic!
+            if (std::isupper(smiles[i])) {
+                size_t element_length =
+                    i + 1 < smiles.size() && std::islower(smiles[i+1])? 2 : 1;
+
+                auto element_name = smiles.substr(i, element_length);
+
+                auto temp = chemfiles::Atom("", element_name);
+                if (temp.atomic_number()) {
+                    add_atom(*(temp.atomic_number()));
+                } else {
+                    throw std::invalid_argument("Element not found: " + element_name);
                 }
-
-                first_atom = false;
-                previous = current;
-                bond_order = Bond::UNKNOWN;
-                properties_.push_back(std::list<AtomPropertyCompare>());
+                i += element_length - 1;
                 continue;
             }
 
@@ -95,11 +128,13 @@ public:
             }
 
             switch (smiles[i]) {
-            case '.': break;
+            case '.': first_atom = false; break;
+            case '*': add_atom(0); break;
             case '@': break;
             case '/': break;
             case '\\': break;
             case '%': break;
+            case '~': bond_order = Bond::UNKNOWN; break;
             case '-': bond_order = Bond::SINGLE; break; // We don't support charges
             case '=': bond_order = Bond::DOUBLE; break;
             case '#': bond_order = Bond::TRIPLE; break;

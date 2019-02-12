@@ -1,4 +1,5 @@
 #include "spear/FunctionalGroup.hpp"
+#include "spear/atomtypes/IDATM.hpp"
 #include "chemfiles.hpp"
 
 #define CATCH_CONFIG_MAIN
@@ -54,6 +55,7 @@ TEST_CASE("Functional Group") {
     SECTION("Pazopanib") {
         auto traj = chemfiles::Trajectory("data/pazopanib.sdf");
         auto mol = Spear::Molecule(traj.read());
+        mol.add_atomtype<Spear::IDATM>(Spear::AtomType::GEOMETRY);
 
         Spear::FunctionalGroup aromatic_C_N("C:N");
         auto a_C_N_grp = Spear::find_functional_groups(mol, aromatic_C_N);
@@ -63,6 +65,14 @@ TEST_CASE("Functional Group") {
         auto ring_sym_grp = Spear::find_functional_groups(mol, aromatic_ring_sym);
         CHECK(ring_sym_grp.size() == 2); // Symmetric, there's two possibilities
 
+        Spear::FunctionalGroup aromatic_ring_sym_2("c1nc(-N)ncc1");
+        auto ring_sym_grp_2 = Spear::find_functional_groups(mol, aromatic_ring_sym_2);
+        CHECK(ring_sym_grp_2.size() == 2); // Statement should be the same as above.
+
+        Spear::FunctionalGroup aromatic_ring_sym_broken("C1:N[A]:C(-N):N:C:C:1");
+        auto ring_sym_grp_broken = Spear::find_functional_groups(mol, aromatic_ring_sym_broken);
+        CHECK(ring_sym_grp_broken.size() == 0); // We forced something to be aliphatic
+
         Spear::FunctionalGroup aromatic_ring("C1:N:C(-N):N:C(-N):C:1");
         auto ring_grp = Spear::find_functional_groups(mol, aromatic_ring);
         CHECK(ring_grp.size() == 1); // No longer symmetric!
@@ -71,15 +81,23 @@ TEST_CASE("Functional Group") {
         auto so2n_grp = Spear::find_functional_groups(mol, sulfonamide);
         CHECK(so2n_grp.size() == 2); // Oxygens are symmetric
 
-        Spear::FunctionalGroup N_with_3_bonds("[NX3]");
+        Spear::FunctionalGroup N_with_3_bonds("[ND3]");
         auto N_3_grp = Spear::find_functional_groups(mol, N_with_3_bonds);
         CHECK(N_3_grp.size() == 2); // Only two nitrogens have three explicit(non-H) bonds
 
-        Spear::FunctionalGroup N_with_2_bonds("[NX2]");
-        auto N_2_grp = Spear::find_functional_groups(mol, N_with_2_bonds);
-        CHECK(N_2_grp.size() == 4); // Four nitrogens have three explicit(non-H) bonds
+        Spear::FunctionalGroup N_with_3_bonds_aliphatic("[ND3A]");
+        auto N_3_ali_grp = Spear::find_functional_groups(mol, N_with_3_bonds_aliphatic);
+        CHECK(N_3_ali_grp.size() == 1); // But only one of those nitrogens is aliphatic!
 
-        Spear::FunctionalGroup N_with_1_bonds("[NX1]");
+        Spear::FunctionalGroup N_with_2_bonds("[ND2]");
+        auto N_2_grp = Spear::find_functional_groups(mol, N_with_2_bonds);
+        CHECK(N_2_grp.size() == 4); // Four nitrogens have two explicit(non-H) bonds
+
+        Spear::FunctionalGroup N_with_2_bonds_aliphatic("[ND2A]");
+        auto N_2_ali_grp = Spear::find_functional_groups(mol, N_with_2_bonds_aliphatic);
+        CHECK(N_2_ali_grp.size() == 1); // But only one of those nitrogens is aliphatic!
+
+        Spear::FunctionalGroup N_with_1_bonds("[ND1]");
         auto N_1_grp = Spear::find_functional_groups(mol, N_with_1_bonds);
         CHECK(N_1_grp.size() == 1); // sulfonamide nitrogen!
     }
