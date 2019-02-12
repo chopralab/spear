@@ -364,6 +364,10 @@ void IDATM::type_atoms_topo_() {
         auto bo = bond_orders[i];
         if (bo == chemfiles::Bond::AROMATIC) {
             ++aromatic_count;
+
+            // Spoof the aromatic ring list
+            aromatic_ring_sizes_.insert({bonds[i][0], 0});
+            aromatic_ring_sizes_.insert({bonds[i][1], 0});
         }
 
         auto index1 = bonds[i][0];
@@ -381,6 +385,7 @@ void IDATM::type_atoms_topo_() {
     charges_();
 
     if (aromatic_count < 5) {
+        aromatic_ring_sizes_.clear();
         aromatic_();
     }
 
@@ -876,6 +881,7 @@ void IDATM::fix_N2_() {
         // are both bonded heavy atoms sp3?  If so -> Npl
         bool bothSP3 = true;
         bool bothC = true;
+        bool bothCar = true;
         bool bothN = true;
         bool other = false;
         for (auto bondee : atom) {
@@ -887,15 +893,25 @@ void IDATM::fix_N2_() {
 
             if (mol_[bondee].atomic_number() == 6) {
                 bothN = false;
+                if (atom_types_[bondee] != idatm::Car) {
+                    bothCar = false;
+                }
             } else if (mol_[bondee].atomic_number() == 7) {
                 bothC = false;
+                bothCar = false;
             } else {
                 other = true;
                 bothN = false;
                 bothC = false;
+                bothCar = false;
             }
         }
         if (bothSP3) continue;
+
+        // Bridging nitrogen between two aromatic rings!
+        if (bothCar && aromatic_ring_sizes_.find(atom) == aromatic_ring_sizes_.end()) {
+            continue;
+        }
 
         if (other) {
             // Metal bond most likely. (C(=O)N:---M), keep Npl

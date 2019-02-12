@@ -80,9 +80,11 @@ TEST_CASE("IDATM") {
         CHECK(unique_types.count(idatm_type("O3-")) != 0);
         CHECK(unique_types.count(idatm_type("Son")) != 0);
 
+        std::set<size_t> in_a_ring;
         auto rings = mol.rings();
         for (auto ring : rings) {
             for (auto atom : ring) {
+                in_a_ring.insert(atom);
                 if (ring.size() == 6) {
                     CHECK(idatm.hybridization(atom) == Hybridization::SP2);
                     if (mol[atom].atomic_number() == 6) {
@@ -104,6 +106,13 @@ TEST_CASE("IDATM") {
                         CHECK(idatm.hybridization(atom) == Hybridization::SP2);
                     }
                 }
+            }
+        }
+
+        for (size_t i = 0; i < mol.size(); ++i) {
+            if (in_a_ring.find(i) != in_a_ring.end()) continue;
+            if (mol[i].atomic_number() == 7) {
+                CHECK(idatm_name(alltypes[i]) == "Npl");
             }
         }
 
