@@ -134,11 +134,11 @@ configure_file(
 # Install package files
 set(PACKAGE_LOCATION lib${LIB_SUFFIX}/cmake/spear)
 install(EXPORT SPEAR-targets
-  FILE SPEAR-targets.cmake
+  FILE spear-targets.cmake
   DESTINATION ${PACKAGE_LOCATION}
 )
 install(FILES
-    cmake/SPEAR-config.cmake
+    cmake/spear-config.cmake
     "${CMAKE_CURRENT_BINARY_DIR}/spear-config-version.cmake"
     DESTINATION ${PACKAGE_LOCATION}
     COMPONENT Devel
