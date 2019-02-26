@@ -20,6 +20,7 @@ option(SPEAR_BUILD_TESTS "Build unit tests." OFF)
 option(SPEAR_BUILD_DOCUMENTATION "Build the documentation." OFF)
 option(SPEAR_CODE_COVERAGE "Enable code coverage" OFF)
 option(SPEAR_USE_WARNINGS "Compile the code with warnings (default in debug mode)" OFF)
+option(SPEAR_BUILD_CHEMFILES "Build chemfiles in addition to spear." ON)
 
 mark_as_advanced(SPEAR_BUILD_DOCTESTS)
 
@@ -67,44 +68,39 @@ if(SPEAR_CODE_COVERAGE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage")
 endif()
 
-include(InstallChemfiles)
+# Attempt to find chemfiles
+if(NOT SPEAR_BUILD_CHEMFILES)
+    find_package(chemfiles REQUIRED)
+else()
+    message(STATUS "Chemfiles is being built!")
+    include(InstallChemfiles)
+endif()
 
 set(Boost_USE_STATIC_LIBS        ON)
 set(Boost_USE_MULTITHREADED      ON)
 find_package(Boost REQUIRED COMPONENTS graph filesystem program_options)
 
-# We need to use a separated library for non-dll-exported classes that have an
-# unit test. The SPEAR_objects OBJECT library contains the code for files
-# implementation and is linked into both the main SPEAR library and the
-# unit tests.
 file(GLOB_RECURSE SPEAR_objects_sources src/**.cpp)
-add_library(SPEAR_objects OBJECT ${SPEAR_objects_sources})
-target_include_directories(SPEAR_objects PUBLIC
+add_library(spear ${SPEAR_objects_sources})
+target_include_directories(spear PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
 )
-target_include_directories(SPEAR_objects SYSTEM PRIVATE ${CMAKE_BINARY_DIR}/chemfiles/include ${Boost_INCLUDE_DIRS})
 
-target_compile_definitions(SPEAR_objects PRIVATE SPEAR_EXPORTS)
-if(${BUILD_SHARED_LIBS})
-    set_target_properties(SPEAR_objects PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
-endif()
-
-set(SPEAR_OBJECTS
-    $<TARGET_OBJECTS:SPEAR_objects>
-)
-
-# Add the main SPEAR library
-add_library(spear ${SPEAR_OBJECTS})
-
-set_property(TARGET spear PROPERTY VERSION ${SPEAR_VERSION_SHORT})
-set_property(TARGET spear PROPERTY SOVERSION ${SPEAR_VERSION_SHORT})
-
-target_link_libraries(spear
-    Boost::filesystem
+target_link_libraries(spear PUBLIC
     Boost::graph
     chemfiles
 )
+
+target_include_directories(spear SYSTEM PRIVATE ${chemfiles_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+
+target_compile_definitions(spear PRIVATE SPEAR_EXPORTS)
+if(${BUILD_SHARED_LIBS})
+    set_target_properties(spear PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+endif()
+
+set_property(TARGET spear PROPERTY VERSION ${SPEAR_VERSION_SHORT})
+set_property(TARGET spear PROPERTY SOVERSION ${SPEAR_VERSION_SHORT})
 
 configure_file (
   "${PROJECT_SOURCE_DIR}/include/spear/config.in.hpp"
