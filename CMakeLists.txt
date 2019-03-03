@@ -117,10 +117,11 @@ generate_export_header(spear
 # Installation configuration
 #----------------------------------------------------------------------------------------#
 set(INCLUDE_INSTALL_DIR "include")
-install(TARGETS spear EXPORT SPEAR-targets
+install(TARGETS spear EXPORT spear-targets
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib${LIB_SUFFIX}
     ARCHIVE DESTINATION lib${LIB_SUFFIX}
+    INCLUDES DESTINATION include
 )
 install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY ${PROJECT_BINARY_DIR}/include/ DESTINATION include)
@@ -133,7 +134,7 @@ configure_file(
 
 # Install package files
 set(PACKAGE_LOCATION lib${LIB_SUFFIX}/cmake/spear)
-install(EXPORT SPEAR-targets
+install(EXPORT spear-targets
   FILE spear-targets.cmake
   DESTINATION ${PACKAGE_LOCATION}
 )
