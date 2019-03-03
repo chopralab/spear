@@ -60,11 +60,11 @@ private:
     std::string name_;
 };
 
-template<> std::string atomtype_name_for_id<Sybyl>(size_t id);
+template<> std::string SPEAR_EXPORT atomtype_name_for_id<Sybyl>(size_t id);
 
-template<> size_t atomtype_id_for_name<Sybyl>(std::string name);
+template<> size_t SPEAR_EXPORT atomtype_id_for_name<Sybyl>(std::string name);
 
-template<> size_t atomtype_id_count<Sybyl>();
+template<> size_t SPEAR_EXPORT atomtype_id_count<Sybyl>();
 
 }
 

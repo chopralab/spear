@@ -17,7 +17,7 @@ namespace Spear {
 
 using AtomPropertyCompare = std::function<bool(const AtomVertex&)>;
 
-class FunctionalGroup {
+class SPEAR_EXPORT FunctionalGroup {
     Graph graph_;
     std::list<std::list<AtomPropertyCompare>> properties_;
 public:
@@ -34,8 +34,8 @@ public:
     }
 };
 
-std::list<std::vector<size_t>> find_functional_groups(const Molecule& mol,
-                                                      const FunctionalGroup& fg);
+std::list<std::vector<size_t>> SPEAR_EXPORT find_functional_groups(const Molecule& mol,
+                                                                   const FunctionalGroup& fg);
 
 }
 

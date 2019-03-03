@@ -43,7 +43,7 @@ private:
     void compile_scoring_function_(const AtomicDistributions& distributions);
 };
 
-template<> std::string scoringfunction_name<Bernard12>();
+template<> std::string SPEAR_EXPORT scoringfunction_name<Bernard12>();
 
 }
 
