@@ -27,7 +27,8 @@ public:
               const AtomicDistributions& atom_dist, const std::string& atomtype,
               const std::unordered_set<size_t>& allowed_atoms = std::unordered_set<size_t>());
 
-    double score(const Grid& grid, const Molecule& mol1, const Molecule& mol2) override;
+    double score(const Grid& grid, const Molecule& mol1, const Molecule& mol2) const override;
+    double score( const Grid& grid, const Molecule& mol, size_t residue_id) const override;
 
     bool ignore_hydro = false;
 private:

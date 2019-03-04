@@ -118,7 +118,7 @@ void Bernard12::compile_scoring_function_(const AtomicDistributions& distributio
     }
 }
 
-double Bernard12::score(const Grid& grid, const Molecule& mol1, const Molecule& mol2) {
+double Bernard12::score(const Grid& grid, const Molecule& mol1, const Molecule& mol2) const {
     auto opt_types1 = mol1.get_atomtype(atomtype_);
     auto opt_types2 = mol2.get_atomtype(atomtype_);
 
@@ -139,6 +139,39 @@ double Bernard12::score(const Grid& grid, const Molecule& mol1, const Molecule& 
             auto dist = (atom1.position() - atom2.position()).norm();
 
             auto atom_pair = std::minmax(types1[atom1], types2[atom2]);
+            auto idx = static_cast<size_t>(dist / step_in_file_);
+            auto distrution = energies_scoring_.find(atom_pair);
+
+            if (distrution == energies_scoring_.end()) {
+                continue;
+            }
+
+            if (idx < distrution->second.size()) {
+                energy_sum += distrution->second[idx];
+            }
+        }
+    }
+    return energy_sum;
+}
+
+double Bernard12::score( const Grid& grid, const Molecule& mol, size_t residue_id) const {
+    auto opt_types1 = mol.get_atomtype(atomtype_);
+    auto& types1 = (*opt_types1)->all_types();
+
+    const auto& residue = mol.frame().topology().residues()[residue_id];
+
+    auto energy_sum = 0.0;
+    for (auto atom2_id : residue) {
+        auto atom2 = mol[atom2_id];
+        if (ignore_hydro && atom2.atomic_number() == 1) continue;
+        auto neighbors = grid.neighbors(atom2.position(), dist_cutoff_);
+        for (auto neighbor : neighbors) {
+            auto atom1 = mol[neighbor];
+            if (ignore_hydro && atom1.atomic_number() == 1) continue;
+            if (residue.contains(neighbor)) continue;
+            auto dist = (atom1.position() - atom2.position()).norm();
+
+            auto atom_pair = std::minmax(types1[atom1], types1[atom2]);
             auto idx = static_cast<size_t>(dist / step_in_file_);
             auto distrution = energies_scoring_.find(atom_pair);
 
