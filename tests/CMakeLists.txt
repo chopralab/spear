@@ -20,10 +20,6 @@ function(spear_unit_test _name_ _file_)
     target_compile_definitions(${_name_} PRIVATE spear_EXPORTS)
     set_target_properties(${_name_} PROPERTIES LINKER_LANGUAGE CXX)
     target_include_directories(${_name_} SYSTEM PRIVATE
-        ${BOOST_INCLUDE_DIR}
-        ${CMAKE_SOURCE_DIR}/include
-        ${CMAKE_BINARY_DIR}/include
-        ${CMAKE_BINARY_DIR}/chemfiles/include
         ${CMAKE_SOURCE_DIR}/tests/external
     )
 

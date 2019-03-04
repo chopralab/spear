@@ -92,8 +92,6 @@ target_link_libraries(spear PUBLIC
     chemfiles
 )
 
-target_include_directories(spear SYSTEM PRIVATE ${chemfiles_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
-
 target_compile_definitions(spear PRIVATE SPEAR_EXPORTS)
 if(${BUILD_SHARED_LIBS})
     set_target_properties(spear PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
