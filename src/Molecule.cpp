@@ -100,13 +100,11 @@ struct cycle_saver
     std::set<std::set<size_t>>& found_rings;
 };
 
-Molecule::Molecule(const chemfiles::Frame& frame) :
-    frame_(frame.clone()), graph_() {
-
+void Molecule::init_() {
     auto &topo = frame_.topology();
 
     std::map<size_t, VertexDescriptor> vertices;
-    for (auto atom : frame) {
+    for (auto atom : frame_) {
         boost::add_vertex(VertexDescriptor{*(atom.atomic_number())}, graph_);
     }
 

@@ -125,7 +125,10 @@ public:
         const Molecule* base_mol_;
     };
 
-    explicit Molecule(const chemfiles::Frame& frame);
+    explicit Molecule(chemfiles::Frame frame) :
+        frame_(std::move(frame)), graph_() {
+        init_();
+    }
 
     const Graph& graph() const {
         return graph_;
@@ -161,6 +164,8 @@ public:
     iterator cend() const;
 
 private:
+    void init_();
+
     chemfiles::Frame frame_;
     
     Graph graph_;
