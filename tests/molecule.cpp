@@ -124,3 +124,54 @@ TEST_CASE("Molecule") {
         CHECK(boost::target(bond[1], mol.graph()) == 2);
     }
 }
+
+TEST_CASE("Dimensionality") {
+    SECTION("Point") {
+        chemfiles::Frame f;
+        f.add_atom(chemfiles::Atom("C"), {1, 2, 3});
+        auto mol = Spear::Molecule(std::move(f));
+        CHECK(mol.dimensionality() == 0);
+    }
+
+    SECTION("Linear") {
+        chemfiles::Frame f;
+        f.add_atom(chemfiles::Atom("C"), {1, 2, 3});
+        f.add_atom(chemfiles::Atom("C"), {2, 3, 4});
+
+        auto mol1 = Spear::Molecule(std::move(f.clone()));
+        CHECK(mol1.dimensionality() == 1);
+
+        f.add_atom(chemfiles::Atom("C"), {3, 4, 5});
+        auto mol2 = Spear::Molecule(std::move(f.clone()));
+        CHECK(mol2.dimensionality() == 1);
+
+        f.add_atom(chemfiles::Atom("C"), {5, 6, 7});
+        auto mol3 = Spear::Molecule(std::move(f.clone()));
+        CHECK(mol3.dimensionality() == 1);
+
+        f.add_atom(chemfiles::Atom("C"), {6, 8, 8});
+        auto mol4 = Spear::Molecule(std::move(f.clone()));
+        CHECK(mol4.dimensionality() == 2); // No longer linear
+    }
+
+    SECTION("Planar") {
+        chemfiles::Frame f1;
+        f1.add_atom(chemfiles::Atom("C"), {0, 0, 0});
+        f1.add_atom(chemfiles::Atom("C"), {1, 0, 0});
+        f1.add_atom(chemfiles::Atom("C"), {0, 1, 0});
+
+        // L-shaped
+        auto mol1 = Spear::Molecule(std::move(f1.clone()));
+        CHECK(mol1.dimensionality() == 2);
+
+        // T-shaped
+        f1.add_atom(chemfiles::Atom("C"), {-1, 0, 0});
+        auto mol2 = Spear::Molecule(std::move(f1.clone()));
+        CHECK(mol2.dimensionality() == 2);
+
+        // No longer planer
+        f1.add_atom(chemfiles::Atom("C"), {0, 0, 1});
+        auto mol3 = Spear::Molecule(std::move(f1.clone()));
+        CHECK(mol3.dimensionality() == 3);        
+    }
+}

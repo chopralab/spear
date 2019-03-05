@@ -140,6 +140,8 @@ public:
 
     const std::set<std::set<size_t>> rings() const;
 
+    size_t dimensionality(double eps = 0.00001) const;
+
     std::vector<EdgeDescriptor> get_bonds_in(const std::set<size_t>& atoms) const;
 
     template<class atomtype, typename typemode>

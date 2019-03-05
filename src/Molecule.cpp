@@ -125,6 +125,68 @@ const std::set<std::set<size_t>> Molecule::rings() const {
     return ret_rings;
 }
 
+static double cos_sim(const chemfiles::Vector3D& u, const chemfiles::Vector3D& v) {
+    auto arc = chemfiles::dot(u,v) / (u.norm() * v.norm());
+    return arc >= 1? 0 : std::acos(arc);
+}
+
+size_t Molecule::dimensionality(double eps) const {
+    using chemfiles::Vector3D;
+    auto& pos = frame_.positions();
+
+    if (size() == 0 || size() == 1) {
+        return 0;
+    }
+
+    // Any two points are on the same line
+    if (size() == 2) {
+        return 1;
+    }
+
+    Vector3D lin_vec = pos[1] - pos[0];
+    Vector3D plane_vec = pos[2] - pos[0];
+
+    if (size() == 3) {
+        if (cos_sim(lin_vec, plane_vec) < eps) {
+            return 1; // It's still linear!
+        } else {
+            return 2; // Any three points makes a plane
+        }
+    }
+
+    Vector3D norm_vec = chemfiles::cross(lin_vec, plane_vec);
+    auto d = chemfiles::dot(norm_vec, pos[0]);
+
+    bool is_linear = true;
+    for (size_t i = 3; i < size(); ++i) {
+        Vector3D curr_vec = pos[i] - pos[0];
+        if (is_linear && cos_sim(lin_vec, curr_vec) > eps) {
+            is_linear = false;
+        }
+
+        if (!is_linear) {
+            auto test_d = chemfiles::dot(norm_vec, pos[i]);
+            if (d < eps && test_d < eps) {
+                continue;
+            }
+
+            if (d < eps && test_d > eps) {
+                return 3;
+            }
+
+            if (std::fabs(std::fmod(test_d, d)) > eps) {
+                return 3;
+            }
+        }
+    }
+
+    if (is_linear) {
+        return 1;
+    } else {
+        return 2;
+    }
+}
+
 std::vector<Spear::EdgeDescriptor> Molecule::get_bonds_in(const std::set<size_t>& atoms) const {
     EdgeIterator begin, end;
     std::tie(begin, end) = boost::edges(graph_);
