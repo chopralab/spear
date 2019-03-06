@@ -70,8 +70,7 @@ size_t AtomVertex::expected_bonds() const {
 // the cycle. Note that the back() vertex of the path is not the same as
 // the front(). It is implicit in the listing of vertices that the back()
 // vertex is connected to the front().
-struct cycle_saver
-{
+struct cycle_saver {
 
     cycle_saver(std::set<std::set<size_t>>& counter):
         found_rings(counter){
