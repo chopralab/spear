@@ -55,6 +55,12 @@ public:
 
     size_t expected_bonds() const;
 
+    size_t implicit_hydrogens() const;
+
+    size_t explicit_hydrogens() const;
+
+    size_t total_hydrogens() const;
+
     bool operator==(const AtomVertex& rhs) const;
 
     AtomVertex operator[](size_t) const;
@@ -153,6 +159,8 @@ public:
 
     const AtomType* get_default_atomtype() const;
 
+    void remove_hydrogens();
+
     size_t size() const;
 
     AtomVertex operator[](size_t index) const;
@@ -215,6 +223,26 @@ inline AdjacencyIteratorPair AtomVertex::neighbors() const {
 inline bool AtomVertex::is_aromatic() const {
     auto types = br_->get_default_atomtype();
     return types->is_aromatic(index_);
+}
+
+inline size_t AtomVertex::implicit_hydrogens() const {
+    return neighbor_count() < expected_bonds()?
+           expected_bonds() - neighbor_count() : 0;
+}
+
+inline size_t AtomVertex::explicit_hydrogens() const {
+    size_t count = 0;
+    auto& mol = *br_;
+    for (auto neighbor : *this) {
+        if (mol[neighbor].atomic_number() == 1) {
+            ++count;
+        }
+    }
+    return count;
+}
+
+inline size_t AtomVertex::total_hydrogens() const {
+    return explicit_hydrogens() + implicit_hydrogens();
 }
 
 inline bool AtomVertex::operator==(const AtomVertex& rhs) const {

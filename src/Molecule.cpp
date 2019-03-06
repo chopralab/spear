@@ -5,7 +5,7 @@
 #include <boost/graph/undirected_graph.hpp>
 
 #include "spear/AtomType.hpp"
-
+#include <iostream>
 using namespace Spear;
 
 size_t AtomVertex::expected_bonds() const {
@@ -207,4 +207,27 @@ std::vector<Spear::EdgeDescriptor> Molecule::get_bonds_in(const std::set<size_t>
     });
 
     return ret;
+}
+
+void Molecule::remove_hydrogens() {
+    auto& mol = *this;
+
+    // Removal of an atom invalidates the vertex descriptors as we are using a
+    // vecS for vertex storage (required to link index to frame).
+    // Therefore we need to restart the search when we remove something.
+    bool has_hydrogens = false;
+    do {
+        auto verticies_iter = boost::vertices(graph_);    
+        has_hydrogens = false;
+        for (auto v = verticies_iter.first; v != verticies_iter.second; ++v) {
+            auto index = boost::get(boost::vertex_index_t(), graph_, *v);
+            if (mol[index].atomic_number() == 1) {
+                boost::clear_vertex(*v, graph_);
+                boost::remove_vertex(*v, graph_);
+                frame_.remove(index);
+                has_hydrogens = true;
+                break;
+            }
+        }
+    } while (has_hydrogens);
 }

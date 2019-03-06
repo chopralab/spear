@@ -175,3 +175,29 @@ TEST_CASE("Dimensionality") {
         CHECK(mol3.dimensionality() == 3);        
     }
 }
+
+TEST_CASE("Hydrogens") {
+    SECTION("Remove") {
+        auto traj = chemfiles::Trajectory("data/3qox_ligand.sdf");
+        auto mol = Spear::Molecule(traj.read());
+
+        size_t explicit_hs = 0, actual_hs = 0;
+        for (auto av : mol) {
+            explicit_hs += av.explicit_hydrogens();
+            if (av.atomic_number() == 1) ++actual_hs;
+        }
+        CHECK(actual_hs == 20);
+        CHECK(explicit_hs == actual_hs);
+
+        mol.remove_hydrogens();
+
+        explicit_hs = 0, actual_hs = 0;
+        for (auto av : mol) {
+            explicit_hs += av.explicit_hydrogens();
+            if (av.atomic_number() == 1) ++actual_hs;
+        }
+        CHECK(actual_hs == 0);
+        CHECK(explicit_hs == actual_hs);
+        CHECK(mol.size() == 26);
+    }
+}
