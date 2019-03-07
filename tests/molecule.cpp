@@ -176,28 +176,46 @@ TEST_CASE("Dimensionality") {
     }
 }
 
+TEST_CASE("Default AtomType") {
+    auto traj2 = chemfiles::Trajectory("data/tibolone.sdf");
+    auto mol2 = Spear::Molecule(traj2.read());
+
+    auto default_atom_type = mol2.get_default_atomtype();
+    CHECK(default_atom_type->hybridization(0) == Spear::Hybridization::SP3);
+    CHECK(default_atom_type->hybridization(3) == Spear::Hybridization::SP2);
+    CHECK(default_atom_type->hybridization(4) == Spear::Hybridization::SP2);
+    CHECK(default_atom_type->hybridization(7) == Spear::Hybridization::SP2);
+    CHECK(default_atom_type->hybridization(8) == Spear::Hybridization::SP2);
+    CHECK(default_atom_type->hybridization(20) == Spear::Hybridization::SP);
+    CHECK(default_atom_type->hybridization(21) == Spear::Hybridization::SP);
+}
+
 TEST_CASE("Hydrogens") {
     SECTION("Remove") {
         auto traj = chemfiles::Trajectory("data/3qox_ligand.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        size_t explicit_hs = 0, actual_hs = 0;
+        size_t explicit_hs = 0, actual_hs = 0, implicit_hs = 0;
         for (auto av : mol) {
             explicit_hs += av.explicit_hydrogens();
+            implicit_hs += av.implicit_hydrogens();
             if (av.atomic_number() == 1) ++actual_hs;
         }
         CHECK(actual_hs == 20);
+        CHECK(implicit_hs == 1); // TODO: Fix carbonyl!
         CHECK(explicit_hs == actual_hs);
 
         mol.remove_hydrogens();
 
-        explicit_hs = 0, actual_hs = 0;
+        explicit_hs = 0, actual_hs = 0, implicit_hs = 0;
         for (auto av : mol) {
             explicit_hs += av.explicit_hydrogens();
+            implicit_hs += av.implicit_hydrogens();
             if (av.atomic_number() == 1) ++actual_hs;
         }
         CHECK(actual_hs == 0);
         CHECK(explicit_hs == actual_hs);
+        CHECK(implicit_hs == 20);
         CHECK(mol.size() == 26);
     }
 }

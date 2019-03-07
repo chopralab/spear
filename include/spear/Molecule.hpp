@@ -35,7 +35,7 @@ class Molecule;
 
 using chemfiles::optional;
 
-class AtomVertex {
+class SPEAR_EXPORT AtomVertex {
 public:
     AtomVertex(const Molecule* br, size_t index);
 
@@ -150,8 +150,8 @@ public:
 
     std::vector<EdgeDescriptor> get_bonds_in(const std::set<size_t>& atoms) const;
 
-    template<class atomtype, typename typemode>
-    std::string add_atomtype(typemode mode);
+    template<class atomtype, typename... args>
+    std::string add_atomtype(args... additional);
 
     optional<const AtomType*> get_atomtype(const std::string& name) const;
 
@@ -381,9 +381,9 @@ inline AtomVertex Molecule::iterator::operator[](difference_type rhs) const {
  * Molecule
  ******************************************************************************/
 
-template<class atomtype, typename typemode>
-inline std::string Molecule::add_atomtype(typemode mode) {
-    auto typed_atoms = new atomtype(*this, mode);
+template<class atomtype, typename... args>
+inline std::string Molecule::add_atomtype(args... additional) {
+    auto typed_atoms = new atomtype(*this, additional...);
     auto name = typed_atoms->name();
     atom_types_[name] = std::unique_ptr<atomtype>(typed_atoms);
 
@@ -411,11 +411,6 @@ inline void Molecule::set_default_atomtype(const std::string& name) {
 }
 
 inline const AtomType* Molecule::get_default_atomtype() const {
-
-    if (default_atomtype_.empty()) {
-        throw std::runtime_error("No atom types are availible.");
-    }
-
     auto types = atom_types_.find(default_atomtype_);
     return types->second.get();
 }

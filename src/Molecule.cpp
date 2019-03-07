@@ -5,7 +5,8 @@
 #include <boost/graph/undirected_graph.hpp>
 
 #include "spear/AtomType.hpp"
-#include <iostream>
+#include "spear/atomtypes/Default.hpp"
+
 using namespace Spear;
 
 size_t AtomVertex::expected_bonds() const {
@@ -113,6 +114,8 @@ void Molecule::init_() {
         boost::add_edge(bonds[i][0], bonds[i][1],
             EdgeProperty(topo.bond_orders()[i]), graph_);
     }
+
+    add_atomtype<Default>();
 }
 
 const std::set<std::set<size_t>> Molecule::rings() const {

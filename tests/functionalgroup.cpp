@@ -54,7 +54,8 @@ TEST_CASE("Tibolone") {
 TEST_CASE("Pazopanib") {
     auto traj = chemfiles::Trajectory("data/pazopanib.sdf");
     auto mol = Spear::Molecule(traj.read());
-    mol.add_atomtype<Spear::IDATM>(Spear::AtomType::GEOMETRY);
+    auto name = mol.add_atomtype<Spear::IDATM>(Spear::AtomType::GEOMETRY);
+    mol.set_default_atomtype(name);
 
     SECTION("General Searching") {
         Spear::FunctionalGroup aromatic_C_N("C:N");
