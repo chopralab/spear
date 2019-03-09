@@ -223,11 +223,11 @@ static bool aromatic(const Molecule& mol, const std::set<size_t>& ring) {
     return is_aromatic;
 }
 
-static size_t freeOxygens(const Molecule& mol, const Spear::AtomVertex& atom,
+static size_t freeOxygens(const Spear::AtomVertex& atom,
                           const std::vector<size_t>& heavys) {
     size_t freeOxygens = 0;
-    for (auto neighbor : atom) {
-        if (mol[neighbor].type() == "O" && heavys[neighbor] == 1) {
+    for (auto neighbor : atom.neighbors()) {
+        if (neighbor.type() == "O" && heavys[neighbor] == 1) {
             ++freeOxygens;
         }
     }
@@ -304,7 +304,7 @@ void IDATM::type_atoms_topo_() {
     for (const auto atom : mol_) {
         if (mapped_[atom]) continue;
 
-        auto freeOs = freeOxygens(mol_, atom, heavys_);
+        auto freeOs = freeOxygens(atom, heavys_);
         auto valence = atom.neighbor_count();
 
         switch (atom.atomic_number()) {
@@ -384,7 +384,7 @@ void IDATM::type_atoms_topo_() {
     fix_C2_();
     charges_();
 
-    if (aromatic_count < 5) {
+    if (aromatic_count < 5 && mol_.dimensionality() == 3) {
         aromatic_ring_sizes_.clear();
         aromatic_();
     }
@@ -413,8 +413,8 @@ void IDATM::infallible_() {
     for (const auto atom : mol_) {
         if (atom.atomic_number() == 1) { // Hydrogen and deuterium
             bool bondedToCarbon = false;
-            for (auto neighbor : atom) {
-                if (mol_[neighbor].atomic_number() == 6) {
+            for (auto neighbor : atom.neighbors()) {
+                if (neighbor.atomic_number() == 6) {
                     bondedToCarbon = true;
                     break;
                 }
@@ -432,8 +432,8 @@ void IDATM::infallible_() {
         }
 
         size_t heavyCount = 0;
-        for (auto neighbor : atom) {
-            if (mol_[neighbor].atomic_number() > 1) heavyCount++;
+        for (auto neighbor : atom.neighbors()) {
+            if (neighbor.atomic_number() > 1) heavyCount++;
         }
 
         heavys_[atom] = heavyCount;
@@ -459,7 +459,7 @@ void IDATM::infallible_() {
                 }
 
                 // is it C-terminal ?
-                if (a.name() == "C" && freeOxygens(mol_, a, heavys_) == 2) {
+                if (a.name() == "C" && freeOxygens(a, heavys_) == 2) {
                     atom_types_[i] = idatm::Cac;
                     continue;
                 }
@@ -506,7 +506,7 @@ std::vector<size_t> IDATM::valence_() {
         auto element = atom.atomic_number();
         auto valence = atom.neighbor_count();
 
-        auto freeOs = freeOxygens(mol_, atom, heavys_);
+        auto freeOs = freeOxygens(atom, heavys_);
         if (valence == 4) { // assume tetrahedral
             if (element == 6) {
                 atom_types_[atom] = idatm::C3; // must be sp3 carbon
@@ -599,7 +599,7 @@ std::vector<size_t> IDATM::valence_() {
 void IDATM::terminal_(std::vector<size_t>& redo) {
     for (auto atom : mol_) {
         auto neighbors = atom.neighbors();
-        auto neighbor_count = std::distance(neighbors.first, neighbors.second);
+        auto neighbor_count = atom.neighbor_count();
 
         if (neighbor_count != 1) continue; // only terminal atoms!
 
@@ -676,9 +676,9 @@ void IDATM::redo_(const std::vector<size_t>& redo) {
         if (redo[atom] == 0) continue;
 
         bool c3able = false;
-        for (auto bondee : atom) {
+        for (auto bondee : atom.neighbors()) {
             auto len = mol_.frame().distance(atom, bondee);
-            auto bondeeElement = *(mol_.frame()[bondee].atomic_number());
+            auto bondeeElement = bondee.atomic_number();
 
             if (redo[atom] == 1) { // Tetrahedral or planar carbon?
                 if ((len > p4c3c && bondeeElement == 6) ||
@@ -721,7 +721,7 @@ void IDATM::fix_C2_() {
     for (auto atom : mol_) {
         if (atom_types_[atom] != idatm::C2) continue;
 
-        if (freeOxygens(mol_, atom, heavys_) >= 2) {
+        if (freeOxygens(atom, heavys_) >= 2) {
             atom_types_[atom] = idatm::Cac;
             continue;
         }
@@ -729,7 +729,7 @@ void IDATM::fix_C2_() {
         if (mapped_[atom]) continue;
 
         bool c2possible = false;
-        for (auto bondee : atom) {
+        for (auto bondee : atom.neighbors()) {
             if (c2impossibleTypes.count(atom_types_[bondee]) == 0) {
                 c2possible = true;
                 break;
@@ -745,7 +745,7 @@ void IDATM::charges_() {
             if (mapped_[atom]) continue;
             bool positive = true;
             auto c2_index = mol_.size();
-            for (auto bondee : atom) {
+            for (auto bondee : atom.neighbors()) {
                 if (atom_types_[bondee] != idatm::C3 &&
                     atom_types_[bondee] != idatm::H &&
                     atom_types_[bondee] != idatm::D) {
@@ -757,13 +757,13 @@ void IDATM::charges_() {
             }
             if (positive) atom_types_[atom] = idatm::N3p;
 
-            if (c2_index != mol_.size() && freeOxygens(mol_, mol_[c2_index], heavys_) == 1) {
+            if (c2_index != mol_.size() && freeOxygens(mol_[c2_index], heavys_) == 1) {
                 atom_types_[atom] = idatm::Npl;
             }
         } else if (atom_types_[atom] == idatm::C2) {
             int numNpls = 0;
             bool hasN2 = false;
-            for (auto bondee : atom) {
+            for (auto bondee : atom.neighbors()) {
                 if ((atom_types_[bondee] == idatm::Npl && !mapped_[bondee]) ||
                     (atom_types_[bondee] == idatm::N3  && heavys_[bondee] == 1 && !mapped_[bondee]) ||
                     atom_types_[bondee] == idatm::Ngp) {
@@ -777,12 +777,12 @@ void IDATM::charges_() {
 
             bool noplus = false;
             if (numNpls == 3 || (numNpls == 2 && hasN2)) {
-                for (auto bondee : atom) {
+                for (auto bondee : atom.neighbors()) {
                     //if (atom_types_[bondee] != idatm::Npl) continue;
                     if (mapped_[bondee]) continue;
 
                     atom_types_[bondee] = idatm::Ngp;
-                    for (auto bondee2 : mol_[bondee]) {
+                    for (auto bondee2 : mol_[bondee].neighbors()) {
                         if ((atom_types_[bondee2] == idatm::C2 ||
                             atom_types_[bondee2] == idatm::Npl) &&
                             bondee2 != atom) {
@@ -795,7 +795,7 @@ void IDATM::charges_() {
             }
             // Reset!
             if (noplus) {
-                for (auto bondee : atom) {
+                for (auto bondee : atom.neighbors()) {
                     if (mapped_[bondee]) continue;
                     if (atom_types_[bondee] == idatm::Ngp) {
                         atom_types_[bondee] =  idatm::Npl;
@@ -803,9 +803,9 @@ void IDATM::charges_() {
                 }
             }
         } else if (atom_types_[atom] == idatm::Cac) {
-            for (auto bondee : atom) {
+            for (auto bondee : atom.neighbors()) {
                 if (mapped_[bondee]) continue;
-                if (mol_[bondee].atomic_number() == 8 && heavys_[bondee] == 1) {
+                if (bondee.atomic_number() == 8 && heavys_[bondee] == 1) {
                     atom_types_[bondee] =  idatm::O2m;
                 }
             }
@@ -884,19 +884,19 @@ void IDATM::fix_N2_() {
         bool bothCar = true;
         bool bothN = true;
         bool other = false;
-        for (auto bondee : atom) {
+        for (auto bondee : atom.neighbors()) {
             if (sp3hybridized.count(atom_types_[bondee]) == 0) {
                 bothSP3 = false;
                 // don't break out, need to check both
                 // bonded heavies' element types
             }
 
-            if (mol_[bondee].atomic_number() == 6) {
+            if (bondee.atomic_number() == 6) {
                 bothN = false;
                 if (atom_types_[bondee] != idatm::Car) {
                     bothCar = false;
                 }
-            } else if (mol_[bondee].atomic_number() == 7) {
+            } else if (bondee.atomic_number() == 7) {
                 bothC = false;
                 bothCar = false;
             } else {
@@ -918,7 +918,7 @@ void IDATM::fix_N2_() {
             continue;
         }
         auto avgLen = 0.0;
-        for (auto bondee : atom) {
+        for (auto bondee : atom.neighbors()) {
             auto len = mol_.frame().distance(atom, bondee);
             avgLen += len;
         }
@@ -971,7 +971,7 @@ void IDATM::heteroaromatics_() {
         auto bound_to_oar = false;
         auto bound_to_sar = false; // Note: changed from just S?
 
-        for (auto bondee : mol_[pair.first]) {
+        for (auto bondee : mol_[pair.first].neighbors()) {
             switch (atom_types_[bondee]) {
                 case idatm::Npl: bound_to_npl = true; break;
                 case idatm::Car: bound_to_car = true; break;
@@ -1083,7 +1083,7 @@ void IDATM::fix_special_() {
 
             // Check for a tautomer!!!!
             auto n2_index = mol_.size(), o3_index = mol_.size(); // size = invalid
-            for (auto bondee : atom) {
+            for (auto bondee : atom.neighbors()) {
                 if (atom_types_[bondee] == idatm::O3) o3_index = bondee;
                 if (atom_types_[bondee] == idatm::N2) n2_index = bondee;
             }
@@ -1106,10 +1106,10 @@ void IDATM::fix_special_() {
         if ((atom_types_[atom] == idatm::Npl || atom_types_[atom] == idatm::N2)
             && atom.neighbor_count() == 3) {
             auto has_n1 = false, has_h = false;
-            for (auto bondee : atom) {
+            for (auto bondee : atom.neighbors()) {
                 if (atom_types_[bondee] == idatm::N1) has_n1 = true;
                 if (atom_types_[bondee] == idatm::N1p)has_n1 = true;
-                if (mol_[bondee].atomic_number() == 1) has_h = true;
+                if (bondee.atomic_number() == 1) has_h = true;
             }
             if (has_n1 && has_h) atom_types_[atom] = idatm::N2p;
         }
@@ -1119,8 +1119,8 @@ void IDATM::fix_special_() {
             auto invalid = mol_.size();
             auto n_index1 = invalid, n_index2 = invalid; // size = invalid
             size_t carbon_count = 0;
-            for (auto bondee : atom) {
-                if (mol_[bondee].atomic_number() == 6) carbon_count++;
+            for (auto bondee : atom.neighbors()) {
+                if (bondee.atomic_number() == 6) carbon_count++;
                 if (atom_types_[bondee] != idatm::Npl && n_index1 != invalid) {
                     n_index1 = bondee;
                     continue;
@@ -1141,7 +1141,7 @@ void IDATM::fix_special_() {
             auto invalid = mol_.size();
             auto n_index1 = invalid, n_index2 = invalid; // size = invalid
             size_t carbon_count = 0;
-            for (auto bondee : atom) {
+            for (auto bondee : atom.neighbors()) {
                 if (mol_[bondee].atomic_number() == 6) carbon_count++;
                 if (atom_types_[bondee] != idatm::Npl && n_index1 != invalid) {
                     n_index1 = bondee;
@@ -1161,7 +1161,7 @@ void IDATM::fix_special_() {
         // Special ligand POB case
         if (atom_types_[atom] == idatm::C2 && atom.neighbor_count() == 3) {
             auto has_n3 = false, has_pox = false, has_c3 = false;
-            for (auto bondee : atom) {
+            for (auto bondee : atom.neighbors()) {
                 if (atom_types_[bondee] == idatm::Pox) has_pox = true;
                 if (atom_types_[bondee] == idatm::C3)  has_c3 = true;
                 if (atom_types_[bondee] == idatm::N3)  has_n3 = true;

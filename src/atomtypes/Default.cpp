@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 #include <locale>
-#include <iostream>
+
 using namespace Spear;
 
 static void dec_hybridization(Hybridization& h) {
@@ -56,9 +56,7 @@ Default::Default(const Molecule& mol) : mol_(mol) {
         if (bond_orders[i] == chemfiles::Bond::DOUBLE) {
             if (mol_[bonds[i][0]].atomic_number() != 15 &&
                 mol_[bonds[i][0]].atomic_number() != 16) {
-                std::cout << bonds[i][0] << mol_[bonds[i][0]].atomic_number() << " " << hybridizations_[bonds[i][0]] << " ";
                 dec_hybridization(hybridizations_[bonds[i][0]]);
-                std::cout << hybridizations_[bonds[i][0]] << std::endl;
             }
             if (mol_[bonds[i][1]].atomic_number() != 15 &&
                 mol_[bonds[i][1]].atomic_number() != 16) {

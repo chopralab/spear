@@ -66,10 +66,10 @@ const char* const sybyl_unmask[] {
     "Zr",  "Du",
 };
 
-static size_t num_nonmetal(const Molecule& mol, AtomVertex atom) {
+static size_t num_nonmetal(const AtomVertex& atom) {
     size_t num_nonmetal = 0;
-    for (auto a : atom) {
-        auto element = mol[a].atomic_number();
+    for (auto a : atom.neighbors()) {
+        auto element = a.atomic_number();
         if (element <= 2 ||
             (element >= 5  && element <= 10) ||
             (element >= 14 && element <= 18) ||
@@ -82,11 +82,10 @@ static size_t num_nonmetal(const Molecule& mol, AtomVertex atom) {
     return num_nonmetal;
 }
 
-static size_t freeOxygens(const Molecule& mol, const Spear::AtomVertex& atom) {
+static size_t freeOxygens(const Spear::AtomVertex& atom) {
     size_t freeOxygens = 0;
-    for (auto neighbor : atom) {
-        auto bondee = mol[neighbor];
-        if (bondee.atomic_number() == 8 && num_nonmetal(mol, bondee) == 1) {
+    for (auto bondee : atom.neighbors()) {
+        if (bondee.atomic_number() == 8 && num_nonmetal(bondee) == 1) {
             ++freeOxygens;
         }
     }
@@ -94,15 +93,9 @@ static size_t freeOxygens(const Molecule& mol, const Spear::AtomVertex& atom) {
     return freeOxygens;
 }
 
-static bool is_decloc(const Spear::AtomVertex& atom,
-                      const std::vector<chemfiles::Bond>& bonds,
-                      const std::vector<chemfiles::Bond::BondOrder>& bos) {
-    for (size_t i = 0; i < bonds.size(); ++i) {
-        if (bonds[i][0] != atom && bonds[i][1] != atom) {
-            continue;
-        }
-
-        switch(bos[i]) {
+static bool is_decloc(const Spear::AtomVertex& atom) {
+    for (auto bond : atom.bonds()) {
+        switch(bond.order()) {
             case chemfiles::Bond::DOUBLE:
             case chemfiles::Bond::TRIPLE:
             case chemfiles::Bond::AROMATIC:
@@ -194,27 +187,20 @@ size_t Sybyl::assign_carbon_topo_(AtomVertex& atom){
     size_t num_double = 0, num_triple = 0, num_aromatic = 0;
     size_t num_nitrogen = 0;
 
-    const auto& bonds = mol_.frame().topology().bonds();
-    const auto& bond_orders = mol_.frame().topology().bond_orders();
-
-    for (size_t i = 0; i < bonds.size(); ++i) {
-        if (bonds[i][0] != atom && bonds[i][1] != atom) {
-            continue;
+    for (auto bond : atom.bonds()) {
+        if (bond.source().atomic_number() == 7) {
+            num_nitrogen += (freeOxygens(bond.source()) == 0);
         }
 
-        if (mol_[bonds[i][0]].atomic_number() == 7) {
-            num_nitrogen += (freeOxygens(mol_, mol_[bonds[i][0]]) == 0);
+        if (bond.target().atomic_number() == 7) {
+            num_nitrogen += (freeOxygens(bond.target()) == 0);
         }
 
-        if (mol_[bonds[i][1]].atomic_number() == 7) {
-            num_nitrogen += (freeOxygens(mol_, mol_[bonds[i][1]]) == 0);
-        }
-
-        if (bond_orders[i] == chemfiles::Bond::DOUBLE) {
+        if (bond.order() == chemfiles::Bond::DOUBLE) {
             ++num_double;
-        } else if (bond_orders[i] == chemfiles::Bond::TRIPLE) {
+        } else if (bond.order() == chemfiles::Bond::TRIPLE) {
             ++num_triple;
-        } else if (bond_orders[i] == chemfiles::Bond::AROMATIC) {
+        } else if (bond.order() == chemfiles::Bond::AROMATIC) {
             ++num_aromatic;
         }
     }
@@ -243,54 +229,42 @@ size_t Sybyl::assign_carbon_topo_(AtomVertex& atom){
 
 size_t Sybyl::assign_nitrogen_topo_(AtomVertex& atom) {
     size_t num_double = 0, num_triple = 0, num_aromatic = 0;
-    size_t num_amide = 0, num_deloc = 0;
+    size_t num_amide = 0, num_deloc = 0, num_nitrogens = 0;
 
-    const auto& bonds = mol_.frame().topology().bonds();
-    const auto& bond_orders = mol_.frame().topology().bond_orders();
-
-    for (size_t i = 0; i < bonds.size(); ++i) {
-        if (bonds[i][0] != atom && bonds[i][1] != atom) {
-            continue;
-        }
-
-        if (mol_[bonds[i][0]].atomic_number() == 6) {
-            num_amide += (freeOxygens(mol_, mol_[bonds[i][0]]) != 0);
-            num_deloc += is_decloc(mol_[bonds[i][0]], bonds, bond_orders);
-            size_t num_nitrogens = 0;
-            for (auto bondee_bondee : mol_[bonds[i][0]]) {
-                num_nitrogens += mol_[bondee_bondee].atomic_number() == 7;
-            }
-
-            if (num_nitrogens >= 3 && bond_orders[i] == 2) {
-                return N_pl3;
+    auto update = [&] (const AtomVertex& be) {
+        if (be.atomic_number() == 6) {
+            num_amide += (freeOxygens(be) != 0);
+            num_deloc += is_decloc(be);
+            num_nitrogens = 0;
+            for (auto bondee_bondee : be.neighbors()) {
+                num_nitrogens += bondee_bondee.atomic_number() == 7;
             }
         }
+    };
 
-        if (mol_[bonds[i][1]].atomic_number() == 6) {
-            num_amide += (freeOxygens(mol_, mol_[bonds[i][1]]) != 0);
-            num_deloc += is_decloc(mol_[bonds[i][1]], bonds, bond_orders);
-            size_t num_nitrogens = 0;
-            for (auto bondee_bondee : mol_[bonds[i][1]]) {
-                num_nitrogens += mol_[bondee_bondee].atomic_number() == 7;
-            }
+    for (auto bond : atom.bonds()) {
+        update(bond.source());
+        if (num_nitrogens >= 3 && bond.order() == 2) {
+            return N_pl3;
+        }  
 
-            if (num_nitrogens >= 3 && bond_orders[i] == 2) {
-                return N_pl3;
-            }
+        update(bond.target());
+        if (num_nitrogens >= 3 && bond.order() == 2) {
+            return N_pl3;
         }
 
-        if (bond_orders[i] == chemfiles::Bond::DOUBLE) {
+        if (bond.order() == chemfiles::Bond::DOUBLE) {
             ++num_double;
-        } else if (bond_orders[i] == chemfiles::Bond::TRIPLE) {
+        } else if (bond.order() == chemfiles::Bond::TRIPLE) {
             ++num_triple;
-        } else if (bond_orders[i] == chemfiles::Bond::AROMATIC) {
+        } else if (bond.order() == chemfiles::Bond::AROMATIC) {
             ++num_aromatic;
-        } else if (bond_orders[i] == chemfiles::Bond::AMIDE) { // Strong evidence
+        } else if (bond.order() == chemfiles::Bond::AMIDE) { // Strong evidence
             return N_am;
         }
     }
 
-    auto numnonmetal = num_nonmetal(mol_, atom);
+    auto numnonmetal = num_nonmetal(atom);
 
     if (numnonmetal >= 4 && num_double == 0 && num_triple == 0) {
         return N_4;
@@ -361,7 +335,7 @@ size_t Sybyl::assign_carbon_3d_(AtomVertex& atom) {
 }
 
 size_t Sybyl::assign_nitrogen_3d_(AtomVertex& atom) {
-    auto numnonmetal = num_nonmetal(mol_, atom);
+    auto numnonmetal = num_nonmetal(atom);
     if (numnonmetal == 4) {
         return N_4;
     } else if (numnonmetal == 1) {
@@ -370,10 +344,9 @@ size_t Sybyl::assign_nitrogen_3d_(AtomVertex& atom) {
             return N_3;
         return N_1;
     } else if (numnonmetal == 3) {
-        for (auto neighbor : atom) {
-            auto bondee = mol_[neighbor];
+        for (auto bondee : atom.neighbors()) {
             if (bondee.atomic_number() == 6 &&
-                freeOxygens(mol_, bondee) == 1) {
+                freeOxygens(bondee) == 1) {
                 return N_am;
             }
         }
@@ -411,10 +384,10 @@ size_t Sybyl::assign_nitrogen_3d_(AtomVertex& atom) {
 }
 
 size_t Sybyl::assign_oxygen_(AtomVertex& atom) {
-    auto numnonmetal = num_nonmetal(mol_, atom);
+    auto numnonmetal = num_nonmetal(atom);
     if (numnonmetal == 1) {
         auto bondee = atom[0];
-        size_t freeOxy = freeOxygens(mol_, atom);
+        size_t freeOxy = freeOxygens(atom);
 
         if (bondee.atomic_number() == 6 &&
             bondee.neighbor_count() == 3 && freeOxy >= 2) {
@@ -434,13 +407,13 @@ size_t Sybyl::assign_oxygen_(AtomVertex& atom) {
 }
 
 size_t Sybyl::assign_sulfur_(AtomVertex& atom) {
-    auto numnonmetal = num_nonmetal(mol_, atom);
+    auto numnonmetal = num_nonmetal(atom);
 
-    if (numnonmetal == 3 && freeOxygens(mol_, atom) == 1) {
+    if (numnonmetal == 3 && freeOxygens( atom) == 1) {
         return S_o;
     }
 
-    if (numnonmetal == 4 && freeOxygens(mol_, atom) == 2) {
+    if (numnonmetal == 4 && freeOxygens(atom) == 2) {
         return S_o2;
     }
 
