@@ -1,4 +1,7 @@
 #include "spear/FunctionalGroup.hpp"
+#include "spear/Molecule_impl.hpp"
+
+#include <boost/graph/vf2_sub_graph_iso.hpp>
 
 using namespace Spear;
 

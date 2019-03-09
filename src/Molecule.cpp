@@ -1,4 +1,5 @@
 #include "spear/Molecule.hpp"
+#include "spear/Molecule_impl.hpp"
 
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/hawick_circuits.hpp>

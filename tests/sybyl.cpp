@@ -1,4 +1,6 @@
 #include "spear/Molecule.hpp"
+#include "spear/Molecule_impl.hpp"
+
 #include "spear/atomtypes/Sybyl.hpp"
 #include "chemfiles.hpp"
 #include <utility>

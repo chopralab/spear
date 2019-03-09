@@ -157,6 +157,4 @@ private:
 
 }
 
-#include "spear/Molecule_impl.hpp"
-
 #endif

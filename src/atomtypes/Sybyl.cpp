@@ -1,6 +1,7 @@
 #include "spear/atomtypes/Sybyl.hpp"
 
 #include "spear/Molecule.hpp"
+#include "spear/Molecule_impl.hpp"
 
 using namespace Spear;
 

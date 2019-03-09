@@ -6,12 +6,8 @@
 #include <queue>
 #include <map>
 
-#include <boost/graph/vf2_sub_graph_iso.hpp>
-
 #include "spear/exports.hpp"
 #include "spear/Molecule.hpp"
-#include "chemfiles/periodic_table.hpp"
-#include "chemfiles/Connectivity.hpp"
 
 namespace Spear {
 

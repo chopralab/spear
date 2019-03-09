@@ -1,5 +1,7 @@
 #include "spear/atomtypes/Default.hpp"
 #include "spear/Molecule.hpp"
+#include "spear/Molecule_impl.hpp"
+
 #include <map>
 #include <string>
 #include <locale>

@@ -1,5 +1,7 @@
 #include "spear/FunctionalGroup.hpp"
 #include "spear/atomtypes/IDATM.hpp"
+#include "spear/Molecule_impl.hpp"
+
 #include "chemfiles.hpp"
 
 #define CATCH_CONFIG_MAIN

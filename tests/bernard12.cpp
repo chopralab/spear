@@ -1,4 +1,6 @@
 #include "spear/Molecule.hpp"
+#include "spear/Molecule_impl.hpp"
+
 #include "spear/scoringfunctions/Bernard12.hpp"
 #include "spear/atomtypes/IDATM.hpp"
 #include "spear/Grid.hpp"
