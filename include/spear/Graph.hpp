@@ -14,38 +14,27 @@ using chemfiles::optional;
 using VertexProperty = boost::property<boost::vertex_name_t, uint64_t>;
 using EdgeProperty = boost::property<boost::edge_name_t, uint64_t>;
 
-using Graph = boost::adjacency_list<boost::setS, boost::vecS,boost::undirectedS,
+using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
                                     VertexProperty, EdgeProperty>;
 
 using Traits = boost::graph_traits<Graph>;
 using VertexDescriptor = Traits::vertex_descriptor;
 using EdgeDescriptor = Traits::edge_descriptor;
+
+using VertexIterator = Traits::vertex_iterator;
 using AdjacencyIterator = Traits::adjacency_iterator;
 using EdgeIterator = Traits::edge_iterator;
 using OutEdgeIterator = Traits::out_edge_iterator;
+
 using AdjacencyIteratorPair = std::pair<AdjacencyIterator, AdjacencyIterator>;
-using BondIteratorPair = std::pair<OutEdgeIterator, OutEdgeIterator>;
+using BondIteratorPair = std::pair<EdgeIterator, EdgeIterator>;
+using OutBondIteratorPair = std::pair<OutEdgeIterator, OutEdgeIterator>;
 
 class Molecule;
 class AtomVertex;
+class BondEdge;
 
-class SPEAR_EXPORT BondEdge {
-public:
-    BondEdge(const Molecule* br, EdgeDescriptor index) : br_(br), index_(index) {}
-
-    AtomVertex source() const;
-
-    AtomVertex target() const;
-
-    size_t order() const;
-
-private:
-    const Molecule* br_;
-    EdgeDescriptor index_;
-};
-
-class SPEAR_EXPORT AtomVertex {
-public:
+struct SPEAR_EXPORT Neighbors {
 
     class SPEAR_EXPORT NeighborIterator {
     public:
@@ -73,21 +62,22 @@ public:
         const Molecule* br_;
     };
 
-    struct SPEAR_EXPORT Neighbors {
-        Neighbors(AdjacencyIteratorPair be, const Molecule* br) :
-            begin_end_(be), br_(br) {}
+    Neighbors(AdjacencyIteratorPair be, const Molecule* br) :
+        begin_end_(be), br_(br) {}
 
-        NeighborIterator begin() const {
-            return {begin_end_.first, br_};
-        }
+    NeighborIterator begin() const {
+        return {begin_end_.first, br_};
+    }
 
-        NeighborIterator end() const {
-            return {begin_end_.second, br_};
-        }
-    private:
-        const AdjacencyIteratorPair begin_end_;
-        const Molecule* br_;
-    };
+    NeighborIterator end() const {
+        return {begin_end_.second, br_};
+    }
+private:
+    const AdjacencyIteratorPair begin_end_;
+    const Molecule* br_;
+};
+
+struct SPEAR_EXPORT Bonds {
 
     class SPEAR_EXPORT BondIterator {
     public:
@@ -117,23 +107,40 @@ public:
         const Molecule* br_;
     };
 
-    struct SPEAR_EXPORT Bonds {
-        Bonds(BondIteratorPair be, const Molecule* br) :
-            begin_end_(be), br_(br) {}
+    Bonds(OutBondIteratorPair be, const Molecule* br) :
+        begin_end_(be), br_(br) {}
 
-        BondIterator begin() const {
-            return {begin_end_.first, br_};
-        }
+    BondIterator begin() const {
+        return {begin_end_.first, br_};
+    }
 
-        BondIterator end() const {
-            return {begin_end_.second, br_};
-        }
-    private:
-        const BondIteratorPair begin_end_;
-        const Molecule* br_;
-    };
+    BondIterator end() const {
+        return {begin_end_.second, br_};
+    }
+private:
+    const OutBondIteratorPair begin_end_;
+    const Molecule* br_;
+};
 
-    AtomVertex(const Molecule* br, size_t index);
+class SPEAR_EXPORT BondEdge {
+public:
+    BondEdge(const Molecule* br, EdgeDescriptor index) : br_(br), index_(index) {}
+
+    AtomVertex source() const;
+
+    AtomVertex target() const;
+
+    size_t order() const;
+
+private:
+    const Molecule* br_;
+    EdgeDescriptor index_;
+};
+
+class SPEAR_EXPORT AtomVertex {
+public:
+
+    AtomVertex(const Molecule* br, VertexDescriptor index);
 
     const std::string& name() const;
 
@@ -166,7 +173,7 @@ public:
     operator size_t() const;
     
 private:
-    size_t index_;
+    VertexDescriptor index_;
     const Molecule* br_;
 };
 

@@ -18,19 +18,20 @@ namespace Spear {
 class SPEAR_EXPORT Molecule {
 public:
 
+    template<typename ret_type, typename sto_type>
     class iterator {
     public:
 
         using difference_type = std::ptrdiff_t;
 
         using iterator_category = std::random_access_iterator_tag;
-        using value_type = AtomVertex;
-        using pointer = AtomVertex*;
-        using reference = AtomVertex&;
+        using value_type = ret_type;
+        using pointer = ret_type*;
+        using reference = ret_type&;
 
         iterator() : index_(0), base_mol_(nullptr) {}
 
-        iterator(const Molecule* base_mol, size_t i = 0) : index_(i), base_mol_(base_mol) {
+        iterator(const Molecule* base_mol, sto_type i) : index_(i), base_mol_(base_mol) {
         }
 
         bool operator==(const iterator& rhs) const;
@@ -63,13 +64,29 @@ public:
 
         difference_type operator-(const iterator& rhs) const;
 
-        AtomVertex operator* () const;
+        value_type operator* () const;
 
-        AtomVertex operator[](difference_type rhs) const;
+        value_type operator[](difference_type rhs) const;
 
     private:
-        size_t index_;
+        sto_type index_;
         const Molecule* base_mol_;
+    };
+
+    struct AllBonds {
+        AllBonds(const Molecule* br, BondIteratorPair be) :
+            begin_end_(be), br_(br) {}
+
+        iterator<BondEdge, EdgeIterator> begin() {
+            return iterator<BondEdge, EdgeIterator>(br_, begin_end_.first);
+        }
+
+        iterator<BondEdge, EdgeIterator> end() {
+            return iterator<BondEdge, EdgeIterator>(br_, begin_end_.second);
+        }
+    private:
+        BondIteratorPair begin_end_;
+        const Molecule* br_;
     };
 
     explicit Molecule(chemfiles::Frame frame) :
@@ -106,13 +123,13 @@ public:
 
     AtomVertex operator[](size_t index) const;
 
-    iterator begin() const;
+    iterator<AtomVertex, VertexIterator> begin() const;
 
-    iterator end() const;
+    iterator<AtomVertex, VertexIterator> end() const;
 
-    iterator cbegin() const;
+    iterator<AtomVertex, VertexIterator> cbegin() const;
 
-    iterator cend() const;
+    iterator<AtomVertex, VertexIterator> cend() const;
 
 private:
     void init_();

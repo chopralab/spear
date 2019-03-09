@@ -19,62 +19,60 @@ inline AtomVertex BondEdge::target() const {
 }
 
 inline size_t BondEdge::order() const {
-    auto s = source();
-    auto t = target();
-    return br_->frame().topology().bond_order(s, t);
+    return boost::get(boost::edge_name, br_->graph(), index_);
 }
 
 /******************************************************************************
  * Implemenation of
- * AtomVertex::NeighborIterator
+ * Neighbors::NeighborIterator
  ******************************************************************************/
 
-inline bool AtomVertex::NeighborIterator::operator==(const NeighborIterator& rhs) const {
+inline bool Neighbors::NeighborIterator::operator==(const NeighborIterator& rhs) const {
     return rhs.br_ == this->br_ && rhs.index_ == this->index_;
 }
 
-inline bool AtomVertex::NeighborIterator::operator!=(const NeighborIterator& rhs) const {
+inline bool Neighbors::NeighborIterator::operator!=(const NeighborIterator& rhs) const {
     return !(*this == rhs);
 }
 
-inline AtomVertex::NeighborIterator& AtomVertex::NeighborIterator::operator++() {
+inline Neighbors::NeighborIterator& Neighbors::NeighborIterator::operator++() {
     index_++;
 }
 
-inline AtomVertex::NeighborIterator AtomVertex::NeighborIterator::operator++(int) {
+inline Neighbors::NeighborIterator Neighbors::NeighborIterator::operator++(int) {
     NeighborIterator tmp (*this);
     ++(*this);
     return tmp;
 }
 
-inline AtomVertex AtomVertex::NeighborIterator::operator* () const {
+inline AtomVertex Neighbors::NeighborIterator::operator* () const {
         return {br_, *index_};
 }
 
 /******************************************************************************
 * Implemenation of
-* AtomVertex::EdgeIterator
+* Bonds::EdgeIterator
 ******************************************************************************/
 
-inline bool AtomVertex::BondIterator::operator==(const BondIterator& rhs) const {
+inline bool Bonds::BondIterator::operator==(const BondIterator& rhs) const {
    return rhs.br_ == this->br_ && rhs.bindex_ == this->bindex_;
 }
 
-inline bool AtomVertex::BondIterator::operator!=(const BondIterator& rhs) const {
+inline bool Bonds::BondIterator::operator!=(const BondIterator& rhs) const {
    return !(*this == rhs);
 }
 
-inline AtomVertex::BondIterator& AtomVertex::BondIterator::operator++() {
+inline Bonds::BondIterator& Bonds::BondIterator::operator++() {
    bindex_++;
 }
 
-inline AtomVertex::BondIterator AtomVertex::BondIterator::operator++(int) {
+inline Bonds::BondIterator Bonds::BondIterator::operator++(int) {
    BondIterator tmp (*this);
    ++(*this);
    return tmp;
 }
 
-inline BondEdge AtomVertex::BondIterator::operator* () const {
+inline BondEdge Bonds::BondIterator::operator* () const {
        return {br_, *bindex_};
 }
 
@@ -83,7 +81,7 @@ inline BondEdge AtomVertex::BondIterator::operator* () const {
  * AtomVertex
  ******************************************************************************/
 
-inline AtomVertex::AtomVertex(const Molecule* br, size_t index) :
+inline AtomVertex::AtomVertex(const Molecule* br, VertexDescriptor index) :
     index_(index), br_(br) {
 }
 
@@ -100,7 +98,7 @@ inline const chemfiles::Vector3D& AtomVertex::position() const {
 }
 
 inline uint64_t AtomVertex::atomic_number() const {
-    return *(br_->frame()[index_].atomic_number());
+    return boost::get(boost::vertex_name, br_->graph(), index_);
 }
 
 inline size_t AtomVertex::neighbor_count() const {
@@ -108,11 +106,11 @@ inline size_t AtomVertex::neighbor_count() const {
     return static_cast<size_t>(std::distance(tmp.begin(), tmp.end()));
 }
 
-inline AtomVertex::Neighbors AtomVertex::neighbors() const {
+inline Neighbors AtomVertex::neighbors() const {
     return {boost::adjacent_vertices(index_, br_->graph()), br_};
 }
 
-inline AtomVertex::Bonds AtomVertex::bonds() const {
+inline Bonds AtomVertex::bonds() const {
     return {boost::out_edges(index_, br_->graph()), br_};
 }
 

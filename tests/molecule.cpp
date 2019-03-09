@@ -16,7 +16,6 @@ TEST_CASE("Molecule") {
         CHECK(std::distance(begin, end) == 18);
         CHECK(std::distance(end, begin) == -18);
         CHECK(begin != end);
-        CHECK_THROWS(*end);
 
         // Bidirectional iterator
         auto first = *(begin++);
@@ -45,7 +44,6 @@ TEST_CASE("Molecule") {
         CHECK(carbonyl.atomic_number() == 6);
 
         // Random access iterator
-        CHECK_THROWS(begin[1000]);
         CHECK(begin[2] == 4);
 
         CHECK(end > begin);

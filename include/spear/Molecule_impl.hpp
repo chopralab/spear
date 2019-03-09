@@ -11,87 +11,99 @@ namespace Spear {
  * Molecule::iterator
  ******************************************************************************/
 
-inline bool Molecule::iterator::operator==(const iterator& rhs) const {
+template<typename ret_type, typename sto_type>
+inline bool Molecule::iterator<ret_type, sto_type>::operator==(const iterator& rhs) const {
     return (base_mol_ == rhs.base_mol_ && index_ == rhs.index_);
 }
 
-inline bool Molecule::iterator::operator!=(const iterator& rhs) const {
+template<typename ret_type, typename sto_type>
+inline bool Molecule::iterator<ret_type, sto_type>::operator!=(const iterator& rhs) const {
     return !(*this == rhs);
 }
 
-inline bool Molecule::iterator::operator>=(const iterator& rhs) const {
+template<typename ret_type, typename sto_type>
+inline bool Molecule::iterator<ret_type, sto_type>::operator>=(const iterator& rhs) const {
     return (base_mol_ == rhs.base_mol_ && index_ >= rhs.index_);
 }
 
-inline bool Molecule::iterator::operator<=(const iterator& rhs) const {
+template<typename ret_type, typename sto_type>
+inline bool Molecule::iterator<ret_type, sto_type>::operator<=(const iterator& rhs) const {
     return (base_mol_ == rhs.base_mol_ && index_ <= rhs.index_);;
 }
 
-inline bool Molecule::iterator::operator>(const iterator& rhs) const {
+template<typename ret_type, typename sto_type>
+inline bool Molecule::iterator<ret_type, sto_type>::operator>(const iterator& rhs) const {
     return (base_mol_ == rhs.base_mol_ && index_ > rhs.index_);
 }
 
-inline bool Molecule::iterator::operator<(const iterator& rhs) const {
+template<typename ret_type, typename sto_type>
+inline bool Molecule::iterator<ret_type, sto_type>::operator<(const iterator& rhs) const {
     return (base_mol_ == rhs.base_mol_ && index_ < rhs.index_);;
 }
 
-inline Molecule::iterator& Molecule::iterator::operator++() {
-    if(index_ != base_mol_->size())
-        ++index_;
+template<typename ret_type, typename sto_type>
+inline Molecule::iterator<ret_type, sto_type>&
+Molecule::iterator<ret_type, sto_type>::operator++() {
+    ++index_;
     return *this;
 }   
 
-inline Molecule::iterator Molecule::iterator::operator++(int) {
-    iterator tmp (*this);
+template<typename ret_type, typename sto_type>
+inline Molecule::iterator<ret_type, sto_type>
+Molecule::iterator<ret_type, sto_type>::operator++(int) {
+    iterator<ret_type, sto_type> tmp (*this);
     ++(*this);
     return tmp;
 }
 
-inline Molecule::iterator& Molecule::iterator::operator--() {
-    if(index_ != 0)
-        --index_;
+template<typename ret_type, typename sto_type>
+inline Molecule::iterator<ret_type, sto_type>&
+Molecule::iterator<ret_type, sto_type>::operator--() {
+    --index_;
     return *this;
 }
 
-inline Molecule::iterator Molecule::iterator::operator--(int) {
-    iterator tmp (*this);
+template<typename ret_type, typename sto_type>
+inline Molecule::iterator<ret_type, sto_type>
+Molecule::iterator<ret_type, sto_type>::operator--(int) {
+    iterator<ret_type, sto_type> tmp (*this);
     --(*this);
     return tmp;
 }
 
-inline Molecule::iterator& Molecule::iterator::operator+=(difference_type i) {
-    if (i < 0) {
-        return (*this) -= (-i);
-    }
-
-    auto si = static_cast<size_t>(i);
-    index_ = index_ + si > base_mol_->size() ? base_mol_->size() : index_ + si;
+template<typename ret_type, typename sto_type>
+inline Molecule::iterator<ret_type, sto_type>&
+Molecule::iterator<ret_type, sto_type>::operator+=(difference_type i) {
+    std::advance(index_, i);
     return *this;
 }
 
-inline Molecule::iterator& Molecule::iterator::operator-=(difference_type i) {
-    if (i < 0) {
-        return (*this) += (-i);
-    }
-
-    auto si = static_cast<size_t>(i);
-    index_ = si > index_ ? 0 : index_ - si;
+template<typename ret_type, typename sto_type>
+inline Molecule::iterator<ret_type, sto_type>&
+Molecule::iterator<ret_type, sto_type>::operator-=(difference_type i) {
+    index_ -= i;
     return *this;
 }
 
-inline Molecule::iterator Molecule::iterator::operator+(difference_type i) const {
+template<typename ret_type, typename sto_type>
+inline Molecule::iterator<ret_type, sto_type>
+Molecule::iterator<ret_type, sto_type>::operator+(difference_type i) const {
     iterator tmp(*this);
     tmp += i;
     return tmp;
 }
 
-inline Molecule::iterator Molecule::iterator::operator-(difference_type i) const {
+template<typename ret_type, typename sto_type>
+inline Molecule::iterator<ret_type, sto_type>
+Molecule::iterator<ret_type, sto_type>::operator-(difference_type i) const {
     iterator tmp(*this);
     tmp -= i;
     return tmp;
 }
 
-inline Molecule::iterator::difference_type Molecule::iterator::operator-(const iterator& rhs) const {
+template<typename ret_type, typename sto_type>
+inline typename Molecule::iterator<ret_type, sto_type>::difference_type
+Molecule::iterator<ret_type, sto_type>::operator-(const iterator<ret_type, sto_type>& rhs) const {
     if (base_mol_ != rhs.base_mol_) {
         throw std::logic_error("Cannot take the difference of unrelated iterators");
     }
@@ -99,17 +111,17 @@ inline Molecule::iterator::difference_type Molecule::iterator::operator-(const i
     return
     index_ >= rhs.index_ ?  static_cast<difference_type>(index_ - rhs.index_)
                          : -static_cast<difference_type>(rhs.index_ - index_);
-                              
 }
 
-inline AtomVertex Molecule::iterator::operator* () const {
-    if(index_ == base_mol_->size()) {
-        throw std::range_error("Cannot dereference an end iterator!");
-    }
-    return AtomVertex(base_mol_, index_);
+template<typename ret_type, typename sto_type>
+inline typename Molecule::iterator<ret_type, sto_type>::value_type
+Molecule::iterator<ret_type, sto_type>::operator* () const {
+    return ret_type(base_mol_, *index_);
 }
 
-inline AtomVertex Molecule::iterator::operator[](difference_type rhs) const {
+template<typename ret_type, typename sto_type>
+inline typename Molecule::iterator<ret_type, sto_type>::value_type
+Molecule::iterator<ret_type, sto_type>::operator[](difference_type rhs) const {
     iterator tmp(*this);
     tmp += rhs;
     return *tmp;
@@ -120,7 +132,7 @@ inline AtomVertex Molecule::iterator::operator[](difference_type rhs) const {
  * Molecule
  ******************************************************************************/
 
-template<class atomtype, typename... args>
+template<typename atomtype, typename... args>
 inline std::string Molecule::add_atomtype(args... additional) {
     auto typed_atoms = new atomtype(*this, additional...);
     auto name = typed_atoms->name();
@@ -165,20 +177,24 @@ inline AtomVertex Molecule::operator[](size_t index) const {
     return AtomVertex(this, index);
 }
 
-inline Molecule::iterator Molecule::begin() const {
-    return iterator(this, 0);
+inline Molecule::iterator<AtomVertex, VertexIterator> Molecule::begin() const {
+    auto vert_iters = boost::vertices(graph_);
+    return iterator<AtomVertex, VertexIterator>(this, vert_iters.first);
 }
 
-inline Molecule::iterator Molecule::end() const {
-    return iterator(this, size());
+inline Molecule::iterator<AtomVertex, VertexIterator> Molecule::end() const {
+    auto vert_iters = boost::vertices(graph_);
+    return iterator<AtomVertex, VertexIterator>(this, vert_iters.second);
 }
 
-inline Molecule::iterator Molecule::cbegin() const {
-    return iterator(this, 0);
+inline Molecule::iterator<AtomVertex, VertexIterator> Molecule::cbegin() const {
+    auto vert_iters = boost::vertices(graph_);
+    return iterator<AtomVertex, VertexIterator>(this, vert_iters.first);
 }
 
-inline Molecule::iterator Molecule::cend() const {
-    return iterator(this, size());
+inline Molecule::iterator<AtomVertex, VertexIterator> Molecule::cend() const {
+    auto vert_iters = boost::vertices(graph_);
+    return iterator<AtomVertex, VertexIterator>(this, vert_iters.second);
 }
 
 }
