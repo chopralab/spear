@@ -77,13 +77,22 @@ public:
         AllBonds(const Molecule* br, BondIteratorPair be) :
             begin_end_(be), br_(br) {}
 
-        iterator<BondEdge, EdgeIterator> begin() {
+        iterator<BondEdge, EdgeIterator> begin() const {
             return iterator<BondEdge, EdgeIterator>(br_, begin_end_.first);
         }
 
-        iterator<BondEdge, EdgeIterator> end() {
+        iterator<BondEdge, EdgeIterator> end() const {
             return iterator<BondEdge, EdgeIterator>(br_, begin_end_.second);
         }
+
+        iterator<BondEdge, EdgeIterator> cbegin() const {
+            return iterator<BondEdge, EdgeIterator>(br_, begin_end_.first);
+        }
+
+        iterator<BondEdge, EdgeIterator> cend() const {
+            return iterator<BondEdge, EdgeIterator>(br_, begin_end_.second);
+        }
+
     private:
         BondIteratorPair begin_end_;
         const Molecule* br_;
@@ -130,6 +139,8 @@ public:
     iterator<AtomVertex, VertexIterator> cbegin() const;
 
     iterator<AtomVertex, VertexIterator> cend() const;
+
+    AllBonds bonds() const;
 
 private:
     void init_();

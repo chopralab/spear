@@ -28,7 +28,7 @@ inline bool Molecule::iterator<ret_type, sto_type>::operator>=(const iterator& r
 
 template<typename ret_type, typename sto_type>
 inline bool Molecule::iterator<ret_type, sto_type>::operator<=(const iterator& rhs) const {
-    return (base_mol_ == rhs.base_mol_ && index_ <= rhs.index_);;
+    return (base_mol_ == rhs.base_mol_ && index_ <= rhs.index_);
 }
 
 template<typename ret_type, typename sto_type>
@@ -38,7 +38,7 @@ inline bool Molecule::iterator<ret_type, sto_type>::operator>(const iterator& rh
 
 template<typename ret_type, typename sto_type>
 inline bool Molecule::iterator<ret_type, sto_type>::operator<(const iterator& rhs) const {
-    return (base_mol_ == rhs.base_mol_ && index_ < rhs.index_);;
+    return (base_mol_ == rhs.base_mol_ && index_ < rhs.index_);
 }
 
 template<typename ret_type, typename sto_type>
@@ -195,6 +195,10 @@ inline Molecule::iterator<AtomVertex, VertexIterator> Molecule::cbegin() const {
 inline Molecule::iterator<AtomVertex, VertexIterator> Molecule::cend() const {
     auto vert_iters = boost::vertices(graph_);
     return iterator<AtomVertex, VertexIterator>(this, vert_iters.second);
+}
+
+inline Molecule::AllBonds Molecule::bonds() const {
+    return AllBonds(this, boost::edges(graph_));
 }
 
 }

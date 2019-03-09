@@ -22,59 +22,49 @@ Default::Default(const Molecule& mol) : mol_(mol) {
 
         atom_types_.push_back(atomic_number);
         switch(atomic_number) {
-            case 1:
-            hybridizations_.push_back(Hybridization::FORCED);
-            break;
-            case 15:
-            case 16:
-            hybridizations_.push_back(static_cast<Hybridization>(av.neighbor_count()));
-            break;
-            case 5:
-            case 13:
-            hybridizations_.push_back(Hybridization::SP2);
-            break;
             case 6:
             case 32:
             case 7:
             case 8:
             case 9:
+            case 15:
+            case 16:
             case 17:
             case 35:
             case 53:
-            hybridizations_.push_back(Hybridization::SP3);
-            break;
+            break; //Only break, rest are continues
+            // Hydrogens
+            case 1:
+            hybridizations_.push_back(Hybridization::FORCED);
+            continue;
+            // Boron and Aluminium
+            case 5:
+            case 13:
+            hybridizations_.push_back(Hybridization::SP2);
+            continue;
+            // The rest
             default:
             hybridizations_.push_back(Hybridization::UNKNOWN);
-            break;
-        }
-    }
-
-    auto& bonds = mol_.frame().topology().bonds();
-    auto& bond_orders = mol_.frame().topology().bond_orders();
-
-    for (size_t i = 0; i < bonds.size(); ++i) {
-        if (bond_orders[i] == chemfiles::Bond::DOUBLE) {
-            if (mol_[bonds[i][0]].atomic_number() != 15 &&
-                mol_[bonds[i][0]].atomic_number() != 16) {
-                dec_hybridization(hybridizations_[bonds[i][0]]);
-            }
-            if (mol_[bonds[i][1]].atomic_number() != 15 &&
-                mol_[bonds[i][1]].atomic_number() != 16) {
-                dec_hybridization(hybridizations_[bonds[i][1]]);
-            }
+            continue;
         }
 
-        // Just do it twice
-        if (bond_orders[i] == chemfiles::Bond::TRIPLE) {
-            if (mol_[bonds[i][0]].atomic_number() != 15 &&
-                mol_[bonds[i][0]].atomic_number() != 16) {
-                dec_hybridization(hybridizations_[bonds[i][0]]);
-                dec_hybridization(hybridizations_[bonds[i][0]]);
+        if (atomic_number == 15 || atomic_number == 16) {
+            hybridizations_.push_back(static_cast<Hybridization>(av.neighbor_count()));
+            continue;
+        }
+
+        hybridizations_.push_back(Hybridization::SP3);
+
+        for (auto bond : av.bonds()) {
+
+            if (bond.order() == chemfiles::Bond::DOUBLE) {
+                dec_hybridization(hybridizations_.back());
             }
-            if (mol_[bonds[i][1]].atomic_number() != 15 &&
-                mol_[bonds[i][1]].atomic_number() != 16) {
-                dec_hybridization(hybridizations_[bonds[i][1]]);
-                dec_hybridization(hybridizations_[bonds[i][1]]);
+
+            // Just do it twice
+            if (bond.order() == chemfiles::Bond::TRIPLE) {
+                dec_hybridization(hybridizations_.back());
+                dec_hybridization(hybridizations_.back());
             }
         }
     }

@@ -235,7 +235,8 @@ static size_t freeOxygens(const Spear::AtomVertex& atom,
     return freeOxygens;
 }
 
-static size_t assignBondOrderType(uint64_t atomic_number, chemfiles::Bond::BondOrder bo,
+static size_t assignBondOrderType(uint64_t atomic_number,
+                                  chemfiles::Bond::BondOrder bo,
                                   size_t current_type) {
     if (current_type == idatm::N2 && bo == chemfiles::Bond::DOUBLE) {
         return idatm::N1;
@@ -296,8 +297,6 @@ void IDATM::type_atoms_3d_() {
 }
 
 void IDATM::type_atoms_topo_() {
-    const auto& bond_orders = mol_.frame().topology().bond_orders();
-    const auto& bonds = mol_.frame().topology().bonds();
 
     infallible_();
 
@@ -360,25 +359,24 @@ void IDATM::type_atoms_topo_() {
     }
 
     size_t aromatic_count = 0;
-    for ( size_t i = 0; i < bonds.size(); ++i) {
-        auto bo = bond_orders[i];
-        if (bo == chemfiles::Bond::AROMATIC) {
+    for (auto bond : mol_.bonds()) {
+        if (bond.order() == chemfiles::Bond::AROMATIC) {
             ++aromatic_count;
 
             // Spoof the aromatic ring list
-            aromatic_ring_sizes_.insert({bonds[i][0], 0});
-            aromatic_ring_sizes_.insert({bonds[i][1], 0});
+            aromatic_ring_sizes_.insert({bond.source(), 0});
+            aromatic_ring_sizes_.insert({bond.target(), 0});
         }
 
-        auto index1 = bonds[i][0];
-        atom_types_[index1] = assignBondOrderType(mol_[index1].atomic_number(),
-                                                  bo,
-                                                  atom_types_[index1]);
+        atom_types_[bond.source()] =
+            assignBondOrderType(bond.source().atomic_number(),
+                                static_cast<chemfiles::Bond::BondOrder>(bond.order()),
+                                atom_types_[bond.source()]);
 
-        auto index2 = bonds[i][1];
-        atom_types_[index2] = assignBondOrderType(mol_[index2].atomic_number(),
-                                                  bo,
-                                                  atom_types_[index2]);
+        atom_types_[bond.target()] =
+            assignBondOrderType(bond.target().atomic_number(),
+                                static_cast<chemfiles::Bond::BondOrder>(bond.order()),
+                                atom_types_[bond.target()]);
     }
 
     fix_C2_();
@@ -389,15 +387,15 @@ void IDATM::type_atoms_topo_() {
         aromatic_();
     }
 
-    for (auto& bond : bonds) {
-        if (atom_types_[bond[0]] == idatm::N3 &&
-            (atom_types_[bond[1]] == idatm::Car)) {
-            atom_types_[bond[0]] = idatm::Npl;
+    for (auto bond : mol_.bonds()) {
+        if (atom_types_[bond.source()] == idatm::N3 &&
+            atom_types_[bond.target()] == idatm::Car){
+            atom_types_[bond.source()] = idatm::Npl;
         }
 
-        if (atom_types_[bond[1]] == idatm::N3 &&
-            (atom_types_[bond[0]] == idatm::Car)) {
-            atom_types_[bond[1]] = idatm::Npl;
+        if (atom_types_[bond.target()] == idatm::N3 &&
+            atom_types_[bond.source()] == idatm::Car){
+            atom_types_[bond.target()] = idatm::Npl;
         }
     }
 
