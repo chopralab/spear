@@ -5,14 +5,16 @@
 
 #include "chemfiles/external/optional.hpp"
 
+#include "spear/Constants.hpp"
+
 namespace Spear {
 
 using chemfiles::optional;
 
 // Note: If more atom/bond properties are need other than number and order,
 // change the lines below:
-using VertexProperty = boost::property<boost::vertex_name_t, uint64_t>;
-using EdgeProperty = boost::property<boost::edge_name_t, uint64_t>;
+using VertexProperty = boost::property<boost::vertex_name_t, Element::Symbol>;
+using EdgeProperty = boost::property<boost::edge_name_t, Bond::Order>;
 
 using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
                                     VertexProperty, EdgeProperty>;
@@ -130,7 +132,7 @@ public:
 
     AtomVertex target() const;
 
-    size_t order() const;
+    Bond::Order order() const;
 
 private:
     const Molecule* br_;
@@ -148,7 +150,7 @@ public:
     
     const chemfiles::Vector3D& position() const;
 
-    size_t atomic_number() const;
+    Element::Symbol atomic_number() const;
 
     size_t neighbor_count() const;
     
@@ -157,6 +159,8 @@ public:
     Bonds bonds() const;
 
     bool is_aromatic() const;
+
+    bool is_non_metal() const;
 
     size_t expected_bonds() const;
 

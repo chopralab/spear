@@ -71,7 +71,6 @@ constexpr double p8cc2n2h = 1.367;
 constexpr double p8nn2n2h = 1.326;
 constexpr double p8cn2n2h = 1.367;
 
-
 enum idatm {
     Ac, Ag, Al, Am, Ar, As, At, Au, B, Ba, Be, Bh, Bi, Bk, Br, C, C1, C1m, C2,
     C3, Ca, Cac, Car, Cd, Ce, Cf, Cl, Cm, Co, Cr, Cs, Cu, D, Db, DC, Ds, Dy, Er,
@@ -156,12 +155,12 @@ const std::unordered_set<size_t> oxygenConjugatedTetra = {
 };
 
 const std::unordered_map<uint64_t, std::unordered_map<size_t, idatm>> bond_maps = {
-    {6, {{chemfiles::Bond::DOUBLE, idatm::C2}, {chemfiles::Bond::TRIPLE, idatm::C1},
-         {chemfiles::Bond::AROMATIC, idatm::Car}}},
-    {7, {{chemfiles::Bond::DOUBLE, idatm::N2}, {chemfiles::Bond::TRIPLE, idatm::N1},
-         {chemfiles::Bond::AROMATIC, idatm::Npl}, {chemfiles::Bond::AMIDE, idatm::Npl}}},
-    {8, {{chemfiles::Bond::DOUBLE, idatm::O2}, {chemfiles::Bond::TRIPLE, idatm::O1},
-         {chemfiles::Bond::AROMATIC, idatm::Oar}}},
+    {6, {{Bond::DOUBLE, idatm::C2}, {Bond::TRIPLE, idatm::C1},
+         {Bond::AROMATIC, idatm::Car}}},
+    {7, {{Bond::DOUBLE, idatm::N2}, {Bond::TRIPLE, idatm::N1},
+         {Bond::AROMATIC, idatm::Npl}, {Bond::AMIDE, idatm::Npl}}},
+    {8, {{Bond::DOUBLE, idatm::O2}, {Bond::TRIPLE, idatm::O1},
+         {Bond::AROMATIC, idatm::Oar}}},
 };
 
 static bool check_dihedrals_for_planarity(const Molecule& mol, const std::set<size_t>& ring) {
@@ -237,14 +236,14 @@ static size_t freeOxygens(const Spear::AtomVertex& atom,
 }
 
 static size_t assignBondOrderType(uint64_t atomic_number,
-                                  chemfiles::Bond::BondOrder bo,
+                                  Bond::Order bo,
                                   size_t current_type) {
-    if (current_type == idatm::N2 && bo == chemfiles::Bond::DOUBLE) {
+    if (current_type == idatm::N2 && bo == Bond::DOUBLE) {
         return idatm::N1;
     }
 
     // Allenes 
-    if (current_type == idatm::C2 && bo == chemfiles::Bond::DOUBLE) {
+    if (current_type == idatm::C2 && bo == Bond::DOUBLE) {
         return idatm::C1;
     }
 
@@ -308,10 +307,10 @@ void IDATM::type_atoms_topo_() {
         auto valence = atom.neighbor_count();
 
         switch (atom.atomic_number()) {
-            case 6:
+            case Element::C:
                 atom_types_[atom] = idatm::C3;
                 break;
-            case 7:
+            case Element::N:
                 if (valence == 4) {
                     atom_types_[atom] = freeOs >= 1 ? idatm::Nox
                                                     : idatm::N3p;
@@ -322,10 +321,10 @@ void IDATM::type_atoms_topo_() {
                     atom_types_[atom] = idatm::N3;
                 }
                 break;
-            case 8:
+            case Element::O:
                 atom_types_[atom] = idatm::O3;
                 break;
-            case 15:
+            case Element::P:
                 if (valence == 4) {
                     if (freeOs >= 2) { // phostphate
                         atom_types_[atom] = idatm::Pac;
@@ -338,7 +337,7 @@ void IDATM::type_atoms_topo_() {
                     atom_types_[atom] = idatm::P;
                 }
                 break;
-            case 16:
+            case Element::S:
                 if (valence == 4) {
                     if (freeOs >= 3) { // Sulfate
                         atom_types_[atom] = idatm::Sac;
@@ -361,7 +360,7 @@ void IDATM::type_atoms_topo_() {
 
     size_t aromatic_count = 0;
     for (auto bond : mol_.bonds()) {
-        if (bond.order() == chemfiles::Bond::AROMATIC) {
+        if (bond.order() == Bond::AROMATIC) {
             ++aromatic_count;
 
             // Spoof the aromatic ring list
@@ -371,12 +370,12 @@ void IDATM::type_atoms_topo_() {
 
         atom_types_[bond.source()] =
             assignBondOrderType(bond.source().atomic_number(),
-                                static_cast<chemfiles::Bond::BondOrder>(bond.order()),
+                                static_cast<Bond::Order>(bond.order()),
                                 atom_types_[bond.source()]);
 
         atom_types_[bond.target()] =
             assignBondOrderType(bond.target().atomic_number(),
-                                static_cast<chemfiles::Bond::BondOrder>(bond.order()),
+                                static_cast<Bond::Order>(bond.order()),
                                 atom_types_[bond.target()]);
     }
 
@@ -425,17 +424,17 @@ void IDATM::infallible_() {
             atom_types_[atom] = bondedToCarbon ? (isHyd ? HC: DC)
                                                : (isHyd ? H : D);
 
+            // Perfect evidence
             mapped_[atom] = true;
 
             continue;
         }
 
-        size_t heavyCount = 0;
-        for (auto neighbor : atom.neighbors()) {
-            if (neighbor.atomic_number() > 1) heavyCount++;
-        }
+        auto neighs = atom.neighbors();
 
-        heavys_[atom] = heavyCount;
+        heavys_[atom] = std::count_if(neighs.begin(), neighs.end(),
+            [](AtomVertex n) {return n.atomic_number() > 1;}
+        );
     }
 
     // Use templates for "infallible" typing of standard residues
@@ -511,7 +510,7 @@ std::vector<size_t> IDATM::valence_() {
                 atom_types_[atom] = idatm::C3; // must be sp3 carbon
             } else if (element == 7) {
                 atom_types_[atom] = freeOs >= 1 ? idatm::Nox
-                                                 : idatm::N3p;
+                                                : idatm::N3p;
             } else if (element == 15) {
                 if (freeOs >= 2) { // phostphate
                     atom_types_[atom] = idatm::Pac;

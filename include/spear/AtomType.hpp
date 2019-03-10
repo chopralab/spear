@@ -10,7 +10,7 @@
 
 namespace Spear {
 
-enum Hybridization : size_t {
+enum Hybridization : uint64_t {
     UNKNOWN = 0,
     FORCED  = 1,
     SP      = 2,

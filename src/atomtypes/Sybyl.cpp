@@ -68,19 +68,11 @@ const char* const sybyl_unmask[] {
 };
 
 static size_t num_nonmetal(const AtomVertex& atom) {
-    size_t num_nonmetal = 0;
-    for (auto a : atom.neighbors()) {
-        auto element = a.atomic_number();
-        if (element <= 2 ||
-            (element >= 5  && element <= 10) ||
-            (element >= 14 && element <= 18) ||
-            (element >= 32 && element <= 36) ||
-            (element >= 51 && element <= 54) ){
-            ++num_nonmetal;
-        }
-    }
-
-    return num_nonmetal;
+    auto neighs = atom.neighbors();
+    return std::count_if(
+        neighs.begin(), neighs.end(),
+        [](AtomVertex n){ return n.is_non_metal();}
+    );
 }
 
 static size_t freeOxygens(const Spear::AtomVertex& atom) {
@@ -97,9 +89,9 @@ static size_t freeOxygens(const Spear::AtomVertex& atom) {
 static bool is_decloc(const Spear::AtomVertex& atom) {
     for (auto bond : atom.bonds()) {
         switch(bond.order()) {
-            case chemfiles::Bond::DOUBLE:
-            case chemfiles::Bond::TRIPLE:
-            case chemfiles::Bond::AROMATIC:
+            case Bond::DOUBLE:
+            case Bond::TRIPLE:
+            case Bond::AROMATIC:
                 return true;
             default:
                 break;
@@ -130,10 +122,10 @@ void Sybyl::type_atoms_3d_() {
     type_atoms_topo_();
     for (auto atom : mol_) {
         switch (atom.atomic_number()) {
-        case 6:
+        case Element::C:
             atom_types_[atom] = assign_carbon_3d_(atom);
             break;
-        case 7:
+        case Element::N:
             atom_types_[atom] = assign_nitrogen_3d_(atom);
             break;
         default:
@@ -145,35 +137,35 @@ void Sybyl::type_atoms_3d_() {
 void Sybyl::type_atoms_topo_() {
     for (auto atom : mol_) {
         switch (atom.atomic_number()) {
-        case 1:
+        case Element::H:
             atom_types_[atom] = H;
             break;
-        case 6:
+        case Element::C:
             atom_types_[atom] = assign_carbon_topo_(atom);
             break;
-        case 7:
+        case Element::N:
             atom_types_[atom] = assign_nitrogen_topo_(atom);
             break;
-        case 8:
+        case Element::O:
             atom_types_[atom] = assign_oxygen_(atom);
             break;
-        case 16:
+        case Element::S:
             atom_types_[atom] = assign_sulfur_(atom);
             break;
-        case 15:
+        case Element::P:
             atom_types_[atom] = P_3;
             break;
-        case 27:
+        case Element::Co:
             atom_types_[atom] = Co_oh;
             break;
-        case 44:
+        case Element::Ru:
             atom_types_[atom] = Ru_oh;
             break;
-        case 22:
+        case Element::Ti:
             atom_types_[atom] = atom.neighbor_count() <= 4 ? Ti_th
                                                            : Ti_oh;
             break;
-        case 24:
+        case Element::Cr:
             atom_types_[atom] = atom.neighbor_count() <= 4 ? Cr_th
                                                            : Cr_oh;
             break;
@@ -197,11 +189,11 @@ size_t Sybyl::assign_carbon_topo_(AtomVertex& atom){
             num_nitrogen += (freeOxygens(bond.target()) == 0);
         }
 
-        if (bond.order() == chemfiles::Bond::DOUBLE) {
+        if (bond.order() == Bond::DOUBLE) {
             ++num_double;
-        } else if (bond.order() == chemfiles::Bond::TRIPLE) {
+        } else if (bond.order() == Bond::TRIPLE) {
             ++num_triple;
-        } else if (bond.order() == chemfiles::Bond::AROMATIC) {
+        } else if (bond.order() == Bond::AROMATIC) {
             ++num_aromatic;
         }
     }
@@ -254,13 +246,13 @@ size_t Sybyl::assign_nitrogen_topo_(AtomVertex& atom) {
             return N_pl3;
         }
 
-        if (bond.order() == chemfiles::Bond::DOUBLE) {
+        if (bond.order() == Bond::DOUBLE) {
             ++num_double;
-        } else if (bond.order() == chemfiles::Bond::TRIPLE) {
+        } else if (bond.order() == Bond::TRIPLE) {
             ++num_triple;
-        } else if (bond.order() == chemfiles::Bond::AROMATIC) {
+        } else if (bond.order() == Bond::AROMATIC) {
             ++num_aromatic;
-        } else if (bond.order() == chemfiles::Bond::AMIDE) { // Strong evidence
+        } else if (bond.order() == Bond::AMIDE) { // Strong evidence
             return N_am;
         }
     }

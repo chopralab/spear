@@ -24,26 +24,27 @@ Default::Default(const Molecule& mol) : mol_(mol) {
 
         atom_types_.push_back(atomic_number);
         switch(atomic_number) {
-            case 6:
-            case 32:
-            case 7:
-            case 8:
-            case 9:
-            case 15:
-            case 16:
-            case 17:
-            case 35:
-            case 53:
+            case Element::C:
+            case Element::Si:
+            case Element::N:
+            case Element::O:
+            case Element::F:
+            case Element::P:
+            case Element::S:
+            case Element::Cl:
+            case Element::Br:
+            case Element::I:
             break; //Only break, rest are continues
-            // Hydrogens
-            case 1:
+
+            case Element::H:
             hybridizations_.push_back(Hybridization::FORCED);
             continue;
-            // Boron and Aluminium
-            case 5:
-            case 13:
+
+            case Element::B:
+            case Element::Al:
             hybridizations_.push_back(Hybridization::SP2);
             continue;
+
             // The rest
             default:
             hybridizations_.push_back(Hybridization::UNKNOWN);
@@ -59,12 +60,12 @@ Default::Default(const Molecule& mol) : mol_(mol) {
 
         for (auto bond : av.bonds()) {
 
-            if (bond.order() == chemfiles::Bond::DOUBLE) {
+            if (bond.order() == Bond::DOUBLE) {
                 dec_hybridization(hybridizations_.back());
             }
 
             // Just do it twice
-            if (bond.order() == chemfiles::Bond::TRIPLE) {
+            if (bond.order() == Bond::TRIPLE) {
                 dec_hybridization(hybridizations_.back());
                 dec_hybridization(hybridizations_.back());
             }
@@ -73,11 +74,17 @@ Default::Default(const Molecule& mol) : mol_(mol) {
 }
 
 bool Default::is_aromatic(size_t atom_id) const {
+    for (auto bond : mol_[atom_id].bonds()) {
+        if (bond.order() == Bond::AROMATIC) {
+            return true;
+        }
+    }
+
     return false;
 }
 
 template<> std::string atomtype_name_for_id<Default>(size_t id) {
-    return "NA";
+    return Element::Name[id];
 }
 
 template<> size_t atomtype_id_for_name<Default>(std::string name) {
@@ -86,7 +93,7 @@ template<> size_t atomtype_id_for_name<Default>(std::string name) {
 }
 
 template<> size_t atomtype_id_count<Default>() {
-    return 118;
+    return 119; // Includes lone-pair
 }
 
 template<> double van_der_waals<Default>(size_t id) {

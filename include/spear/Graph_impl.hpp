@@ -18,7 +18,7 @@ inline AtomVertex BondEdge::target() const {
     return AtomVertex(br_, boost::target(index_, br_->graph()));
 }
 
-inline size_t BondEdge::order() const {
+inline Bond::Order BondEdge::order() const {
     return boost::get(boost::edge_name, br_->graph(), index_);
 }
 
@@ -97,7 +97,7 @@ inline const chemfiles::Vector3D& AtomVertex::position() const {
     return br_->frame().positions()[index_];
 }
 
-inline uint64_t AtomVertex::atomic_number() const {
+inline Element::Symbol AtomVertex::atomic_number() const {
     return boost::get(boost::vertex_name, br_->graph(), index_);
 }
 
@@ -117,6 +117,19 @@ inline Bonds AtomVertex::bonds() const {
 inline bool AtomVertex::is_aromatic() const {
     auto types = br_->get_default_atomtype();
     return types->is_aromatic(index_);
+}
+
+inline bool AtomVertex::is_non_metal() const {
+    auto element = atomic_number();
+    if (element <= Element::He ||
+       (element >= Element::B  && element <= Element::Ne) ||
+       (element >= Element::Si && element <= Element::Ar) ||
+       (element >= Element::Ge && element <= Element::Kr) ||
+       (element >= Element::Sb && element <= Element::Xe) ){
+        return true;
+    }
+
+    return false;
 }
 
 inline size_t AtomVertex::implicit_hydrogens() const {

@@ -14,16 +14,16 @@ size_t AtomVertex::expected_bonds() const {
     auto atomic_num = atomic_number();
 
     switch(atomic_num) {
-        case 1:  // Hydrogen
-        case 9:  // Fluorine
-        case 17: // Chlorine
-        case 35: // Bromine
-        case 53: // Iodine
+        case Element::H:  // Hydrogen
+        case Element::F:  // Fluorine
+        case Element::Cl: // Chlorine
+        case Element::Br: // Bromine
+        case Element::I: // Iodine
         return 1;
         break;
 
-        case 5:  // Boron
-        case 13: // Aluminium
+        case Element::B:  // Boron
+        case Element::Al: // Aluminium
         return 3;
         break;
 
@@ -106,14 +106,20 @@ void Molecule::init_() {
 
     std::map<size_t, VertexDescriptor> vertices;
     for (auto atom : frame_) {
-        boost::add_vertex(VertexDescriptor{*(atom.atomic_number())}, graph_);
+        auto atomic_number = atom.atomic_number();
+        if (atomic_number) {
+            auto an = static_cast<Element::Symbol>(*atomic_number);
+            boost::add_vertex(an, graph_);
+        } else {
+            boost::add_vertex(Element::Symbol(0), graph_);
+        }
     }
 
     // Create the graph representation
     auto bonds = topo.bonds();
     for ( size_t i = 0; i < bonds.size(); ++i) {
         boost::add_edge(bonds[i][0], bonds[i][1],
-            EdgeProperty(topo.bond_orders()[i]), graph_);
+            static_cast<Bond::Order>(topo.bond_orders()[i]), graph_);
     }
 
     add_atomtype<Default>();
