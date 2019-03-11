@@ -131,6 +131,12 @@ public:
 
     const AtomType* get_default_atomtype() const;
 
+    AtomVertex add_atom(Element::Symbol n_atom, const Eigen::Vector3d& pos);
+
+    BondEdge add_bond(size_t idx1, size_t idx2, Bond::Order order = Bond::SINGLE);
+
+    AtomVertex add_atom_to(Element::Symbol n_atom, size_t index);
+
     void remove_hydrogens();
 
     size_t size() const;

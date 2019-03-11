@@ -189,33 +189,3 @@ TEST_CASE("Default AtomType") {
     CHECK(default_atom_type->hybridization(20) == Spear::Hybridization::SP);
     CHECK(default_atom_type->hybridization(21) == Spear::Hybridization::SP);
 }
-
-TEST_CASE("Hydrogens") {
-    SECTION("Remove") {
-        auto traj = chemfiles::Trajectory("data/3qox_ligand.sdf");
-        auto mol = Spear::Molecule(traj.read());
-
-        size_t explicit_hs = 0, actual_hs = 0, implicit_hs = 0;
-        for (auto av : mol) {
-            explicit_hs += av.explicit_hydrogens();
-            implicit_hs += av.implicit_hydrogens();
-            if (av.atomic_number() == 1) ++actual_hs;
-        }
-        CHECK(actual_hs == 20);
-        CHECK(implicit_hs == 1); // TODO: Fix carbonyl!
-        CHECK(explicit_hs == actual_hs);
-
-        mol.remove_hydrogens();
-
-        explicit_hs = 0, actual_hs = 0, implicit_hs = 0;
-        for (auto av : mol) {
-            explicit_hs += av.explicit_hydrogens();
-            implicit_hs += av.implicit_hydrogens();
-            if (av.atomic_number() == 1) ++actual_hs;
-        }
-        CHECK(actual_hs == 0);
-        CHECK(explicit_hs == actual_hs);
-        CHECK(implicit_hs == 20);
-        CHECK(mol.size() == 26);
-    }
-}
