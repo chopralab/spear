@@ -6,6 +6,8 @@
 #include "spear/Molecule.hpp"
 #include "spear/Molecule_impl.hpp"
 
+#include "spear/Geometry.hpp"
+
 using namespace Spear;
 
 #define RNA_CORE {"P","Pac"},{"OP1","O3-"},{"OP2","O3-"},\
@@ -166,15 +168,17 @@ const std::unordered_map<uint64_t, std::unordered_map<size_t, idatm>> bond_maps 
 static bool check_dihedrals_for_planarity(const Molecule& mol, const std::set<size_t>& ring) {
     auto& dihedrals = mol.frame().topology().dihedrals();
     // test dihedral angles
-    for (const auto& dihedral : dihedrals) {
+    for (const auto& d : dihedrals) {
 
-        if (ring.count(dihedral[0]) == 0 || ring.count(dihedral[1]) == 0 ||
-            ring.count(dihedral[2]) == 0 || ring.count(dihedral[3]) == 0) {
+        if (ring.count(d[0]) == 0 || ring.count(d[1]) == 0 ||
+            ring.count(d[2]) == 0 || ring.count(d[3]) == 0) {
             continue;
         }
 
-        auto dangle = mol.frame().dihedral(dihedral[0], dihedral[1],
-                                           dihedral[2], dihedral[3]);
+        auto dangle = dihedral(mol[d[0]].position(),
+                               mol[d[1]].position(),
+                               mol[d[2]].position(),
+                               mol[d[3]].position());
 
         dangle *= 180 / 3.14159;
 
@@ -191,13 +195,13 @@ static bool check_dihedrals_for_planarity(const Molecule& mol, const std::set<si
 static bool aromatic(const Molecule& mol, const std::set<size_t>& ring) {
     auto sum = 0.0;
     size_t bonds = 0;
-    const std::vector<EdgeDescriptor> ring_bonds = mol.get_bonds_in(ring);
+    const std::vector<BondEdge> ring_bonds = mol.get_bonds_in(ring);
     for (const auto& bond : ring_bonds) {
-        const auto atom1 = boost::source(bond, mol.graph());
-        const auto atom2 = boost::target(bond, mol.graph());
-        const auto e1 = mol[atom1].atomic_number();
-        const auto e2 = mol[atom2].atomic_number();
-        double d = mol.frame().distance(atom1, atom2);
+        const auto atom1 = bond.source();
+        const auto atom2 = bond.target();
+        const auto e1 = atom1.atomic_number();
+        const auto e2 = atom2.atomic_number();
+        double d = distance(atom1.position(), atom2.position());
         if (e1 == 6 && e2 == 6) {
             bonds++;
             sum += (d - 1.397) * (d - 1.397);
@@ -532,7 +536,9 @@ std::vector<size_t> IDATM::valence_() {
             auto avgAngle = 0.0;
             for (size_t n1 = 0; n1 < 3; ++n1) {
                 for (size_t n2 = n1 + 1; n2 < 3; ++n2) {
-                    avgAngle += mol_.frame().angle(atom[n1], atom, atom[n2]);
+                    avgAngle += angle(atom[n1].position(),
+                                      atom.position(),
+                                      atom[n2].position());
                 }
             }
             avgAngle /= 3.0;
@@ -602,7 +608,7 @@ void IDATM::terminal_(std::vector<size_t>& redo) {
         if (neighbor_count != 1) continue; // only terminal atoms!
 
         auto bondee = atom[0];
-        auto len = mol_.frame().distance(atom, bondee);
+        auto len = distance(atom.position(), bondee.position());
         auto bondeeType = atom_types_[bondee];
 
         if (atom_types_[atom] == idatm::C) { // Default Carbon
@@ -675,7 +681,7 @@ void IDATM::redo_(const std::vector<size_t>& redo) {
 
         bool c3able = false;
         for (auto bondee : atom.neighbors()) {
-            auto len = mol_.frame().distance(atom, bondee);
+            auto len = distance(atom.position(), bondee.position());
             auto bondeeElement = bondee.atomic_number();
 
             if (redo[atom] == 1) { // Tetrahedral or planar carbon?
@@ -917,7 +923,7 @@ void IDATM::fix_N2_() {
         }
         auto avgLen = 0.0;
         for (auto bondee : atom.neighbors()) {
-            auto len = mol_.frame().distance(atom, bondee);
+            auto len = distance(atom.position(), bondee.position());
             avgLen += len;
         }
         avgLen /= 2.0;

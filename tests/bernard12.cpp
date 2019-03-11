@@ -28,8 +28,8 @@ TEST_CASE("Protein-Ligand Score") {
     auto ltypes = ligand.get_atomtype(atomtype_name);
 
     std::unordered_set<size_t> all_types;
-    std::copy((*ptypes)->cbegin(), (*ptypes)->cend(), std::inserter(all_types, all_types.begin()));
-    std::copy((*ltypes)->cbegin(), (*ltypes)->cend(), std::inserter(all_types, all_types.begin()));
+    std::copy(ptypes->cbegin(), ptypes->cend(), std::inserter(all_types, all_types.begin()));
+    std::copy(ltypes->cbegin(), ltypes->cend(), std::inserter(all_types, all_types.begin()));
 
     // Remove hydrogen types
     all_types.erase(47);
@@ -40,8 +40,13 @@ TEST_CASE("Protein-Ligand Score") {
     AtomicDistributions atomic_distrib = read_atomic_distributions<IDATM>(csd_distrib);
     auto options = Bernard12::Options(Bernard12::RADIAL | Bernard12::MEAN | Bernard12::REDUCED);
     Bernard12 scoring_func(options, 6.0, atomic_distrib, atomtype_name, all_types);
-    
-    auto grid = Grid(protein.frame().positions());
+
+    std::vector<Eigen::Vector3d> positions;
+    for (auto& pos : protein.frame().positions()) {
+        positions.push_back({pos[0], pos[1], pos[2]});
+    }
+
+    auto grid = Grid(positions);
     CHECK(std::fabs(scoring_func.score(grid, protein, ligand) - -61.8901) < 1e-3);
 
     auto junk = chemfiles::Trajectory("data/3qox_pocket.pdb");

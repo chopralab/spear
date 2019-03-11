@@ -14,17 +14,21 @@
 
 namespace Spear {
 
-using chemfiles::Vector3D;
+using Eigen::Vector3d;
 
 struct SPEAR_EXPORT GridPoint : public std::array<uint64_t, 3> {
 
-    GridPoint(const Vector3D& point,
-              const Vector3D& min,
-              const Vector3D& max,
-              const Vector3D& step,
-              double dist = 0) {
+    GridPoint(const Vector3d& point,
+              const Vector3d& min,
+              const Vector3d& max,
+              const Vector3d& step,
+              double dist = 0.0) {
 
-        auto shifted = point - min + Vector3D(dist, dist, dist);
+        // Do not use auto, it causes a strange bug here as it attempts to
+        // modify const memory?
+        Vector3d shifted = point - min;
+        shifted += Vector3d(dist, dist, dist);
+
         auto xcrd = shifted[0] < 0.0    ? 0.0 :
                     shifted[0] > max[0] ? max[0] :
                     std::floor(shifted[0] / step[0]);
@@ -51,7 +55,7 @@ class SPEAR_EXPORT Grid {
     constexpr static auto max = std::numeric_limits<double>::max();
     constexpr static auto min = std::numeric_limits<double>::min();
 public:
-    Grid(const std::vector<Vector3D>& points, const Vector3D& step = {1.0, 1.0, 1.0})
+    Grid(const std::vector<Vector3d>& points, const Vector3d& step = {1.0, 1.0, 1.0})
         : min_(max,max,max), max_(min,min,min), step_(step) {
 
         if (step_[0] <= eps || step_[1] <= eps || step_[2] <= eps) {
@@ -68,6 +72,7 @@ public:
             max_[2] = std::max(point[2], max_[2]);
         }
 
+        // Compute the maximum range
         max_ -= min_;
 
         for (size_t i = 0; i < points.size(); ++i) {
@@ -75,7 +80,7 @@ public:
         }
     }
 
-    std::unordered_set<size_t> neighbors(const Vector3D& point) const {
+    std::unordered_set<size_t> neighbors(const Vector3d& point) const {
         auto gridpoint = GridPoint(point, min_, max_, step_);
         std::unordered_set<size_t> ret;
 
@@ -87,7 +92,7 @@ public:
         return ret;
     }
 
-    std::unordered_set<size_t> neighbors(const Vector3D& point,
+    std::unordered_set<size_t> neighbors(const Vector3d& point,
                                          double dist,
                                          double lower_tol = 0.0,
                                          double upper_tol = 0.0) const {
@@ -124,9 +129,9 @@ public:
     }
 
 private:
-    Vector3D min_;
-    Vector3D max_;
-    Vector3D step_;
+    Vector3d min_;
+    Vector3d max_;
+    Vector3d step_;
 
     std::unordered_multimap<GridPoint, size_t, boost::hash<GridPoint>> grid_;
 };

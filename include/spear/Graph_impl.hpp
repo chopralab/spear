@@ -93,8 +93,8 @@ inline const std::string& AtomVertex::type() const {
     return br_->frame()[index_].type();
 }
 
-inline const chemfiles::Vector3D& AtomVertex::position() const {
-    return br_->frame().positions()[index_];
+inline const Eigen::Vector3d& AtomVertex::position() const {
+    return br_->positions()[index_];
 }
 
 inline Element::Symbol AtomVertex::atomic_number() const {

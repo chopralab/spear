@@ -79,12 +79,14 @@ endif()
 set(Boost_USE_STATIC_LIBS        ON)
 set(Boost_USE_MULTITHREADED      ON)
 find_package(Boost REQUIRED COMPONENTS graph filesystem program_options)
+find_package(Eigen3 REQUIRED)
 
 file(GLOB_RECURSE SPEAR_objects_sources src/**.cpp)
 add_library(spear ${SPEAR_objects_sources})
 target_include_directories(spear PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+    ${EIGEN3_INCLUDE_DIR}
 )
 
 target_link_libraries(spear PUBLIC

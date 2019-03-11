@@ -145,10 +145,10 @@ inline std::string Molecule::add_atomtype(args... additional) {
     return name;
 }
 
-inline optional<const AtomType*> Molecule::get_atomtype(const std::string& name) const {
+inline const AtomType* Molecule::get_atomtype(const std::string& name) const {
     auto types = atom_types_.find(name);
     if (types == atom_types_.end()) {
-        return chemfiles::nullopt;
+        return nullptr;
     }
     return types->second.get();
 }

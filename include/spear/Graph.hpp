@@ -148,7 +148,7 @@ public:
 
     const std::string& type() const;
     
-    const chemfiles::Vector3D& position() const;
+    const Eigen::Vector3d& position() const;
 
     Element::Symbol atomic_number() const;
 

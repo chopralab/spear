@@ -8,7 +8,8 @@
 #include <vector>
 
 #include "chemfiles/Frame.hpp"
-#include "chemfiles/external/optional.hpp"
+
+#include "Eigen/Geometry"
 
 #include "spear/Graph.hpp"
 #include "spear/AtomType.hpp"
@@ -111,16 +112,20 @@ public:
         return frame_;
     }
 
+    const std::vector<Eigen::Vector3d>& positions() const {
+        return positions_;
+    }
+
     const std::set<std::set<size_t>> rings() const;
 
     size_t dimensionality(double eps = 0.00001) const;
 
-    std::vector<EdgeDescriptor> get_bonds_in(const std::set<size_t>& atoms) const;
+    std::vector<BondEdge> get_bonds_in(const std::set<size_t>& atoms) const;
 
     template<class atomtype, typename... args>
     std::string add_atomtype(args... additional);
 
-    optional<const AtomType*> get_atomtype(const std::string& name) const;
+    const AtomType* get_atomtype(const std::string& name) const;
 
     void set_default_atomtype(const std::string& name);
 
@@ -146,6 +151,8 @@ private:
     void init_();
 
     chemfiles::Frame frame_;
+
+    std::vector<Eigen::Vector3d> positions_;
     
     Graph graph_;
 

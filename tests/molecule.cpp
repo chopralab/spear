@@ -117,11 +117,11 @@ TEST_CASE("Molecule") {
         auto bond = mol.get_bonds_in(test);
 
         CHECK(bond.size() == 5);
-        CHECK(boost::source(bond[0], mol.graph()) == 0);
-        CHECK(boost::target(bond[0], mol.graph()) == 1);
+        CHECK(bond[0].source() == 0);
+        CHECK(bond[0].target() == 1);
 
-        CHECK(boost::source(bond[1], mol.graph()) == 1);
-        CHECK(boost::target(bond[1], mol.graph()) == 2);
+        CHECK(bond[1].source() == 1);
+        CHECK(bond[1].target() == 2);
     }
 }
 
