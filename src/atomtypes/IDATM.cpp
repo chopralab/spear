@@ -1226,6 +1226,31 @@ Hybridization IDATM::hybridization(size_t atom_id) const {
     }
 }
 
+size_t IDATM::add_atom(size_t idx) {
+    switch(mol_[idx].atomic_number()) {
+        case Element::C:
+            atom_types_.push_back(idatm::C3);
+            break;
+        case Element::N:
+            atom_types_.push_back(idatm::N3);
+            break;
+        case Element::O:
+            atom_types_.push_back(idatm::O3);
+            break;
+        case Element::S:
+            atom_types_.push_back(idatm::S3);
+            break;
+        case Element::P:
+            atom_types_.push_back(idatm::P3p);
+            break;
+        default:
+            atom_types_.push_back(idatm_mask.at(mol_[idx].type()));
+            break;
+    }
+
+    return mol_[idx].atomic_number();
+}
+
 template<> std::string Spear::atomtype_name_for_id<IDATM>(size_t id) {
     return idatm_unmask[id];
 }

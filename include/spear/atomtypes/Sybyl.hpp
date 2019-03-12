@@ -23,6 +23,8 @@ public:
 
     bool is_aromatic(size_t atom_id) const override;
 
+    size_t add_atom(size_t idx) override;
+
     Hybridization hybridization(size_t atom_id) const override;
 
     size_t operator[](size_t atom_id) const override {

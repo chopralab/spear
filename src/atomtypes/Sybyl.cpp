@@ -16,7 +16,7 @@ enum sybyl {
     La, Li, Lr, Lu, Lw, Md, Mg, Mn, Mo, Mt, Na, Nb, Nd, Ne, Ni,
     No, Np, Os, Pa, Pb, Pd, Pm, Po, Pr, Pt, Pu, Ra, Rb, Re, Rf,
     Rh, Rn, Sb, Sc, Se, Sg, Si, Sm, Sn, Sr, Ta, Tb, Tc, Te, Th,
-    Tl, Tm, U,V, W, Xe, Y, Yb, Zn, Zr, Du
+    Tl, Tm, U,  V,  W,  Xe, Y,  Yb, Zn, Zr, Du
 };
 
 const std::unordered_map<std::string, size_t> sybyl_mask{
@@ -450,6 +450,32 @@ Hybridization Sybyl::hybridization(size_t atom_id) const {
 
         default: return Hybridization::FORCED; break;
     }
+}
+
+size_t Sybyl::add_atom(size_t idx) {
+    switch(mol_[idx].atomic_number()) {
+        case Element::C:
+            atom_types_.push_back(sybyl::C_3);
+            break;
+        case Element::N:
+            atom_types_.push_back(sybyl::N_3);
+            break;
+        case Element::O:
+            atom_types_.push_back(sybyl::O_3);
+            break;
+        case Element::S:
+            atom_types_.push_back(sybyl::S_3);
+            break;
+        case Element::P:
+            atom_types_.push_back(sybyl::P_3);
+            break;
+        default:
+            atom_types_.push_back(sybyl_mask.at(mol_[idx].type()));
+            break;
+    }
+
+    return mol_[idx].atomic_number();
+
 }
 
 template<> std::string Spear::atomtype_name_for_id<Sybyl>(size_t id) {

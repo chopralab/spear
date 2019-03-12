@@ -24,6 +24,8 @@ public:
         return atom_types_;
     }
 
+    size_t add_atom(size_t new_idx) override;
+
     size_t operator[](size_t atom_id) const override {
         return atom_types_[atom_id];
     }

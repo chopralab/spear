@@ -40,6 +40,8 @@ public:
 
     bool is_aromatic(size_t atom_id) const override;
 
+    size_t add_atom(size_t new_idx) override;
+
     Hybridization hybridization(size_t atom_id) const override;
 
     std::vector<size_t>::const_iterator cbegin() const override {

@@ -250,6 +250,9 @@ AtomVertex Molecule::add_atom(Element::Symbol n_atom, const Eigen::Vector3d& pos
     auto desc = boost::add_vertex(n_atom, graph_);
     positions_.push_back(pos);
     frame_.add_atom(chemfiles::Atom(Element::Name[n_atom]), {pos[0], pos[1], pos[2]});
+    for (const auto& at : atom_types_) {
+        at.second->add_atom(desc);
+    }
     return {this, desc};
 }
 

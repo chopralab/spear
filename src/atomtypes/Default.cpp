@@ -58,9 +58,16 @@ Default::Default(const Molecule& mol) : mol_(mol) {
 
         hybridizations_.push_back(Hybridization::SP3);
 
+        bool is_aromatic = false; // used to prevent dec_hybridization twice
+
         for (auto bond : av.bonds()) {
 
             if (bond.order() == Bond::DOUBLE) {
+                dec_hybridization(hybridizations_.back());
+            }
+
+            if (bond.order() == Bond::AROMATIC && !is_aromatic) {
+                is_aromatic = true;
                 dec_hybridization(hybridizations_.back());
             }
 
@@ -81,6 +88,24 @@ bool Default::is_aromatic(size_t atom_id) const {
     }
 
     return false;
+}
+
+size_t Default::add_atom(size_t new_idx) {
+    auto av = mol_[new_idx];
+    auto atomic_number = av.atomic_number();
+    atom_types_.push_back(atomic_number);
+    if (atomic_number == 1 || atomic_number == 2) {
+        hybridizations_.push_back(Hybridization::FORCED);
+        return atomic_number;
+    }
+
+    if (av.is_non_metal()) {
+        hybridizations_.push_back(Hybridization::SP3);
+        return atomic_number;
+    }
+
+    hybridizations_.push_back(Hybridization::UNKNOWN);
+    return atomic_number;
 }
 
 template<> std::string atomtype_name_for_id<Default>(size_t id) {

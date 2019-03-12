@@ -27,12 +27,16 @@ TEST_CASE("Add Atoms and Bonds") {
 
         CHECK(mol.dimensionality() == 2);
 
-        mol.add_atom_to(Spear::Element::N, 0);
+        auto n_atom = mol.add_atom_to(Spear::Element::N, 0);
         CHECK(mol[0].neighbor_count() == 2);
-        mol.add_atom_to(Spear::Element::H, 0);
+        auto mg_atom = mol.add_atom_to(Spear::Element::Mg, 0);
         CHECK(mol[0].neighbor_count() == 3);
         mol.add_atom_to(Spear::Element::H, 0);
         CHECK(mol[0].neighbor_count() == 4);
+
+        auto& atom_types = *mol.get_default_atomtype();
+        CHECK(atom_types.hybridization(n_atom) == Spear::Hybridization::SP3);
+        CHECK(atom_types.hybridization(mg_atom)== Spear::Hybridization::UNKNOWN);
     }
 
     SECTION("Given Atom in 3D") {
@@ -50,6 +54,15 @@ TEST_CASE("Add Atoms and Bonds") {
         CHECK(std::fabs(tetra_ang * 180.0 / M_PI - 109.47) < 1e-1);
         auto dihedral_ang = std::fabs(Spear::dihedral(h2.position(), mol[0].position(), h1.position(), h3.position()));
         CHECK(std::fabs(dihedral_ang * 180.0 / M_PI - 120.0) < 1e-1);
+
+        auto& atom_types = *mol.get_default_atomtype();
+        CHECK(atom_types[h1] == Spear::Element::H);
+        CHECK(atom_types[h2] == Spear::Element::H);
+        CHECK(atom_types[h3] == Spear::Element::H);
+
+        CHECK(atom_types.hybridization(h1) == Spear::Hybridization::FORCED);
+        CHECK(atom_types.hybridization(h2) == Spear::Hybridization::FORCED);
+        CHECK(atom_types.hybridization(h3) == Spear::Hybridization::FORCED);
 
         auto h4 = mol.add_atom_to(Spear::Element::H, 21);
         CHECK(std::fabs(Spear::distance(mol[21].position(), h4.position()) - 0.99) < 1e-4);
