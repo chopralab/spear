@@ -55,6 +55,12 @@ TEST_CASE("Add Atoms and Bonds") {
         CHECK(std::fabs(Spear::distance(mol[21].position(), h4.position()) - 0.99) < 1e-4);
         auto linear_ang = std::fabs(Spear::angle(h4.position(), mol[21].position(), mol[20].position()));
         CHECK(std::fabs(linear_ang * 180.0 / M_PI - 180.0) < 1e-1);
+
+        // Full valence SP
+        CHECK_THROWS(mol.add_atom_to(Spear::Element::H, 20));
+
+        // Full valence SP2
+        CHECK_THROWS(mol.add_atom_to(Spear::Element::H, 20));
     }
 }
 

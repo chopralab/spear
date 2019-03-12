@@ -299,7 +299,6 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
 
     Vector3d perpVect, rotnAxis, nbrPerp;
     Vector3d nbr1Vect, nbr2Vect, nbr3Vect;
-    Vector3d hydPos;
 
     auto dimensional = dimensionality();
 
@@ -311,6 +310,10 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
     }
 
     auto hybrid = get_default_atomtype()->hybridization(index);
+
+    if (hybrid == Hybridization::UNKNOWN || hybrid == Hybridization::FORCED) {
+        throw std::runtime_error("Bad hybridization state of atom!");
+    }
 
     bool is3D = dimensional == 3;
 
@@ -416,6 +419,10 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         // don't need to do anything here, the H atom goes right on the direction vector
         break;
     case 3: // Three other neighbors:
+
+        if (hybrid == Hybridization::SP2 || hybrid == Hybridization::SP) {
+            throw std::runtime_error("Cannot add a fourth atom to SP or SP2 atoms!");
+        }
 
         // use the average of the three vectors:
         heavyPos = av.position();
