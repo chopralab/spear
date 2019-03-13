@@ -25,6 +25,10 @@ public:
 
     size_t add_atom(size_t idx) override;
 
+    void remove_atom(size_t idx) {
+        atom_types_.erase(atom_types_.begin() + idx);
+    }
+
     Hybridization hybridization(size_t atom_id) const override;
 
     size_t operator[](size_t atom_id) const override {

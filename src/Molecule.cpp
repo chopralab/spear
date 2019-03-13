@@ -239,6 +239,9 @@ void Molecule::remove_hydrogens() {
                 boost::clear_vertex(*v, graph_);
                 boost::remove_vertex(*v, graph_);
                 frame_.remove(index);
+                for (const auto& at : atom_types_) {
+                    at.second->remove_atom(index);
+                }
                 has_hydrogens = true;
                 break;
             }

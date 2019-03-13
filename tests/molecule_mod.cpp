@@ -104,5 +104,6 @@ TEST_CASE("Hydrogens") {
         CHECK(explicit_hs == actual_hs);
         CHECK(implicit_hs == 20);
         CHECK(mol.size() == 26);
+        CHECK(mol.get_default_atomtype()->all_types().size() == mol.size());
     }
 }

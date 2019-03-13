@@ -47,6 +47,9 @@ public:
     /// Add a new atom to the atom type vector
     virtual size_t add_atom(size_t new_idx) = 0;
 
+    /// Remove an atom from the atom type vector
+    virtual void remove_atom(size_t idx) = 0;
+
     /// Retreive the type of a given typed atom
     virtual size_t operator[](size_t atom_id) const = 0;
 
