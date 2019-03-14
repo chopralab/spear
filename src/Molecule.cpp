@@ -325,7 +325,14 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
     auto hybrid = get_default_atomtype()->hybridization(index);
 
     if (hybrid == Hybridization::UNKNOWN || hybrid == Hybridization::FORCED) {
-        throw std::runtime_error("Bad hybridization state of atom!");
+        throw std::runtime_error("Cannot add atom to UNKNOWN or FORCED hybridizations");
+    }
+
+    // Spoof SP2 for planar nitrogens so that atoms are added in the same plane
+    // and we can prevent the loss of conjugation
+    if (av.atomic_number() == Element::N && hybrid == Hybridization::SP3 &&
+        get_default_atomtype()->is_planar(index)) {
+        hybrid = Hybridization::SP2;
     }
 
     bool is3D = dimensional == 3;
@@ -335,6 +342,14 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
             Element::CovalentRadius[n_atom] +
             Element::CovalentRadius[av.atomic_number()] :
             1.0;
+
+    if (is3D && av.atomic_number() == Element::C && hybrid == Hybridization::SP2) {
+        bondLength += 0.04;
+    }
+
+    if (is3D && av.atomic_number() == Element::C && hybrid == Hybridization::SP2) {
+        bondLength += 0.07;
+    }
 
     switch (av.neighbor_count()) {
     case 0: // No other atom neighbors, add position in the z-direction
@@ -434,7 +449,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
     case 3: // Three other neighbors:
 
         if (hybrid == Hybridization::SP2 || hybrid == Hybridization::SP) {
-            throw std::runtime_error("Cannot add a fourth atom to SP or SP2 atoms!");
+            throw std::runtime_error("Cannot add a fourth atom to planar nitrogens or SP/SP2 atoms!");
         }
 
         // use the average of the three vectors:

@@ -310,55 +310,55 @@ void IDATM::type_atoms_topo_() {
         auto freeOs = freeOxygens(atom, heavys_);
         auto valence = atom.neighbor_count();
 
-        switch (atom.atomic_number()) {
-            case Element::C:
-                atom_types_[atom] = idatm::C3;
-                break;
-            case Element::N:
-                if (valence == 4) {
-                    atom_types_[atom] = freeOs >= 1 ? idatm::Nox
-                                                    : idatm::N3p;
-                } else if (valence == 3) {
-                    atom_types_[atom] = freeOs >= 2 ? idatm::Ntr
-                                                    : idatm::N3;
-                } else {
-                    atom_types_[atom] = idatm::N3;
+        switch (atom.atomic_number()) { 
+        case Element::C:
+            atom_types_[atom] = idatm::C3;
+            break;
+        case Element::N:
+            if (valence == 4) {
+                atom_types_[atom] = freeOs >= 1 ? idatm::Nox
+                                                : idatm::N3p;
+            } else if (valence == 3) {
+                atom_types_[atom] = freeOs >= 2 ? idatm::Ntr
+                                                : idatm::N3;
+            } else {
+                atom_types_[atom] = idatm::N3;
+            }
+            break;
+        case Element::O:
+            atom_types_[atom] = idatm::O3;
+            break;
+        case Element::P:
+            if (valence == 4) {
+                if (freeOs >= 2) { // phostphate
+                    atom_types_[atom] = idatm::Pac;
+                } else if (freeOs == 1) { // P-oxide
+                    atom_types_[atom] = idatm::Pox;
+                } else { // Formally positive SP3 phospohrus
+                    atom_types_[atom] = idatm::P3p;
                 }
-                break;
-            case Element::O:
-                atom_types_[atom] = idatm::O3;
-                break;
-            case Element::P:
-                if (valence == 4) {
-                    if (freeOs >= 2) { // phostphate
-                        atom_types_[atom] = idatm::Pac;
-                    } else if (freeOs == 1) { // P-oxide
-                        atom_types_[atom] = idatm::Pox;
-                    } else { // Formally positive SP3 phospohrus
-                        atom_types_[atom] = idatm::P3p;
-                    }
-                } else {
-                    atom_types_[atom] = idatm::P;
+            } else {
+                atom_types_[atom] = idatm::P;
+            }
+            break;
+        case Element::S:
+            if (valence == 4) {
+                if (freeOs >= 3) { // Sulfate
+                    atom_types_[atom] = idatm::Sac;
+                } else if (freeOs >= 1) { // Sulfone
+                    atom_types_[atom] = idatm::Son;
+                } else { // We don't know! Other!
+                    atom_types_[atom] = idatm::S;
                 }
-                break;
-            case Element::S:
-                if (valence == 4) {
-                    if (freeOs >= 3) { // Sulfate
-                        atom_types_[atom] = idatm::Sac;
-                    } else if (freeOs >= 1) { // Sulfone
-                        atom_types_[atom] = idatm::Son;
-                    } else { // We don't know! Other!
-                        atom_types_[atom] = idatm::S;
-                    }
-                } else if (valence == 3) {
-                    atom_types_[atom] = freeOs > 0 ? idatm::Sxd
-                                                    : idatm::S3p;
-                } else {
-                    atom_types_[atom] = idatm::S3;
-                }
-                break;
-            default:
-                break;
+            } else if (valence == 3) {
+                atom_types_[atom] = freeOs > 0 ? idatm::Sxd
+                                               : idatm::S3p;
+            } else {
+                atom_types_[atom] = idatm::S3;
+            }
+            break;
+        default:
+            break;
         }
     }
 
@@ -977,12 +977,13 @@ void IDATM::heteroaromatics_() {
 
         for (auto bondee : mol_[pair.first].neighbors()) {
             switch (atom_types_[bondee]) {
-                case idatm::Npl: bound_to_npl = true; break;
-                case idatm::Car: bound_to_car = true; break;
-                case idatm::Oar: bound_to_oar = true; break;
-                case idatm::Oarp: bound_to_oar= true; break;
-                case idatm::Sar: bound_to_sar = true; break;
-                default: break;
+            case idatm::Npl: bound_to_npl = true; break;
+            case idatm::Car: bound_to_car = true; break;
+            case idatm::Oar: bound_to_oar = true; break;
+            case idatm::Oarp: bound_to_oar= true; break;
+            case idatm::Sar: bound_to_sar = true; break;
+            default: 
+                break;
             }
         }
 
@@ -1178,15 +1179,16 @@ void IDATM::fix_special_() {
 
 bool IDATM::is_aromatic(size_t atom_id) const {
     switch (atom_types_[atom_id]) {
-        case idatm::Car: return true; break;
-        case idatm::Oar: return true; break;
-        case idatm::Oarp: return true; break;
-        case idatm::Sar: return true; break;
-        case idatm::N2: break; // Need special checks...
-        case idatm::N2p: break;
-        case idatm::Npl: break;
-        case idatm::P: break;
-        default: return false; break;
+    case idatm::Car: return true; break;
+    case idatm::Oar: return true; break;
+    case idatm::Oarp: return true; break;
+    case idatm::Sar: return true; break;
+    case idatm::N2: break; // Need special checks...
+    case idatm::N2p: break;
+    case idatm::Npl: break;
+    case idatm::P: break;
+    default:
+        return false;
     }
 
     auto aro_search = aromatic_ring_sizes_.find(atom_id);
@@ -1196,56 +1198,86 @@ bool IDATM::is_aromatic(size_t atom_id) const {
     return false;
 }
 
+bool IDATM::is_planar(size_t atom_id) const {
+    switch (atom_types_[atom_id]) {
+    // Boron and aluminium
+    case idatm::B: case idatm::Al:
+    // Carbon
+    case idatm::C1:  case idatm::C1m: case idatm::C2:   case idatm::Cac:
+    case idatm::Car:
+    // Oxygen
+    case idatm::Oar: case idatm::Oarp: case idatm::O2:  case idatm::O2m:
+    case idatm::O1p:
+    // Nitrogen
+    case idatm::N2:  case idatm::N2p:  case idatm::Npl: case idatm::Ntr:
+    case idatm::N1:  case idatm::N1p:  case idatm::Ngp:
+    // Sulfur
+    case idatm::Sar: case idatm::S2:
+        return true;
+    case idatm::P: break; // Aromatic phosphorus is weird, but possible
+    default:
+        return false;
+    }
+
+    auto aro_search = aromatic_ring_sizes_.find(atom_id);
+    if (aro_search != aromatic_ring_sizes_.end()) {
+        return true;
+    }
+
+    return false;
+}
+
 Hybridization IDATM::hybridization(size_t atom_id) const {
     switch (atom_types_[atom_id]) {
-        case idatm::C:  case idatm::N:    case idatm::O:    case idatm::S:
-        case idatm::unk:
+    case idatm::C:  case idatm::N:    case idatm::O:    case idatm::S:
+    case idatm::P:  case idatm::unk:
         return Hybridization::UNKNOWN;
         break;
 
-        case idatm::C1: case idatm::C1m:  case idatm::N1:   case idatm::N1p:
-        case idatm::O1p:
+    case idatm::C1: case idatm::C1m:  case idatm::N1:   case idatm::N1p:
+    case idatm::O1p:
         return Hybridization::SP;
         break;
 
-        case idatm::C2:  case idatm::Car: case idatm::Cac:  case idatm::N2:
-        case idatm::N2p: case idatm::Ntr: case idatm::Ngp:
-        case idatm::O2:  case idatm::O2m: case idatm::Oarp: case idatm::Pox:
-        case idatm::S2:  case idatm::Sxd:
+    case idatm::C2:  case idatm::Car: case idatm::Cac:  case idatm::N2:
+    case idatm::N2p: case idatm::Ntr: case idatm::Ngp:
+    case idatm::O2:  case idatm::O2m: case idatm::Oarp:
+    case idatm::S2:
         return Hybridization::SP2;
         break;
 
-        case idatm::C3:  case idatm::N3:  case idatm::N3p: case idatm::Nox:
-        case idatm::Npl: case idatm::O3:  case idatm::O3m: case idatm::Oar:
-        case idatm::P3p: case idatm::S3:  case idatm::S3m: case idatm::S3p:
-        case idatm::Son: case idatm::Sac: case idatm::Sar: case idatm::Pac:
+    case idatm::C3:  case idatm::N3:  case idatm::N3p: case idatm::Nox:
+    case idatm::Npl: case idatm::O3:  case idatm::O3m: case idatm::Oar:
+    case idatm::P3p: case idatm::Pox: case idatm::Pac: case idatm::S3:
+    case idatm::S3m: case idatm::S3p: case idatm::Son: case idatm::Sac:
+    case idatm::Sxd: case idatm::Sar:
         return Hybridization::SP3;
         break;
 
-        default: return Hybridization::FORCED; break;
+    default: return Hybridization::FORCED; break;
     }
 }
 
 size_t IDATM::add_atom(size_t idx) {
     switch(mol_[idx].atomic_number()) {
-        case Element::C:
-            atom_types_.push_back(idatm::C3);
-            break;
-        case Element::N:
-            atom_types_.push_back(idatm::N3);
-            break;
-        case Element::O:
-            atom_types_.push_back(idatm::O3);
-            break;
-        case Element::S:
-            atom_types_.push_back(idatm::S3);
-            break;
-        case Element::P:
-            atom_types_.push_back(idatm::P3p);
-            break;
-        default:
-            atom_types_.push_back(idatm_mask.at(mol_[idx].type()));
-            break;
+    case Element::C:
+        atom_types_.push_back(idatm::C3);
+        break;
+    case Element::N:
+        atom_types_.push_back(idatm::N3);
+        break;
+    case Element::O:
+        atom_types_.push_back(idatm::O3);
+        break;
+    case Element::S:
+        atom_types_.push_back(idatm::S3);
+        break;
+    case Element::P:
+        atom_types_.push_back(idatm::P3p);
+        break;
+    default:
+        atom_types_.push_back(idatm_mask.at(mol_[idx].type()));
+        break;
     }
 
     return mol_[idx].atomic_number();
@@ -1267,62 +1299,63 @@ template<> size_t atomtype_id_count<IDATM>() {
 
 template<> double Spear::van_der_waals<IDATM>(size_t id) {
     switch (id) {
-        case idatm::Ag: return 1.72;
-        case idatm::Ar: return 1.88;
-        case idatm::As: return 1.85;
-        case idatm::Au: return 1.66;
-        case idatm::Br: return 1.85;
+    case idatm::Ag: return 1.72;
+    case idatm::Ar: return 1.88;
+    case idatm::As: return 1.85;
+    case idatm::Au: return 1.66;
+    case idatm::Br: return 1.85;
 
-        case idatm::C:  case idatm::C1:  case idatm::C1m: case idatm::C2:
-        case idatm::C3: case idatm::Cac: case idatm::Car: return 1.7;
+    case idatm::C:  case idatm::C1:  case idatm::C1m: case idatm::C2:
+    case idatm::C3: case idatm::Cac: case idatm::Car: return 1.7;
 
-        case idatm::Cd: return 1.58;
-        case idatm::Cl: return 1.75;
-        case idatm::Cu: return 1.4;
+    case idatm::Cd: return 1.58;
+    case idatm::Cl: return 1.75;
+    case idatm::Cu: return 1.4;
 
-        case idatm::H: case idatm::HC:
-        case idatm::D: case idatm::DC: return 1.2;
+    case idatm::H: case idatm::HC:
+    case idatm::D: case idatm::DC: return 1.2;
 
-        case idatm::F: return 1.47;
-        case idatm::Ga: return 1.87;
-        case idatm::He: return 1.4; 
-        case idatm::Hg: return 1.55;
-        case idatm::I: return 1.98;
-        case idatm::In: return 1.93;
-        case idatm::K: return 2.75;
-        case idatm::Kr: return 2.02;
-        case idatm::Li: return 1.82;
-        case idatm::Mg: return 1.73;
+    case idatm::F: return 1.47;
+    case idatm::Ga: return 1.87;
+    case idatm::He: return 1.4; 
+    case idatm::Hg: return 1.55;
+    case idatm::I: return 1.98;
+    case idatm::In: return 1.93;
+    case idatm::K: return 2.75;
+    case idatm::Kr: return 2.02;
+    case idatm::Li: return 1.82;
+    case idatm::Mg: return 1.73;
 
-        case idatm::N:   case idatm::N1:  case idatm::N1p: case idatm::N2:
-        case idatm::N2p: case idatm::N3:  case idatm::N3p: case idatm::Ngp:
-        case idatm::Nox: case idatm::Npl: case idatm::Ntr: return 1.55;
+    case idatm::N:   case idatm::N1:  case idatm::N1p: case idatm::N2:
+    case idatm::N2p: case idatm::N3:  case idatm::N3p: case idatm::Ngp:
+    case idatm::Nox: case idatm::Npl: case idatm::Ntr: return 1.55;
 
-        case idatm::Na: return 2.27;
-        case idatm::Ne: return 1.54;
-        case idatm::Ni: return 1.63;
+    case idatm::Na: return 2.27;
+    case idatm::Ne: return 1.54;
+    case idatm::Ni: return 1.63;
 
-        case idatm::O:   case idatm::O1: case idatm::O1p: case idatm::O2:
-        case idatm::O2m: case idatm::O3: case idatm::O3m: case idatm::Oar:
-        case idatm::Oarp: return 1.52;
+    case idatm::O:   case idatm::O1: case idatm::O1p: case idatm::O2:
+    case idatm::O2m: case idatm::O3: case idatm::O3m: case idatm::Oar:
+    case idatm::Oarp: return 1.52;
 
-        case idatm::Pb: return 2.02;
-        case idatm::Pd: return 1.63;
-        case idatm::Pt: return 1.72;
+    case idatm::Pb: return 2.02;
+    case idatm::Pd: return 1.63;
+    case idatm::Pt: return 1.72;
 
-        case idatm::P:   case idatm::P3p: case idatm::Pac: case idatm::Pox:
-        case idatm::S:   case idatm::S2:  case idatm::S3:  case idatm::S3m:
-        case idatm::S3p: case idatm::Sac: case idatm::Sar: case idatm::Son:
-        case idatm::Sxd: return 1.8;
+    case idatm::P:   case idatm::P3p: case idatm::Pac: case idatm::Pox:
+    case idatm::S:   case idatm::S2:  case idatm::S3:  case idatm::S3m:
+    case idatm::S3p: case idatm::Sac: case idatm::Sar: case idatm::Son:
+    case idatm::Sxd: return 1.8;
 
-        case idatm::Se: return 1.9;
-        case idatm::Si: return 2.1;
-        case idatm::Sn: return 2.17;
-        case idatm::Te: return 2.06;
-        case idatm::Tl: return 1.96;
-        case idatm::U: return 1.86;
-        case idatm::Xe: return 2.16;
-        case idatm::Zn: return 1.39;
-        default: return 2.0;
+    case idatm::Se: return 1.9;
+    case idatm::Si: return 2.1;
+    case idatm::Sn: return 2.17;
+    case idatm::Te: return 2.06;
+    case idatm::Tl: return 1.96;
+    case idatm::U: return 1.86;
+    case idatm::Xe: return 2.16;
+    case idatm::Zn: return 1.39;
+    default:
+        return 2.0;
     }
 }

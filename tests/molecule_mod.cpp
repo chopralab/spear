@@ -117,5 +117,8 @@ TEST_CASE("Hydrogens") {
 
         auto mol_tib = Spear::Molecule(chemfiles::Trajectory("data/tibolone.sdf").read());
         CHECK(mol_tib.add_hydrogens() == 28);
+
+        auto mol_paz = Spear::Molecule(chemfiles::Trajectory("data/pazopanib.sdf").read());
+        CHECK(mol_paz.add_hydrogens() == 23);
     }
 }

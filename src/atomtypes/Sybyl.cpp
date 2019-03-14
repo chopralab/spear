@@ -89,12 +89,12 @@ static size_t freeOxygens(const Spear::AtomVertex& atom) {
 static bool is_decloc(const Spear::AtomVertex& atom) {
     for (auto bond : atom.bonds()) {
         switch(bond.order()) {
-            case Bond::DOUBLE:
-            case Bond::TRIPLE:
-            case Bond::AROMATIC:
-                return true;
-            default:
-                break;
+        case Bond::DOUBLE:
+        case Bond::TRIPLE:
+        case Bond::AROMATIC:
+            return true;
+        default:
+            break;
         }
     }
 
@@ -419,59 +419,65 @@ size_t Sybyl::assign_sulfur_(AtomVertex& atom) {
 
 bool Sybyl::is_aromatic(size_t atom_id) const {
     switch (atom_types_[atom_id]) {
-        case sybyl::C_ar: return true; break;
-        case sybyl::N_ar: return true; break;
-        default: return false; break;
-    } //TODO: Maybe add the ability to check for presence in ring?
+    case sybyl::C_ar:
+    case sybyl::N_ar:
+        return true;
+    default: return false;
+    } //TODO: Maybe add the ability to check for presence in ring? Oxygen aromaticity?
+}
+
+bool Sybyl::is_planar(size_t atom_id) const {
+    switch (atom_types_[atom_id]) {
+    case sybyl::C_ar: case sybyl::C_2: case sybyl::C_1: case sybyl::C_cat:
+    case sybyl::N_ar: case sybyl::N_2: case sybyl::N_1: case sybyl::N_am:
+    case sybyl::N_pl3:
+    case sybyl::O_co2: case sybyl::O_2:
+    case sybyl::S_2:
+        return true;
+    default: return false;
+    }
 }
 
 Hybridization Sybyl::hybridization(size_t atom_id) const {
     switch (atom_types_[atom_id]) {
-        case sybyl::C_1: case sybyl::N_1:
+    case sybyl::C_1: case sybyl::N_1:
         return Hybridization::SP;
-        break;
 
-        case sybyl::C_2:  case sybyl::N_2:  case sybyl::O_2:   case sybyl::S_2:
-        case sybyl::C_ar: case sybyl::N_ar: case sybyl::O_co2: case sybyl::S_o:
-        case sybyl::C_cat:
+    case sybyl::C_2:  case sybyl::N_2:  case sybyl::O_2:   case sybyl::S_2:
+    case sybyl::C_ar: case sybyl::N_ar: case sybyl::O_co2:
+    case sybyl::C_cat:
         return Hybridization::SP2;
-        break;
 
-        case sybyl::C_3:   case sybyl::N_3: case sybyl::N_4:   case sybyl::O_3:
-        case sybyl::S_3:   case sybyl::P_3: case sybyl::Ti_th: case sybyl::Cr_th:
-        case sybyl::N_pl3: case sybyl::N_am:
+    case sybyl::C_3:   case sybyl::N_3: case sybyl::N_4:   case sybyl::O_3:
+    case sybyl::S_3:   case sybyl::P_3: case sybyl::Ti_th: case sybyl::Cr_th:
+    case sybyl::N_pl3: case sybyl::S_o2: case sybyl::S_o:  case sybyl::N_am:
         return Hybridization::SP3;
-        break;
 
-        case sybyl::S_o2: case sybyl::Ti_oh: case sybyl::Cr_oh: case sybyl::Co_oh:
-        case sybyl::Ru_oh:
-        return Hybridization::SP3D2;
-        break;
-
-        default: return Hybridization::FORCED; break;
+    default:
+        return Hybridization::FORCED;
     }
 }
 
 size_t Sybyl::add_atom(size_t idx) {
     switch(mol_[idx].atomic_number()) {
-        case Element::C:
-            atom_types_.push_back(sybyl::C_3);
-            break;
-        case Element::N:
-            atom_types_.push_back(sybyl::N_3);
-            break;
-        case Element::O:
-            atom_types_.push_back(sybyl::O_3);
-            break;
-        case Element::S:
-            atom_types_.push_back(sybyl::S_3);
-            break;
-        case Element::P:
-            atom_types_.push_back(sybyl::P_3);
-            break;
-        default:
-            atom_types_.push_back(sybyl_mask.at(mol_[idx].type()));
-            break;
+    case Element::C:
+        atom_types_.push_back(sybyl::C_3);
+        break;
+    case Element::N:
+        atom_types_.push_back(sybyl::N_3);
+        break;
+    case Element::O:
+        atom_types_.push_back(sybyl::O_3);
+        break;
+    case Element::S:
+        atom_types_.push_back(sybyl::S_3);
+        break;
+    case Element::P:
+        atom_types_.push_back(sybyl::P_3);
+        break;
+    default:
+        atom_types_.push_back(sybyl_mask.at(mol_[idx].type()));
+        break;
     }
 
     return mol_[idx].atomic_number();

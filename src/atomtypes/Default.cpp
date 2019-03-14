@@ -24,29 +24,29 @@ Default::Default(const Molecule& mol) : mol_(mol) {
 
         atom_types_.push_back(atomic_number);
         switch(atomic_number) {
-            case Element::C:
-            case Element::Si:
-            case Element::N:
-            case Element::O:
-            case Element::F:
-            case Element::P:
-            case Element::S:
-            case Element::Cl:
-            case Element::Br:
-            case Element::I:
+        case Element::C:
+        case Element::Si:
+        case Element::N:
+        case Element::O:
+        case Element::F:
+        case Element::P:
+        case Element::S:
+        case Element::Cl:
+        case Element::Br:
+        case Element::I:
             break; //Only break, rest are continues
 
-            case Element::H:
+        case Element::H:
             hybridizations_.push_back(Hybridization::FORCED);
             continue;
 
-            case Element::B:
-            case Element::Al:
+        case Element::B:
+        case Element::Al:
             hybridizations_.push_back(Hybridization::SP2);
             continue;
 
-            // The rest
-            default:
+        // The rest
+        default:
             hybridizations_.push_back(Hybridization::UNKNOWN);
             continue;
         }
@@ -84,6 +84,68 @@ bool Default::is_aromatic(size_t atom_id) const {
     for (auto bond : mol_[atom_id].bonds()) {
         if (bond.order() == Bond::AROMATIC) {
             return true;
+        }
+    }
+
+    return false;
+}
+
+static bool is_delocalized(const AtomVertex& av) {
+    if (av.atomic_number()  == Element::S &&
+        av.neighbor_count() >= 3) {
+        return false;
+    }
+    for (auto bond : av.bonds()) {
+        switch(bond.order()) {
+        case Bond::DOUBLE:
+        case Bond::TRIPLE:
+        case Bond::AROMATIC:
+            return true;
+        default:
+            break;
+        }
+    }
+
+    return false;
+}
+
+bool Default::is_planar(size_t atom_id) const {
+    auto av = mol_[atom_id];
+
+    if ( av.neighbor_count() <= 3 &&
+        (av.atomic_number() == Element::B ||
+         av.atomic_number() == Element::Al)) {
+        return true;
+    }
+
+    for (auto bond : av.bonds()) {
+        switch (bond.order()) {
+        case Bond::AROMATIC:
+        case Bond::TRIPLE: // Technically, a line is in a plane
+            return true;
+        case Bond::DOUBLE: // Here's where it gets tricky
+            if (av.atomic_number() == Element::S &&
+                av.neighbor_count() == 1) { // not a sulfoxide, sulfone, etc
+                return true;
+            } else if (av.atomic_number() == Element::P &&
+                av.neighbor_count() <= 2) { // another odd case for phosphorus (eg P-oxide)
+                return true;
+            } else {
+                return true;
+            }
+        case Bond::SINGLE: // Even worse, we need to check for delocalization for single LP groups
+            if (av.atomic_number() == Element::N ||
+                av.atomic_number() == Element::P) {
+                if (av == bond.target() && is_delocalized(bond.source())) {
+                    return true;
+                }
+                if (av == bond.source() && is_delocalized(bond.target())) {
+                    return true;
+                }
+            }
+            break;
+        default:
+            break;
         }
     }
 

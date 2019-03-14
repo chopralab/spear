@@ -36,6 +36,8 @@ public:
 
     bool is_aromatic(size_t atom_id) const override;
 
+    bool is_planar(size_t atom_id) const override;
+
     Hybridization hybridization(size_t atom_id) const override {
         return hybridizations_[atom_id];
     }

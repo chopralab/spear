@@ -40,6 +40,8 @@ public:
 
     bool is_aromatic(size_t atom_id) const override;
 
+    bool is_planar(size_t atom_id) const override;
+
     size_t add_atom(size_t new_idx) override;
 
     void remove_atom(size_t idx) {

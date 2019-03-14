@@ -41,6 +41,9 @@ public:
     /// Is the given atom aromatic in the typing scheme?
     virtual bool is_aromatic(size_t atom_id) const = 0;
 
+    /// Is the given atom forced to be planar in the typing scheme?
+    virtual bool is_planar(size_t atom_id) const = 0;
+
     /// Return the hybridization of the atom
     virtual Hybridization hybridization(size_t atom_id) const = 0;
 
