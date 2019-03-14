@@ -113,6 +113,9 @@ TEST_CASE("Molecule") {
         auto traj = chemfiles::Trajectory("data/tibolone.sdf");
         auto mol = Spear::Molecule(traj.read());
 
+        CHECK(mol.bond(0,1).order() == Spear::Bond::SINGLE);
+        CHECK_THROWS(mol.bond(0, 5));
+
         std::set<size_t> test = {0, 1, 2, 3, 4, 5, 20};
         auto bond = mol.get_bonds_in(test);
 

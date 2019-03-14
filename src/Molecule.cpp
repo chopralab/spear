@@ -230,12 +230,14 @@ void Molecule::remove_hydrogens() {
     // vecS for vertex storage (required to link index to frame).
     // Therefore we need to restart the search when we remove something.
     bool has_hydrogens = false;
+    size_t skip_len = 0;
     do {
         auto verticies_iter = boost::vertices(graph_);    
         has_hydrogens = false;
-        for (auto v = verticies_iter.first; v != verticies_iter.second; ++v) {
-            auto index = boost::get(boost::vertex_index_t(), graph_, *v);
+        for (auto v = verticies_iter.first + skip_len; v != verticies_iter.second; ++v) {
+            auto index = boost::get(boost::vertex_index, graph_, *v);
             if (mol[index].atomic_number() == 1) {
+                skip_len = *v;
                 boost::clear_vertex(*v, graph_);
                 boost::remove_vertex(*v, graph_);
                 frame_.remove(index);
@@ -261,6 +263,11 @@ AtomVertex Molecule::add_atom(Element::Symbol n_atom, const Eigen::Vector3d& pos
 
 BondEdge Molecule::add_bond(size_t idx1, size_t idx2, Bond::Order order) {
     auto new_edge = boost::add_edge(idx1, idx2, order, graph_);
+    if (!new_edge.second) {
+        throw std::runtime_error("Could not add bond between: " +
+                                 std::to_string(idx1) + " and " +
+                                 std::to_string(idx2));
+    }
     frame_.add_bond(idx1, idx2, static_cast<chemfiles::Bond::BondOrder>(order));
     return {this, new_edge.first};
 }
@@ -268,24 +275,24 @@ BondEdge Molecule::add_bond(size_t idx1, size_t idx2, Bond::Order order) {
 static Eigen::Vector3d perpendicular(const Eigen::Vector3d& other) {
     Vector3d res(0.0, 0.0, 0.0);
     if (other[0]) {
-      if (other[1]) {
-        res[1] = -1 * other[0];
-        res[0] = other[1];
-      } else if (other[2]) {
-        res[2] = -1 * other[0];
-        res[0] = other[2];
-      } else {
-        res[1] = 1;
-      }
+        if (other[1]) {
+            res[1] = -1 * other[0];
+            res[0] = other[1];
+        } else if (other[2]) {
+            res[2] = -1 * other[0];
+            res[0] = other[2];
+        } else {
+            res[1] = 1;
+        }
     } else if (other[1]) {
-      if (other[2]) {
-        res[2] = -1 * other[1];
-        res[1] = other[2];
-      } else {
-        res[0] = 1;
-      }
+        if (other[2]) {
+            res[2] = -1 * other[1];
+            res[1] = other[2];
+        } else {
+            res[0] = 1;
+        }
     } else if (other[2]) {
-      res[0] = 1;
+        res[0] = 1;
     }
     res.normalize();
     return res;
@@ -461,6 +468,13 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
             dirVect *= -1;
         }
         break;
+    case 4:
+        if (hybrid == Hybridization::SP3 ||
+            hybrid == Hybridization::SP2 ||
+            hybrid == Hybridization::SP) {
+            throw std::runtime_error("Cannot add a fifth atom to SP, SP2, or SP3 atoms!");
+        }
+
     default: // Give up!
         break;
     }
@@ -469,4 +483,23 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
     add_bond(index, h_atom);
 
     return h_atom;
+}
+
+size_t Molecule::add_hydrogens() {
+    bool hydrogens_to_add = false;
+    size_t hydrogens_added = 0;
+    do {
+        hydrogens_to_add = false;
+        for (auto atom : *this) {
+            if (atom.implicit_hydrogens() < 1) {
+                continue;
+            }
+            hydrogens_to_add = true;
+            ++hydrogens_added;
+            add_atom_to(Element::H, atom);
+            break;
+        }
+    } while (hydrogens_to_add);
+
+    return hydrogens_added;
 }

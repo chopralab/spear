@@ -11,12 +11,15 @@ namespace Spear {
 
 using chemfiles::optional;
 
-// Note: If more atom/bond properties are need other than number and order,
+// Note: If more atom/bond properties are need other than atomic number and bond order,
 // change the lines below:
 using VertexProperty = boost::property<boost::vertex_name_t, Element::Symbol>;
 using EdgeProperty = boost::property<boost::edge_name_t, Bond::Order>;
 
-using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
+// setS is used because we do **NOT** want parallel graphs (bonds represented multiple times)
+// vecS is used because we do **WANT** verticies to be one-to-one with their index
+// Molecules are naturally undirected, with the exception of dative bonds (handled by the edge property)
+using Graph = boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
                                     VertexProperty, EdgeProperty>;
 
 using Traits = boost::graph_traits<Graph>;

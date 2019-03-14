@@ -132,6 +132,15 @@ Molecule::iterator<ret_type, sto_type>::operator[](difference_type rhs) const {
  * Molecule
  ******************************************************************************/
 
+inline BondEdge Molecule::bond(size_t idx1, size_t idx2) {
+    auto edge = boost::edge(idx1, idx2, graph_);
+    if (!edge.second) {
+        throw std::runtime_error("No bond between: " + std::to_string(idx1) +
+                                 " and " + std::to_string(idx2));
+    }
+    return {this, edge.first};
+}
+
 template<typename atomtype, typename... args>
 inline std::string Molecule::add_atomtype(args... additional) {
     auto typed_atoms = new atomtype(*this, additional...);

@@ -71,9 +71,13 @@ TEST_CASE("Add Atoms and Bonds") {
 
         // Full valence SP
         CHECK_THROWS(mol.add_atom_to(Spear::Element::H, 20));
+        CHECK_THROWS(mol.add_atom_to(Spear::Element::H, 21));
 
         // Full valence SP2
         CHECK_THROWS(mol.add_atom_to(Spear::Element::H, 20));
+
+        // Can't add a bond to an existing bond!
+        CHECK_THROWS(mol.add_bond(20, 21, Spear::Bond::SINGLE));
     }
 }
 
@@ -105,5 +109,13 @@ TEST_CASE("Hydrogens") {
         CHECK(implicit_hs == 20);
         CHECK(mol.size() == 26);
         CHECK(mol.get_default_atomtype()->all_types().size() == mol.size());
+    }
+
+    SECTION("Add") {
+        auto mol_3qox = Spear::Molecule(chemfiles::Trajectory("data/3qox_ligand.sdf").read());
+        CHECK(mol_3qox.add_hydrogens() == 1); // TODO: Again a pH thing
+
+        auto mol_tib = Spear::Molecule(chemfiles::Trajectory("data/tibolone.sdf").read());
+        CHECK(mol_tib.add_hydrogens() == 28);
     }
 }

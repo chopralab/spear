@@ -120,6 +120,8 @@ public:
 
     size_t dimensionality(double eps = 0.00001) const;
 
+    BondEdge bond(size_t idx1, size_t idx2);
+
     std::vector<BondEdge> get_bonds_in(const std::set<size_t>& atoms) const;
 
     template<class atomtype, typename... args>
@@ -138,6 +140,8 @@ public:
     AtomVertex add_atom_to(Element::Symbol n_atom, size_t index);
 
     void remove_hydrogens();
+
+    size_t add_hydrogens();
 
     size_t size() const;
 
