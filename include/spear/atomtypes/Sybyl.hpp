@@ -27,6 +27,8 @@ public:
 
     size_t add_atom(size_t idx) override;
 
+    void add_bond(size_t idx1, size_t idx2, Bond::Order bo) override;
+
     void remove_atom(size_t idx) {
         atom_types_.erase(atom_types_.begin() + idx);
     }
@@ -48,15 +50,16 @@ public:
 private:
 
     void type_atoms_3d_();
+    void type_atoms_topo_(const AtomVertex& atom);
     void type_atoms_topo_();
 
-    size_t assign_carbon_topo_(AtomVertex& atom);
-    size_t assign_nitrogen_topo_(AtomVertex& atom);
+    size_t assign_carbon_topo_(const AtomVertex& atom);
+    size_t assign_nitrogen_topo_(const AtomVertex& atom);
 
-    size_t assign_carbon_3d_(AtomVertex& atom);
-    size_t assign_nitrogen_3d_(AtomVertex& atom);
-    size_t assign_oxygen_(AtomVertex& atom);
-    size_t assign_sulfur_(AtomVertex& atom);
+    size_t assign_carbon_3d_(const AtomVertex& atom);
+    size_t assign_nitrogen_3d_(const AtomVertex& atom);
+    size_t assign_oxygen_(const AtomVertex& atom);
+    size_t assign_sulfur_(const AtomVertex& atom);
 
     /// Vector to hold all atom types
     std::vector<size_t> atom_types_;

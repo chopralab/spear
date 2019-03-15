@@ -2,6 +2,7 @@
 #define SPEAR_CONSTANTS_HPP
 
 #include <vector>
+#include <map>
 #include <string>
 #include <cstdint>
 

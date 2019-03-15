@@ -44,6 +44,8 @@ public:
 
     size_t add_atom(size_t new_idx) override;
 
+    void add_bond(size_t idx1, size_t idx2, Bond::Order bo) override;
+
     void remove_atom(size_t idx) {
         atom_types_.erase(atom_types_.begin() + idx);
     }
@@ -107,6 +109,19 @@ private:
     ///	N may be sp3 (N3), sp2 or planar (Npl), or sp (N1)
     ///	O and S are sp3 (O3 and S3, respectively)
     std::vector<size_t> valence_();
+
+    /// valence pass: elements d valences > 1
+    /// also fills the 'redo' array for hard to determine types
+    ///
+    /// valence 4
+    ///  C must be sp3 (C3)
+    ///  N must be part of an N-oxide (Nox) or a quaternary
+    ///    amine (N3+)
+    ///  P must be part of a phosphate (Pac), a P-oxide (Pox)
+    ///    or a quaternary phosphine (P3+)
+    ///  S must be part of a sulfate, sulfonate or sulfamate
+    ///    (Sac), or sulfone (Son)
+    void valence_topo_();
 
     /// terminal pass: determine types of valence 1 atoms.  These were typed by
     /// element only in previous pass, but can be typed more accurately

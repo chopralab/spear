@@ -59,6 +59,7 @@ TEST_CASE("Add Atoms and Bonds") {
         CHECK(atom_types[h1] == Spear::Element::H);
         CHECK(atom_types[h2] == Spear::Element::H);
         CHECK(atom_types[h3] == Spear::Element::H);
+        CHECK(atom_types[0]  == Spear::Element::C);
 
         CHECK(atom_types.hybridization(h1) == Spear::Hybridization::FORCED);
         CHECK(atom_types.hybridization(h2) == Spear::Hybridization::FORCED);

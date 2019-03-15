@@ -7,6 +7,7 @@
 #include <functional>   // std::bad_function_call
 
 #include "spear/exports.hpp"
+#include "spear/Constants.hpp"
 
 namespace Spear {
 
@@ -49,6 +50,9 @@ public:
 
     /// Add a new atom to the atom type vector
     virtual size_t add_atom(size_t new_idx) = 0;
+
+    /// Retype the atoms idx1 and idx2 based on bo
+    virtual void add_bond(size_t idx1, size_t idx2, Bond::Order bo) = 0;
 
     /// Remove an atom from the atom type vector
     virtual void remove_atom(size_t idx) = 0;

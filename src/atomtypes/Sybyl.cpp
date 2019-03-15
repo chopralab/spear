@@ -134,58 +134,62 @@ void Sybyl::type_atoms_3d_() {
     }
 }
 
-void Sybyl::type_atoms_topo_() {
-    for (auto atom : mol_) {
-        switch (atom.atomic_number()) {
-        case Element::H:
-            atom_types_[atom] = H;
-            break;
-        case Element::C:
-            atom_types_[atom] = assign_carbon_topo_(atom);
-            break;
-        case Element::N:
-            atom_types_[atom] = assign_nitrogen_topo_(atom);
-            break;
-        case Element::O:
-            atom_types_[atom] = assign_oxygen_(atom);
-            break;
-        case Element::S:
-            atom_types_[atom] = assign_sulfur_(atom);
-            break;
-        case Element::P:
-            atom_types_[atom] = P_3;
-            break;
-        case Element::Co:
-            atom_types_[atom] = Co_oh;
-            break;
-        case Element::Ru:
-            atom_types_[atom] = Ru_oh;
-            break;
-        case Element::Ti:
-            atom_types_[atom] = atom.neighbor_count() <= 4 ? Ti_th
-                                                           : Ti_oh;
-            break;
-        case Element::Cr:
-            atom_types_[atom] = atom.neighbor_count() <= 4 ? Cr_th
-                                                           : Cr_oh;
-            break;
-        default:
-            atom_types_[atom] = sybyl_mask.at(atom.type());
-            break;
-        }
+void Sybyl::type_atoms_topo_(const AtomVertex& atom) {
+    switch (atom.atomic_number()) {
+    case Element::H:
+        atom_types_[atom] = sybyl::H;
+        break;
+    case Element::C:
+        atom_types_[atom] = assign_carbon_topo_(atom);
+        break;
+    case Element::N:
+        atom_types_[atom] = assign_nitrogen_topo_(atom);
+        break;
+    case Element::O:
+        atom_types_[atom] = assign_oxygen_(atom);
+        break;
+    case Element::S:
+        atom_types_[atom] = assign_sulfur_(atom);
+        break;
+    case Element::P:
+        atom_types_[atom] = sybyl::P_3;
+        break;
+    case Element::Co:
+        atom_types_[atom] = sybyl::Co_oh;
+        break;
+    case Element::Ru:
+        atom_types_[atom] = sybyl::Ru_oh;
+        break;
+    case Element::Ti:
+        atom_types_[atom] = atom.neighbor_count() <= 4 ? Ti_th
+                                                       : Ti_oh;
+        break;
+    case Element::Cr:
+        atom_types_[atom] = atom.neighbor_count() <= 4 ? Cr_th
+                                                       : Cr_oh;
+        break;
+    default:
+        atom_types_[atom] = sybyl_mask.at(atom.type());
+        break;
     }
 }
 
-size_t Sybyl::assign_carbon_topo_(AtomVertex& atom){
+void Sybyl::type_atoms_topo_() {
+    for (auto atom : mol_) {
+        type_atoms_topo_(atom);
+    }
+}
+
+size_t Sybyl::assign_carbon_topo_(const AtomVertex& atom){
     size_t num_double = 0, num_triple = 0, num_aromatic = 0;
     size_t num_nitrogen = 0;
 
     for (auto bond : atom.bonds()) {
-        if (bond.source().atomic_number() == 7) {
+        if (bond.source().atomic_number() == Element::N) {
             num_nitrogen += (freeOxygens(bond.source()) == 0);
         }
 
-        if (bond.target().atomic_number() == 7) {
+        if (bond.target().atomic_number() == Element::N) {
             num_nitrogen += (freeOxygens(bond.target()) == 0);
         }
 
@@ -209,7 +213,7 @@ size_t Sybyl::assign_carbon_topo_(AtomVertex& atom){
     }
 
     if (num_nitrogen == 3 && neighbor_count == 3) {
-        // Need to check for acyclic...
+        // TODO Need to check for acyclic...
         return C_cat;
     }
 
@@ -220,7 +224,7 @@ size_t Sybyl::assign_carbon_topo_(AtomVertex& atom){
     return C_2;
 }
 
-size_t Sybyl::assign_nitrogen_topo_(AtomVertex& atom) {
+size_t Sybyl::assign_nitrogen_topo_(const AtomVertex& atom) {
     size_t num_double = 0, num_triple = 0, num_aromatic = 0;
     size_t num_amide = 0, num_deloc = 0, num_nitrogens = 0;
 
@@ -230,19 +234,19 @@ size_t Sybyl::assign_nitrogen_topo_(AtomVertex& atom) {
             num_deloc += is_decloc(be);
             num_nitrogens = 0;
             for (auto bondee_bondee : be.neighbors()) {
-                num_nitrogens += bondee_bondee.atomic_number() == 7;
+                num_nitrogens += bondee_bondee.atomic_number() == Element::N;
             }
         }
     };
 
     for (auto bond : atom.bonds()) {
         update(bond.source());
-        if (num_nitrogens >= 3 && bond.order() == 2) {
+        if (num_nitrogens >= 3 && bond.order() == Bond::DOUBLE) {
             return N_pl3;
         }  
 
         update(bond.target());
-        if (num_nitrogens >= 3 && bond.order() == 2) {
+        if (num_nitrogens >= 3 && bond.order() == Bond::DOUBLE) {
             return N_pl3;
         }
 
@@ -291,7 +295,7 @@ size_t Sybyl::assign_nitrogen_topo_(AtomVertex& atom) {
     return N_2;
 }
 
-size_t Sybyl::assign_carbon_3d_(AtomVertex& atom) {
+size_t Sybyl::assign_carbon_3d_(const AtomVertex& atom) {
     auto num_neighbors = atom.neighbor_count();
     if (num_neighbors >= 4) {
         return C_3;
@@ -327,7 +331,7 @@ size_t Sybyl::assign_carbon_3d_(AtomVertex& atom) {
     }
 }
 
-size_t Sybyl::assign_nitrogen_3d_(AtomVertex& atom) {
+size_t Sybyl::assign_nitrogen_3d_(const AtomVertex& atom) {
     auto numnonmetal = num_nonmetal(atom);
     if (numnonmetal == 4) {
         return N_4;
@@ -376,7 +380,7 @@ size_t Sybyl::assign_nitrogen_3d_(AtomVertex& atom) {
     return N_2;
 }
 
-size_t Sybyl::assign_oxygen_(AtomVertex& atom) {
+size_t Sybyl::assign_oxygen_(const AtomVertex& atom) {
     auto numnonmetal = num_nonmetal(atom);
     if (numnonmetal == 1) {
         auto bondee = atom[0];
@@ -399,7 +403,7 @@ size_t Sybyl::assign_oxygen_(AtomVertex& atom) {
     return O_2;
 }
 
-size_t Sybyl::assign_sulfur_(AtomVertex& atom) {
+size_t Sybyl::assign_sulfur_(const AtomVertex& atom) {
     auto numnonmetal = num_nonmetal(atom);
 
     if (numnonmetal == 3 && freeOxygens( atom) == 1) {
@@ -428,13 +432,19 @@ bool Sybyl::is_aromatic(size_t atom_id) const {
 
 bool Sybyl::is_planar(size_t atom_id) const {
     switch (atom_types_[atom_id]) {
+    // Carbon
     case sybyl::C_ar: case sybyl::C_2: case sybyl::C_1: case sybyl::C_cat:
+    // Nitrogen
     case sybyl::N_ar: case sybyl::N_2: case sybyl::N_1: case sybyl::N_am:
     case sybyl::N_pl3:
+    // Oxygen
     case sybyl::O_co2: case sybyl::O_2:
+    // Sulfur
     case sybyl::S_2:
         return true;
-    default: return false;
+    // Not planar
+    default:
+        return false;
     }
 }
 
@@ -460,6 +470,8 @@ Hybridization Sybyl::hybridization(size_t atom_id) const {
 
 size_t Sybyl::add_atom(size_t idx) {
     switch(mol_[idx].atomic_number()) {
+    case Element::H:
+        atom_types_.push_back(sybyl::H);
     case Element::C:
         atom_types_.push_back(sybyl::C_3);
         break;
@@ -482,6 +494,11 @@ size_t Sybyl::add_atom(size_t idx) {
 
     return mol_[idx].atomic_number();
 
+}
+
+void Sybyl::add_bond(size_t idx1, size_t idx2, Bond::Order) {
+    type_atoms_topo_(mol_[idx1]);
+    type_atoms_topo_(mol_[idx2]);
 }
 
 template<> std::string Spear::atomtype_name_for_id<Sybyl>(size_t id) {

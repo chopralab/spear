@@ -170,13 +170,36 @@ size_t Default::add_atom(size_t new_idx) {
     return atomic_number;
 }
 
+void Default::add_bond(size_t idx1, size_t idx2, Bond::Order bo) {
+    switch (bo) {
+    case Bond::SINGLE:
+    case Bond::AMIDE:
+        return; // Do nothing
+    case Bond::TRIPLE:
+        dec_hybridization(hybridizations_[idx1]);
+        dec_hybridization(hybridizations_[idx2]);
+        // fall through
+    case Bond::DOUBLE:
+        dec_hybridization(hybridizations_[idx1]);
+        dec_hybridization(hybridizations_[idx2]);
+        break;
+    case Bond::AROMATIC: // Benzyne?
+        if (atom_types_[idx1] == Element::C)
+            hybridizations_[idx1] = Hybridization::SP2;
+        if (atom_types_[idx2] == Element::C)
+            hybridizations_[idx2] = Hybridization::SP2;
+        break;
+    default:
+        break;
+    }
+}
+
 template<> std::string atomtype_name_for_id<Default>(size_t id) {
     return Element::Name[id];
 }
 
 template<> size_t atomtype_id_for_name<Default>(std::string name) {
-    chemfiles::Atom a(name);
-    return *a.atomic_number();
+    return Element::SymbolForName.at(name);
 }
 
 template<> size_t atomtype_id_count<Default>() {

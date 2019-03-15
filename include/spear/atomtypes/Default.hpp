@@ -26,7 +26,9 @@ public:
 
     size_t add_atom(size_t new_idx) override;
 
-    void remove_atom(size_t idx) {
+    void add_bond(size_t idx1, size_t idx2, Bond::Order bo) override;
+
+    void remove_atom(size_t idx) override {
         atom_types_.erase(atom_types_.begin() + idx);
     }
 
@@ -58,7 +60,6 @@ private:
     /// number of heavy atoms bonded
     std::vector<Hybridization> hybridizations_;
 
-    /// Generated name based on initialization
     const std::string name_ = "default";
 };
 

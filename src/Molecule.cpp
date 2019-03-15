@@ -269,6 +269,9 @@ BondEdge Molecule::add_bond(size_t idx1, size_t idx2, Bond::Order order) {
                                  std::to_string(idx2));
     }
     frame_.add_bond(idx1, idx2, static_cast<chemfiles::Bond::BondOrder>(order));
+    for (const auto& at : atom_types_) {
+        at.second->add_bond(idx1, idx2, order);
+    }
     return {this, new_edge.first};
 }
 
