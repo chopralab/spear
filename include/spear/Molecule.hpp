@@ -12,6 +12,7 @@
 #include "Eigen/Geometry"
 
 #include "spear/Graph.hpp"
+#include "spear/Rings.hpp"
 #include "spear/AtomType.hpp"
 
 namespace Spear {
@@ -116,7 +117,9 @@ public:
         return positions_;
     }
 
-    const std::set<std::set<size_t>> rings() const;
+    RingSet rings() const;
+
+    RingSet smallest_set_of_smallest_rings() const;
 
     size_t dimensionality(double eps = 0.00001) const;
 

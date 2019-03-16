@@ -450,7 +450,7 @@ std::vector<size_t> IDATM::valence_() {
         }
 
         auto element = atom.atomic_number();
-        auto valence = atom.neighbor_count();
+        auto valence = atom.degree();
 
         auto freeOs = freeOxygens(atom, heavys_);
         if (valence == 4) { // assume tetrahedral
@@ -549,7 +549,7 @@ void IDATM::valence_topo_() {
         if (mapped_[atom]) continue;
 
         auto freeOs = freeOxygens(atom, heavys_);
-        auto valence = atom.neighbor_count();
+        auto valence = atom.degree();
 
         switch (atom.atomic_number()) { 
         case Element::C:
@@ -606,10 +606,7 @@ void IDATM::valence_topo_() {
 
 void IDATM::terminal_(std::vector<size_t>& redo) {
     for (auto atom : mol_) {
-        auto neighbors = atom.neighbors();
-        auto neighbor_count = atom.neighbor_count();
-
-        if (neighbor_count != 1) continue; // only terminal atoms!
+        if (atom.degree() != 1) continue; // only terminal atoms!
 
         auto bondee = atom[0];
         auto len = distance(atom.position(), bondee.position());
@@ -829,7 +826,7 @@ void IDATM::aromatic_() {
         for (auto atom : ring) {
             if (possible_aromatic.count(atom_types_[atom]) == 0) {
                 if (atom_types_[atom] == idatm::C3 &&
-                    mol_[atom].neighbor_count() == 2) {
+                    mol_[atom].degree() == 2) {
                     ++c3_count;
                     continue;
                 }
@@ -884,7 +881,7 @@ void IDATM::fix_N2_() {
         if (mapped_[atom]) continue;
         if (atom_types_[atom] != idatm::Npl) continue;
         if (heavys_[atom] != 2) continue;
-        if (atom.neighbor_count() > 2) continue;
+        if (atom.degree() > 2) continue;
 
         // are both bonded heavy atoms sp3?  If so -> Npl
         bool bothSP3 = true;
@@ -1006,7 +1003,7 @@ void IDATM::heteroaromatics_() {
         // Npl(-H)-Car-Npl(-C,-C,-C) to N2
         // Similar to HIS, but this does not match intuitive atome types...
         if (pair.second == 5 && bound_to_car &&
-            (mol_[pair.first].neighbor_count() > heavys_[pair.first])) {
+            (mol_[pair.first].degree() > heavys_[pair.first])) {
             atom_types_[pair.first] = idatm::N2;
         }
     }
@@ -1104,7 +1101,7 @@ void IDATM::fix_special_() {
         }
 
         // Middle azide: change 2-substituted N1 to N1+ (e.g. azide)
-        if (atom_types_[atom] == idatm::N1 && atom.neighbor_count() == 2) {
+        if (atom_types_[atom] == idatm::N1 && atom.degree() == 2) {
             if (atom[0].atomic_number() == Element::N &&
                 atom[1].atomic_number() == Element::N) {
                 atom_types_[atom] = idatm::N1p;
@@ -1113,7 +1110,7 @@ void IDATM::fix_special_() {
 
         // change 3-substituted Npl (eg first nitrogen in -N(-H)=N=N) to N2+)
         if ((atom_types_[atom] == idatm::Npl || atom_types_[atom] == idatm::N2)
-            && atom.neighbor_count() == 3) {
+            && atom.degree() == 3) {
             auto has_n1 = false, has_h = false;
             for (auto bondee : atom.neighbors()) {
                 if (atom_types_[bondee] == idatm::N1) has_n1 = true;
@@ -1124,7 +1121,7 @@ void IDATM::fix_special_() {
         }
 
         // (R-)P(=N-)(=N-). We need to change the Ns from Npl to N2
-        if (atom.atomic_number() == 15 && atom.neighbor_count() == 3) {
+        if (atom.atomic_number() == 15 && atom.degree() == 3) {
             auto invalid = mol_.size();
             auto n_index1 = invalid, n_index2 = invalid; // size = invalid
             size_t carbon_count = 0;
@@ -1146,7 +1143,7 @@ void IDATM::fix_special_() {
         }
 
         // (R-)(R-)S(=N-)(=N-). We need to change the Ns from Npl to N2
-        if (atom.atomic_number() == 16 && atom.neighbor_count() == 4) {
+        if (atom.atomic_number() == 16 && atom.degree() == 4) {
             auto invalid = mol_.size();
             auto n_index1 = invalid, n_index2 = invalid; // size = invalid
             size_t carbon_count = 0;
@@ -1168,7 +1165,7 @@ void IDATM::fix_special_() {
         }
 
         // Special ligand POB case
-        if (atom_types_[atom] == idatm::C2 && atom.neighbor_count() == 3) {
+        if (atom_types_[atom] == idatm::C2 && atom.degree() == 3) {
             auto has_n3 = false, has_pox = false, has_c3 = false;
             for (auto bondee : atom.neighbors()) {
                 if (atom_types_[bondee] == idatm::Pox) has_pox = true;

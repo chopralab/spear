@@ -101,9 +101,8 @@ inline Element::Symbol AtomVertex::atomic_number() const {
     return boost::get(boost::vertex_name, br_->graph(), index_);
 }
 
-inline size_t AtomVertex::neighbor_count() const {
-    auto tmp = neighbors();
-    return static_cast<size_t>(std::distance(tmp.begin(), tmp.end()));
+inline size_t AtomVertex::degree() const {
+    return boost::degree(index_, br_->graph());
 }
 
 inline Neighbors AtomVertex::neighbors() const {
@@ -133,8 +132,8 @@ inline bool AtomVertex::is_non_metal() const {
 }
 
 inline size_t AtomVertex::implicit_hydrogens() const {
-    return neighbor_count() < expected_bonds()?
-           expected_bonds() - neighbor_count() : 0;
+    return degree() < expected_bonds()?
+           expected_bonds() - degree() : 0;
 }
 
 inline size_t AtomVertex::explicit_hydrogens() const {

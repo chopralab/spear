@@ -161,12 +161,12 @@ void Sybyl::type_atoms_topo_(const AtomVertex& atom) {
         atom_types_[atom] = sybyl::Ru_oh;
         break;
     case Element::Ti:
-        atom_types_[atom] = atom.neighbor_count() <= 4 ? Ti_th
-                                                       : Ti_oh;
+        atom_types_[atom] = atom.degree() <= 4 ? Ti_th
+                                               : Ti_oh;
         break;
     case Element::Cr:
-        atom_types_[atom] = atom.neighbor_count() <= 4 ? Cr_th
-                                                       : Cr_oh;
+        atom_types_[atom] = atom.degree() <= 4 ? Cr_th
+                                               : Cr_oh;
         break;
     default:
         atom_types_[atom] = sybyl_mask.at(atom.type());
@@ -202,9 +202,9 @@ size_t Sybyl::assign_carbon_topo_(const AtomVertex& atom){
         }
     }
 
-    auto neighbor_count = atom.neighbor_count();
+    auto degree = atom.degree();
 
-    if (neighbor_count >= 4 && num_double == 0 && num_triple == 0) {
+    if (degree >= 4 && num_double == 0 && num_triple == 0) {
         return C_3;
     }
 
@@ -212,7 +212,7 @@ size_t Sybyl::assign_carbon_topo_(const AtomVertex& atom){
         return C_ar;
     }
 
-    if (num_nitrogen == 3 && neighbor_count == 3) {
+    if (num_nitrogen == 3 && degree == 3) {
         // TODO Need to check for acyclic...
         return C_cat;
     }
@@ -296,7 +296,7 @@ size_t Sybyl::assign_nitrogen_topo_(const AtomVertex& atom) {
 }
 
 size_t Sybyl::assign_carbon_3d_(const AtomVertex& atom) {
-    auto num_neighbors = atom.neighbor_count();
+    auto num_neighbors = atom.degree();
     if (num_neighbors >= 4) {
         return C_3;
     } else if (num_neighbors == 1) {
@@ -309,8 +309,8 @@ size_t Sybyl::assign_carbon_3d_(const AtomVertex& atom) {
     } else {
         auto avgAngle = 0.0;
         size_t angCount = 0;
-        for (size_t n1 = 0; n1 < atom.neighbor_count(); ++n1) {
-            for (size_t n2 = n1 + 1; n2 < atom.neighbor_count(); ++n2) {
+        for (size_t n1 = 0; n1 < atom.degree(); ++n1) {
+            for (size_t n2 = n1 + 1; n2 < atom.degree(); ++n2) {
                 avgAngle += mol_.frame().angle(atom[n1], atom, atom[n2]);
                 ++angCount;
             }
@@ -363,8 +363,8 @@ size_t Sybyl::assign_nitrogen_3d_(const AtomVertex& atom) {
 
     auto avgAngle = 0.0;
     size_t angCount = 0;
-    for (size_t n1 = 0; n1 < atom.neighbor_count(); ++n1) {
-        for (size_t n2 = n1 + 1; n2 < atom.neighbor_count(); ++n2) {
+    for (size_t n1 = 0; n1 < atom.degree(); ++n1) {
+        for (size_t n2 = n1 + 1; n2 < atom.degree(); ++n2) {
             avgAngle += mol_.frame().angle(atom[n1], atom, atom[n2]);
             ++angCount;
         }
@@ -387,7 +387,7 @@ size_t Sybyl::assign_oxygen_(const AtomVertex& atom) {
         size_t freeOxy = freeOxygens(atom);
 
         if (bondee.atomic_number() == 6 &&
-            bondee.neighbor_count() == 3 && freeOxy >= 2) {
+            bondee.degree() == 3 && freeOxy >= 2) {
             return O_co2;
         }
 
@@ -396,7 +396,7 @@ size_t Sybyl::assign_oxygen_(const AtomVertex& atom) {
         }
     }
 
-    if (numnonmetal == 0 || atom.neighbor_count() >= 2) {
+    if (numnonmetal == 0 || atom.degree() >= 2) {
         return O_3;
     }
 
@@ -414,7 +414,7 @@ size_t Sybyl::assign_sulfur_(const AtomVertex& atom) {
         return S_o2;
     }
 
-    if (atom.neighbor_count() == 2) {
+    if (atom.degree() == 2) {
         return S_3;
     } 
 

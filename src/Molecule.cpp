@@ -63,7 +63,7 @@ size_t AtomVertex::expected_bonds() const {
 
     if(atomic_num == 15 || atomic_num == 16) { // Phosphorus and Sulfur
         if (is_aromatic()) return 2;
-        return neighbor_count(); // Hard to tell, but things shouldn't be protonated
+        return degree(); // Hard to tell, but things shouldn't be protonated
     }
 
     // Give up....
@@ -76,7 +76,7 @@ size_t AtomVertex::expected_bonds() const {
 // vertex is connected to the front().
 struct cycle_saver {
 
-    cycle_saver(std::set<std::set<size_t>>& counter):
+    cycle_saver(RingSet& counter):
         found_rings(counter){
     }
 
@@ -100,7 +100,7 @@ struct cycle_saver {
         found_rings.insert(std::move(new_ring));
     }
 
-    std::set<std::set<size_t>>& found_rings;
+    RingSet& found_rings;
 };
 
 void Molecule::init_() {
@@ -131,13 +131,95 @@ void Molecule::init_() {
     add_atomtype<Default>();
 }
 
-const std::set<std::set<size_t>> Molecule::rings() const {
-    std::set<std::set<size_t>> ret_rings;
+RingSet Molecule::rings() const {
+    RingSet ret_rings;
 
     cycle_saver vis(ret_rings);
     boost::hawick_circuits(graph_, vis);
 
     return ret_rings;
+}
+
+RingSet Molecule::smallest_set_of_smallest_rings() const {
+    auto sssr_count = boost::num_edges(graph_) - size() + 1;
+
+    if (sssr_count == 0) {
+        return {};
+    }
+
+    auto all_rings = rings();
+    if (all_rings.size() == sssr_count) {
+        return all_rings;
+    }
+
+    size_t max_degree = 0;
+    for (auto av : *this) {
+        max_degree = std::max(max_degree, av.degree());
+    }
+
+    RingSet sssr;
+
+    auto find_independant_rings_with_degree =
+    [&sssr, &all_rings, this] (size_t degree) {
+        std::vector<bool> used_nodes(size(), false); // move out for speed?
+
+        // The rings are already sorted by their size, therefor we will
+        // traverse all of the rings from the smallest to largest here.
+        for (auto& current_ring : all_rings) {
+            bool is_independant = false;
+
+            // Have we seen this node before?
+            // ... but only check if the current degree is correct!
+            for (auto atom_id_search : current_ring) {
+                if ((*this)[atom_id_search].degree() != degree ||
+                    used_nodes[atom_id_search]) {
+                    continue;
+                }
+
+                is_independant = true;
+                break;
+            }
+
+            // This ring is completly encircled for the current degree
+            if (!is_independant) {
+                continue;
+            }
+
+            // We found a smallest ring! Mark its atoms as used
+            sssr.insert(current_ring);
+
+            for (auto atom_id : current_ring) {
+                used_nodes[atom_id] = true;
+            }
+        }
+    };
+
+    size_t iterations = 0; // I'm really scared of non termination. Let's be safe
+    do {
+        for (size_t i = 2; i <= max_degree; ++i) {
+            find_independant_rings_with_degree(i);
+
+            if (sssr.size() == sssr_count) { // we're done!
+                return sssr;
+            }
+        }
+
+        if (sssr.size() > sssr_count) {
+            break;
+        }
+
+        // things just got really weird - suppress the current SSSRs and try again
+        for (auto added : sssr) {
+            all_rings.erase(added);
+        }
+
+        ++iterations;
+    } while(all_rings.size() && iterations < 100);
+
+
+    throw std::runtime_error(std::string("Unable to find SSSR: found ") +
+                             std::to_string(sssr.size()) + " rings, but expected " +
+                             std::to_string(sssr_count));
 }
 
 static double cos_sim(const Eigen::Vector3d& u, const Eigen::Vector3d& v) {
@@ -319,7 +401,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
     auto dimensional = dimensionality();
 
     // All the coordinates are the same, let's ignore this case
-    if (dimensional == 0 && av.neighbor_count() >= 1) {
+    if (dimensional == 0 && av.degree() >= 1) {
         auto h_atom = add_atom(n_atom, heavyPos);
         add_bond(index, h_atom);
         return h_atom;
@@ -354,7 +436,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         bondLength += 0.07;
     }
 
-    switch (av.neighbor_count()) {
+    switch (av.degree()) {
     case 0: // No other atom neighbors, add position in the z-direction
         dirVect[2] = 1;
         break;
@@ -383,7 +465,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         case Hybridization::SP2:
             // default position is to just take an arbitrary perpendicular:
             perpVect = perpendicular(nbr1Vect);
-            if (av[0].neighbor_count() > 1) {
+            if (av[0].degree() > 1) {
                 // can we use the neighboring atom to establish a perpendicular?
                 auto nbrBond = *(av.bonds().begin()); // Only one bond, so this has to be the one!
                 if (nbrBond.order() == Bond::AROMATIC ||

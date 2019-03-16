@@ -23,26 +23,26 @@ TEST_CASE("Molecule") {
         auto first = *(begin++);
         CHECK(first == 0);
         CHECK(first.name() == "C");
-        CHECK(first.neighbor_count() == 1);
+        CHECK(first.degree() == 1);
         CHECK(first.atomic_number() == 6);
 
         auto third = *(++begin);
         CHECK(third == 2);
         CHECK(third.name() == "C");
-        CHECK(third.neighbor_count() == 2);
+        CHECK(third.degree() == 2);
         CHECK(third.atomic_number() == 6);
 
         auto last_atom_vertex = *(--end);
         CHECK(last_atom_vertex == 17);
         CHECK(last_atom_vertex.name() == "O");
-        CHECK(last_atom_vertex.neighbor_count() == 1);
+        CHECK(last_atom_vertex.degree() == 1);
         CHECK(last_atom_vertex.atomic_number() == 8);
         --end;
         --end;
         auto carbonyl = *(end--);
         CHECK(carbonyl == 15);
         CHECK(carbonyl.name() == "C");
-        CHECK(carbonyl.neighbor_count() == 3);
+        CHECK(carbonyl.degree() == 3);
         CHECK(carbonyl.atomic_number() == 6);
 
         // Random access iterator
@@ -62,51 +62,6 @@ TEST_CASE("Molecule") {
         begin += diff;
         CHECK(end >= begin);
         CHECK(begin <= end);
-
-    }
-
-    SECTION("Ring Finding") {
-        auto traj0 = chemfiles::Trajectory("data/palmitic.sdf");
-        auto mol0 = Spear::Molecule(traj0.read());
-        auto ring0 = mol0.rings();
-
-        CHECK(mol0.size() == 18);
-        CHECK(ring0.size() == 0);
-
-        auto traj = chemfiles::Trajectory("data/pazopanib.sdf");
-        auto mol = Spear::Molecule(traj.read());
-        auto rings = mol.rings();
-
-        // Holds the total number of expected rings:
-        //    ring_size -> #expected rings
-        std::map<size_t,size_t> ring_counts = {{5,1}, {6,3}, {9,1}};
-
-        // Decrease the count when we find a ring of given size
-        for (const auto& i : rings) {
-            ring_counts[i.size()] -= 1;
-        }
-
-        CHECK(ring_counts[5] == 0);
-        CHECK(ring_counts[6] == 0);
-
-        auto traj2 = chemfiles::Trajectory("data/tibolone.sdf");
-        auto mol2 = Spear::Molecule(traj2.read());
-        auto rings2 = mol2.rings();
-
-        std::map<size_t,size_t> ring_counts2 = {{5,1}, {6,3}, {9,1}, {10,2},
-         {13,1}, {14,1}, {17,1}};
-
-        for (const auto& i : rings2) {
-            ring_counts2[i.size()] -= 1;
-        }
-
-        CHECK(ring_counts2[5] == 0);
-        CHECK(ring_counts2[6] == 0);
-        CHECK(ring_counts2[9] == 0);
-        CHECK(ring_counts2[10] == 0);
-        CHECK(ring_counts2[13] == 0);
-        CHECK(ring_counts2[14] == 0);
-        CHECK(ring_counts2[17] == 0);
     }
 
     SECTION("Get bonds in a set of atoms") {
@@ -125,6 +80,131 @@ TEST_CASE("Molecule") {
 
         CHECK(bond[1].source() == 1);
         CHECK(bond[1].target() == 2);
+    }
+}
+
+TEST_CASE("Ring Finding") {
+    SECTION("No rings") {
+        auto traj = chemfiles::Trajectory("data/palmitic.sdf");
+        auto mol = Spear::Molecule(traj.read());
+        auto ring = mol.rings();
+        auto sssr = mol.smallest_set_of_smallest_rings();
+
+        CHECK(mol.size() == 18);
+        CHECK(ring.size() == 0);
+        CHECK(sssr.size() == 0);
+    }
+
+    SECTION("Pazopanib's rings") {
+        auto traj = chemfiles::Trajectory("data/pazopanib.sdf");
+        auto mol = Spear::Molecule(traj.read());
+        auto ring = mol.rings();
+        auto sssr = mol.smallest_set_of_smallest_rings();
+
+        // Holds the total number of expected rings:
+        //    ring_size -> #expected rings
+        std::map<size_t,size_t> ring_counts = {{5,1}, {6,3}, {9,1}};
+
+        // Decrease the count when we find a ring of given size
+        for (const auto& i : ring) {
+            ring_counts[i.size()] -= 1;
+        }
+
+        CHECK(ring_counts[5] == 0);
+        CHECK(ring_counts[6] == 0);
+        CHECK(ring_counts[9] == 0);
+
+        //--------------------------------------------------------------
+        // SSSR for pazopanib
+        //--------------------------------------------------------------
+        auto ring_iter = sssr.begin();
+        CHECK(sssr.size() == 4);
+        CHECK((ring_iter++)->size() == 5);
+        CHECK((ring_iter++)->size() == 6);
+        CHECK((ring_iter++)->size() == 6);
+    }
+
+    SECTION("Steroid rings") {
+        auto traj = chemfiles::Trajectory("data/tibolone.sdf");
+        auto mol = Spear::Molecule(traj.read());
+        auto ring = mol.rings();
+        auto sssr = mol.smallest_set_of_smallest_rings();
+
+        std::map<size_t,size_t> ring_counts = {{5,1}, {6,3}, {9,1}, {10,2},
+         {13,1}, {14,1}, {17,1}};
+
+        for (const auto& i : ring) {
+            ring_counts[i.size()] -= 1;
+        }
+
+        CHECK(ring_counts[5] == 0);
+        CHECK(ring_counts[6] == 0);
+        CHECK(ring_counts[9] == 0);
+        CHECK(ring_counts[10] == 0);
+        CHECK(ring_counts[13] == 0);
+        CHECK(ring_counts[14] == 0);
+        CHECK(ring_counts[17] == 0);
+
+        //--------------------------------------------------------------
+        // SSSR for tibolone
+        //--------------------------------------------------------------
+        CHECK(sssr.size() == 4);
+        auto ring_iter = sssr.begin();
+        CHECK((ring_iter++)->size() == 5);
+        CHECK((ring_iter++)->size() == 6);
+        CHECK((ring_iter++)->size() == 6);
+        CHECK((ring_iter++)->size() == 6);
+    }
+
+    SECTION("Large rings - 1") {
+        auto traj = chemfiles::Trajectory("data/large_rings.sdf");
+        auto mol = Spear::Molecule(traj.read());
+        auto sssr = mol.smallest_set_of_smallest_rings();
+
+        CHECK(sssr.size() == 6);
+        auto ring_iter = sssr.begin();
+        CHECK((ring_iter++)->size() == 5);
+        CHECK((ring_iter++)->size() == 6);
+        CHECK((ring_iter++)->size() == 6);
+        CHECK((ring_iter++)->size() == 6);
+        CHECK((ring_iter++)->size() == 6);
+        CHECK((ring_iter++)->size() == 6);
+    }
+
+    SECTION("Large rings - 2") {
+        auto traj = chemfiles::Trajectory("data/large_rings.sdf");
+        auto mol = Spear::Molecule(traj.read_step(1));
+        auto sssr = mol.smallest_set_of_smallest_rings();
+
+        CHECK(sssr.size() == 9);
+        auto ring_iter = sssr.begin();
+        CHECK((ring_iter++)->size() == 3);
+        CHECK((ring_iter++)->size() == 3);
+        CHECK((ring_iter++)->size() == 3);
+        CHECK((ring_iter++)->size() == 3);
+        CHECK((ring_iter++)->size() == 4);
+        CHECK((ring_iter++)->size() == 4);
+        CHECK((ring_iter++)->size() == 4);
+        CHECK((ring_iter++)->size() == 4);
+        CHECK((ring_iter++)->size() == 4);
+    }
+
+    SECTION("Large rings - 3") {
+        auto traj = chemfiles::Trajectory("data/large_rings.sdf");
+        auto mol = Spear::Molecule(traj.read_step(2));
+        auto sssr = mol.smallest_set_of_smallest_rings();
+
+        CHECK(sssr.size() == 9);
+        auto ring_iter = sssr.begin();
+        CHECK((ring_iter++)->size() == 3);
+        CHECK((ring_iter++)->size() == 3);
+        CHECK((ring_iter++)->size() == 3);
+        CHECK((ring_iter++)->size() == 3);
+        CHECK((ring_iter++)->size() == 4);
+        CHECK((ring_iter++)->size() == 4);
+        CHECK((ring_iter++)->size() == 4);
+        CHECK((ring_iter++)->size() == 4);
+        CHECK((ring_iter++)->size() == 4);
     }
 }
 

@@ -52,7 +52,7 @@ Default::Default(const Molecule& mol) : mol_(mol) {
         }
 
         if (atomic_number == 15 || atomic_number == 16) {
-            hybridizations_.push_back(static_cast<Hybridization>(av.neighbor_count()));
+            hybridizations_.push_back(static_cast<Hybridization>(av.degree()));
             continue;
         }
 
@@ -91,8 +91,7 @@ bool Default::is_aromatic(size_t atom_id) const {
 }
 
 static bool is_delocalized(const AtomVertex& av) {
-    if (av.atomic_number()  == Element::S &&
-        av.neighbor_count() >= 3) {
+    if (av.atomic_number()  == Element::S && av.degree() >= 3) {
         return false;
     }
     for (auto bond : av.bonds()) {
@@ -112,7 +111,7 @@ static bool is_delocalized(const AtomVertex& av) {
 bool Default::is_planar(size_t atom_id) const {
     auto av = mol_[atom_id];
 
-    if ( av.neighbor_count() <= 3 &&
+    if ( av.degree() <= 3 &&
         (av.atomic_number() == Element::B ||
          av.atomic_number() == Element::Al)) {
         return true;
@@ -125,10 +124,10 @@ bool Default::is_planar(size_t atom_id) const {
             return true;
         case Bond::DOUBLE: // Here's where it gets tricky
             if (av.atomic_number() == Element::S &&
-                av.neighbor_count() == 1) { // not a sulfoxide, sulfone, etc
+                av.degree() == 1) { // not a sulfoxide, sulfone, etc
                 return true;
             } else if (av.atomic_number() == Element::P &&
-                av.neighbor_count() <= 2) { // another odd case for phosphorus (eg P-oxide)
+                av.degree() <= 2) { // another odd case for phosphorus (eg P-oxide)
                 return true;
             } else {
                 return true;

@@ -155,7 +155,7 @@ public:
 
     Element::Symbol atomic_number() const;
 
-    size_t neighbor_count() const;
+    size_t degree() const;
     
     Neighbors neighbors() const;
 

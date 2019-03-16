@@ -28,11 +28,11 @@ TEST_CASE("Add Atoms and Bonds") {
         CHECK(mol.dimensionality() == 2);
 
         auto n_atom = mol.add_atom_to(Spear::Element::N, 0);
-        CHECK(mol[0].neighbor_count() == 2);
+        CHECK(mol[0].degree() == 2);
         auto mg_atom = mol.add_atom_to(Spear::Element::Mg, 0);
-        CHECK(mol[0].neighbor_count() == 3);
+        CHECK(mol[0].degree() == 3);
         mol.add_atom_to(Spear::Element::H, 0);
-        CHECK(mol[0].neighbor_count() == 4);
+        CHECK(mol[0].degree() == 4);
 
         auto& atom_types = *mol.get_default_atomtype();
         CHECK(atom_types.hybridization(n_atom) == Spear::Hybridization::SP3);

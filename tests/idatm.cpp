@@ -98,7 +98,7 @@ TEST_CASE("IDATM") {
                     }
                 } else if (ring.size() == 5) {
                     if (mol[atom].atomic_number() != 7) continue;
-                    if (mol[atom].neighbor_count() == 3) {
+                    if (mol[atom].degree() == 3) {
                         CHECK(idatm_name(alltypes[atom]) == "Npl");
                         CHECK(idatm.is_aromatic(atom));
                         CHECK(idatm.hybridization(atom) == Hybridization::SP3);

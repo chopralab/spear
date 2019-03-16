@@ -46,7 +46,7 @@ FunctionalGroup::FunctionalGroup(const std::string& smiles) {
             // Add a lambda function to compare the bond counts
             properties_.back().emplace_back(
                 [bonds](const AtomVertex& a1) {
-                    return a1.neighbor_count() == bonds;
+                    return a1.degree() == bonds;
                 }
             );
             i++;
