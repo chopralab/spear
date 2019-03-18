@@ -58,7 +58,6 @@ FunctionalGroup::FunctionalGroup(const std::string& smiles) {
     for (size_t i = 0; i < smiles.size(); ++i) {
         if (in_prop_list) {
             size_t bonds = 0;
-            std::cout << smiles[i] << std::endl;
             switch (smiles[i]) {
             case 'D':
                 bonds = read_number(i);
