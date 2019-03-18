@@ -819,7 +819,7 @@ void IDATM::charges_() {
 }
 
 void IDATM::aromatic_() {
-    auto rings = mol_.rings();
+    auto rings = mol_.smallest_set_of_smallest_rings();
     for (const auto& ring : rings) {
         bool planarTypes = true;
         size_t c3_count = 0;

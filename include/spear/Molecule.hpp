@@ -103,6 +103,8 @@ public:
     explicit Molecule(chemfiles::Frame frame) :
         frame_(std::move(frame)), graph_() {
         init_();
+        rings_();
+        smallest_set_of_smallest_rings_();
     }
 
     const Graph& graph() const {
@@ -117,9 +119,13 @@ public:
         return positions_;
     }
 
-    RingSet rings() const;
+    const RingSet& rings() const {
+        return all_rings_;
+    }
 
-    RingSet smallest_set_of_smallest_rings() const;
+    const RingSet& smallest_set_of_smallest_rings() const {
+        return sssr_;
+    }
 
     size_t dimensionality(double eps = 0.00001) const;
 
@@ -163,16 +169,37 @@ public:
 private:
     void init_();
 
+    void rings_();
+
+    void smallest_set_of_smallest_rings_();
+
+    /// Chemfiles frame
     chemfiles::Frame frame_;
 
+    /// Coordinates of the molecule
     std::vector<Eigen::Vector3d> positions_;
-    
+
+    /// Graph representation of the molecule
     Graph graph_;
+
+    /// All rings found in the molecule
+    RingSet all_rings_;
+
+    /// Smallest set of smallest rings
+    RingSet sssr_;
+
+    /// Maps an atom to all rings that contain it
+    AtomRingMap atom_to_ring_;
+
+    /// Maps an atom to all sssr rings that contain it
+    AtomRingMap atom_to_sssr_;
 
     typedef std::unique_ptr<AtomType> unqiue_AtomType;
     std::unordered_map<std::string, unqiue_AtomType> atom_types_;
 
     std::string default_atomtype_;
+
+    friend class AtomVertex;
 };
 
 }

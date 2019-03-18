@@ -2,6 +2,7 @@
 #define SPEAR_RINGS_HPP
 
 #include <set>
+#include <map>
 
 namespace Spear {
 
@@ -21,6 +22,10 @@ struct ring_compare_functor {
 };
 
 using RingSet = std::set<std::set<std::size_t>, ring_compare_functor>;
+
+using AtomRingMap = std::unordered_multimap<size_t, const std::set<size_t>&>;
+using AtomRingMapIterator = AtomRingMap::const_iterator;
+using AtomRingMapIteratorPair = std::pair<AtomRingMapIterator,AtomRingMapIterator>;
 
 }
 

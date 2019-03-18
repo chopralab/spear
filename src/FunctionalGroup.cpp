@@ -39,31 +39,99 @@ FunctionalGroup::FunctionalGroup(const std::string& smiles) {
         properties_.push_back(std::list<AtomPropertyCompare>());
     };
 
-    for (size_t i = 0; i < smiles.size(); ++i) {
-        if (in_prop_list && smiles[i] == 'D' && i != smiles.size() - 1) {
-            auto bonds = static_cast<size_t>(smiles[i + 1] - '0');
-
-            // Add a lambda function to compare the bond counts
-            properties_.back().emplace_back(
-                [bonds](const AtomVertex& a1) {
-                    return a1.degree() == bonds;
-                }
-            );
-            i++;
-            continue;
+    auto read_number =
+    [&smiles](size_t& start) {
+        if (!std::isdigit(smiles[start + 1])) {
+            return static_cast<size_t>(1);
         }
+        ++start;
+        size_t number = 0;
+        while (start < smiles.size() && std::isdigit(smiles[start])) {
+            number *= 10;
+            number += static_cast<size_t>(smiles[start] - '0');
+            ++start;
+        }
+        --start;
+        return number;
+    };
 
-        if (in_prop_list && smiles[i] == 'X' && i != smiles.size() - 1) {
-            auto bonds = static_cast<size_t>(smiles[i + 1] - '0');
+    for (size_t i = 0; i < smiles.size(); ++i) {
+        if (in_prop_list) {
+            size_t bonds = 0;
+            std::cout << smiles[i] << std::endl;
+            switch (smiles[i]) {
+            case 'D':
+                bonds = read_number(i);
 
-            // Add a lambda function to compare the bond counts
-            properties_.back().emplace_back(
-                [bonds](const AtomVertex& a1) {
-                    return a1.expected_bonds() == bonds;
-                }
-            );
-            i++;
-            continue;
+                // Add a lambda function to compare the bond counts
+                properties_.back().emplace_back(
+                    [bonds](const AtomVertex& a1) {
+                        return a1.degree() == bonds;
+                    }
+                );
+                continue;
+            case 'X':
+                bonds = read_number(i);
+                properties_.back().emplace_back(
+                    [bonds](const AtomVertex& a1) {
+                        return a1.expected_bonds() == bonds;
+                    }
+                );
+                continue;
+            case 'h':
+                bonds = read_number(i);
+                properties_.back().emplace_back(
+                    [bonds](const AtomVertex& a1) {
+                        return a1.implicit_hydrogens() == bonds;
+                    }
+                );
+                continue;
+            case 'H':
+                bonds = read_number(i);
+                properties_.back().emplace_back(
+                    [bonds](const AtomVertex& a1) {
+                        return a1.explicit_hydrogens() == bonds;
+                    }
+                );
+                continue;
+            case 'R':
+                bonds = read_number(i);
+                properties_.back().emplace_back(
+                    [bonds](const AtomVertex& a1) {
+                        auto sssrs = a1.sssrs();
+                        return std::distance(sssrs.first, sssrs.second) == bonds;
+                    }
+                );
+                continue;
+            case 'r':
+                bonds = read_number(i);
+                properties_.back().emplace_back(
+                    [bonds](const AtomVertex& a1) {
+                        auto sssrs = a1.sssrs();
+                        for (auto ring = sssrs.first; ring != sssrs.second; ++ring) {
+                            if (ring->second.size() == bonds) return true;
+                        }
+                        return false;
+                    }
+                );
+                continue;
+            case 'a':
+                properties_.back().emplace_back(
+                    [](const AtomVertex& a1) {
+                        return a1.is_aromatic();
+                    }
+                );
+                continue;
+            case 'A':
+                properties_.back().emplace_back(
+                    [](const AtomVertex& a1) {
+                        return !a1.is_aromatic();
+                    }
+                );
+                continue;
+            default:
+                break;
+            }
         }
 
         if (smiles[i] == 'a' || smiles[i] == 'A') {

@@ -151,6 +151,14 @@ inline size_t AtomVertex::total_hydrogens() const {
     return explicit_hydrogens() + implicit_hydrogens();
 }
 
+inline AtomRingMapIteratorPair AtomVertex::rings() const {
+    return br_->atom_to_ring_.equal_range(index_);
+}
+
+inline AtomRingMapIteratorPair AtomVertex::sssrs() const {
+    return br_->atom_to_sssr_.equal_range(index_);
+}
+
 inline bool AtomVertex::operator==(const AtomVertex& rhs) const {
     return (br_ == rhs.br_ && index_ == rhs.index_);
 }

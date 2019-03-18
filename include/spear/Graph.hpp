@@ -6,6 +6,7 @@
 #include "chemfiles/external/optional.hpp"
 
 #include "spear/Constants.hpp"
+#include "spear/Rings.hpp"
 
 namespace Spear {
 
@@ -172,6 +173,10 @@ public:
     size_t explicit_hydrogens() const;
 
     size_t total_hydrogens() const;
+
+    AtomRingMapIteratorPair rings() const;
+
+    AtomRingMapIteratorPair sssrs() const;
 
     bool operator==(const AtomVertex& rhs) const;
 

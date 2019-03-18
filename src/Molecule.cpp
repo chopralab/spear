@@ -131,25 +131,39 @@ void Molecule::init_() {
     add_atomtype<Default>();
 }
 
-RingSet Molecule::rings() const {
-    RingSet ret_rings;
+void Molecule::rings_() {
 
-    cycle_saver vis(ret_rings);
+    if (!all_rings_.empty()) {
+        return;
+    }
+
+    cycle_saver vis(all_rings_);
     boost::hawick_circuits(graph_, vis);
 
-    return ret_rings;
+    for (auto& ring : all_rings_) {
+        for (auto& atom : ring) {
+            atom_to_ring_.insert({atom, ring});
+        }
+    }
 }
 
-RingSet Molecule::smallest_set_of_smallest_rings() const {
-    auto sssr_count = boost::num_edges(graph_) - size() + 1;
+void Molecule::smallest_set_of_smallest_rings_() {
 
-    if (sssr_count == 0) {
-        return {};
+    if (!sssr_.empty()) {
+        return;
     }
 
     auto all_rings = rings();
-    if (all_rings.size() == sssr_count) {
-        return all_rings;
+
+    if (all_rings.size() == 0) {
+        return;
+    }
+
+    auto sssr_count = boost::num_edges(graph_) - size() + 1;
+
+    if (sssr_count >= all_rings.size()) {
+        sssr_ = all_rings_;
+        return;
     }
 
     size_t max_degree = 0;
@@ -157,10 +171,8 @@ RingSet Molecule::smallest_set_of_smallest_rings() const {
         max_degree = std::max(max_degree, av.degree());
     }
 
-    RingSet sssr;
-
     auto find_independant_rings_with_degree =
-    [&sssr, &all_rings, this] (size_t degree) {
+    [&all_rings, this] (size_t degree) {
         std::vector<bool> used_nodes(size(), false); // move out for speed?
 
         // The rings are already sorted by their size, therefor we will
@@ -186,7 +198,7 @@ RingSet Molecule::smallest_set_of_smallest_rings() const {
             }
 
             // We found a smallest ring! Mark its atoms as used
-            sssr.insert(current_ring);
+            sssr_.insert(current_ring);
 
             for (auto atom_id : current_ring) {
                 used_nodes[atom_id] = true;
@@ -199,17 +211,23 @@ RingSet Molecule::smallest_set_of_smallest_rings() const {
         for (size_t i = 2; i <= max_degree; ++i) {
             find_independant_rings_with_degree(i);
 
-            if (sssr.size() == sssr_count) { // we're done!
-                return sssr;
+            if (sssr_.size() == sssr_count) { // we're done!
+                for (auto& ring : sssr_) {
+                    for (auto& atom : ring) {
+                        atom_to_sssr_.insert({atom, ring});
+                    }
+                }
+
+                return;
             }
         }
 
-        if (sssr.size() > sssr_count) {
+        if (sssr_.size() > sssr_count) {
             break;
         }
 
         // things just got really weird - suppress the current SSSRs and try again
-        for (auto added : sssr) {
+        for (auto added : sssr_) {
             all_rings.erase(added);
         }
 
@@ -218,7 +236,7 @@ RingSet Molecule::smallest_set_of_smallest_rings() const {
 
 
     throw std::runtime_error(std::string("Unable to find SSSR: found ") +
-                             std::to_string(sssr.size()) + " rings, but expected " +
+                             std::to_string(sssr_.size()) + " rings, but expected " +
                              std::to_string(sssr_count));
 }
 

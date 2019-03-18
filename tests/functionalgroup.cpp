@@ -51,6 +51,15 @@ TEST_CASE("Tibolone") {
     Spear::FunctionalGroup wildcard("C-C(=*)-C");
     auto wild_grp = Spear::find_functional_groups(mol, wildcard);
     CHECK(wild_grp.size() == 6); // forced again
+
+    Spear::FunctionalGroup bridges("[CR2]");
+    auto bridges_grp = Spear::find_functional_groups(mol, bridges);
+    CHECK(bridges_grp.size() == 6); // All bridging carbons!
+
+    Spear::FunctionalGroup small_ring("[C,r5]");
+    auto small_ring_grp = Spear::find_functional_groups(mol, small_ring);
+    CHECK(small_ring_grp.size() == 5); // All bridging carbons!
+
 }
 
 TEST_CASE("Pazopanib") {
