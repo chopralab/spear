@@ -58,8 +58,11 @@ TEST_CASE("Tibolone") {
 
     Spear::FunctionalGroup small_ring("[C,r5]");
     auto small_ring_grp = Spear::find_functional_groups(mol, small_ring);
-    CHECK(small_ring_grp.size() == 5); // All bridging carbons!
+    CHECK(small_ring_grp.size() == 5); // All ring 5 carbons!
 
+    Spear::FunctionalGroup all_ring_atoms("[*R]");
+    auto all_ring_grp = Spear::find_functional_groups(mol, all_ring_atoms);
+    CHECK(all_ring_grp.size() == 17); // All ring carbons!
 }
 
 TEST_CASE("Pazopanib") {
@@ -69,7 +72,7 @@ TEST_CASE("Pazopanib") {
     mol.set_default_atomtype(name);
 
     SECTION("General Searching") {
-        Spear::FunctionalGroup aromatic_C_N("C:N");
+        Spear::FunctionalGroup aromatic_C_N("[#6]:[#7]");
         auto a_C_N_grp = Spear::find_functional_groups(mol, aromatic_C_N);
         CHECK(a_C_N_grp.size() == 6); // 6 aromatic carbon-nitrogen bonds!
 
@@ -81,7 +84,7 @@ TEST_CASE("Pazopanib") {
         auto ring_sym_grp_2 = Spear::find_functional_groups(mol, aromatic_ring_sym_2);
         CHECK(ring_sym_grp_2.size() == 2); // Statement should be the same as above.
 
-        Spear::FunctionalGroup aromatic_ring_sym_broken("C1:N[A]:C(-N):N:C:C:1");
+        Spear::FunctionalGroup aromatic_ring_sym_broken("C1:[N&A]:C(-N):N:C:C:1");
         auto ring_sym_grp_broken = Spear::find_functional_groups(mol, aromatic_ring_sym_broken);
         CHECK(ring_sym_grp_broken.size() == 0); // We forced something to be aliphatic
 
@@ -92,27 +95,29 @@ TEST_CASE("Pazopanib") {
         Spear::FunctionalGroup sulfonamide("S(=O)(=O)-N");
         auto so2n_grp = Spear::find_functional_groups(mol, sulfonamide);
         CHECK(so2n_grp.size() == 2); // Oxygens are symmetric
+        CHECK(so2n_grp.begin()->at(0) == 26); // Should be an exact atom!
+        CHECK((++so2n_grp.begin())->at(0) == 26);
     }
 
     SECTION("Explicit Bonds") {
         // Explicit Bonds
-        Spear::FunctionalGroup N_with_3_bonds("[ND3]");
+        Spear::FunctionalGroup N_with_3_bonds("[#7D3]");
         auto N_3_grp = Spear::find_functional_groups(mol, N_with_3_bonds);
         CHECK(N_3_grp.size() == 2); // Only two nitrogens have three explicit(non-H) bonds
 
-        Spear::FunctionalGroup N_with_3_bonds_aliphatic("[ND3A]");
+        Spear::FunctionalGroup N_with_3_bonds_aliphatic("[#7D3A]");
         auto N_3_ali_grp = Spear::find_functional_groups(mol, N_with_3_bonds_aliphatic);
         CHECK(N_3_ali_grp.size() == 1); // But only one of those nitrogens is aliphatic!
 
-        Spear::FunctionalGroup N_with_2_bonds("[ND2]");
+        Spear::FunctionalGroup N_with_2_bonds("[#7D2]");
         auto N_2_grp = Spear::find_functional_groups(mol, N_with_2_bonds);
         CHECK(N_2_grp.size() == 4); // Four nitrogens have two explicit(non-H) bonds
 
-        Spear::FunctionalGroup N_with_2_bonds_aliphatic("[ND2A]");
+        Spear::FunctionalGroup N_with_2_bonds_aliphatic("[#7D2A]");
         auto N_2_ali_grp = Spear::find_functional_groups(mol, N_with_2_bonds_aliphatic);
         CHECK(N_2_ali_grp.size() == 1); // But only one of those nitrogens is aliphatic!
 
-        Spear::FunctionalGroup N_with_1_bonds("[ND1]");
+        Spear::FunctionalGroup N_with_1_bonds("[#7D1]");
         auto N_1_grp = Spear::find_functional_groups(mol, N_with_1_bonds);
         CHECK(N_1_grp.size() == 1); // sulfonamide nitrogen!
     }
@@ -134,5 +139,13 @@ TEST_CASE("Pazopanib") {
         Spear::FunctionalGroup N_with_2_bonds_aromatic("[NX2a]");
         auto N_2_aro_grp = Spear::find_functional_groups(mol, N_with_2_bonds_aromatic);
         CHECK(N_2_aro_grp.size() == 3); // They are aromatic!
+
+        Spear::FunctionalGroup C_with_no_H("[cH0]");
+        auto C_with_no_H_grp = Spear::find_functional_groups(mol, C_with_no_H);
+        CHECK(C_with_no_H_grp.size() == 9); // Nine are substituted / bridged
+
+        Spear::FunctionalGroup C_with_H("[cH]");
+        auto C_with_H_grp = Spear::find_functional_groups(mol, C_with_H);
+        CHECK(C_with_H_grp.size() == 8); // 8 have hydrogens
     }
 }

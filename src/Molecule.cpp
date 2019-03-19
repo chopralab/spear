@@ -20,7 +20,7 @@ size_t AtomVertex::expected_bonds() const {
         case Element::F:  // Fluorine
         case Element::Cl: // Chlorine
         case Element::Br: // Bromine
-        case Element::I: // Iodine
+        case Element::I:  // Iodine
         return 1;
         break;
 
@@ -34,7 +34,7 @@ size_t AtomVertex::expected_bonds() const {
 
     auto hybridization_state = br_->get_default_atomtype()->hybridization(index_);
 
-    if(atomic_num == 6) { // Carbon
+    if(atomic_num == Element::C) {
         switch (hybridization_state) {
             case Hybridization::SP: return 2; break;
             case Hybridization::SP2: return 3; break;
@@ -43,7 +43,7 @@ size_t AtomVertex::expected_bonds() const {
         }
     }
 
-    if(atomic_num == 7) { // Nitrogen
+    if(atomic_num == Element::N) {
         switch (hybridization_state) {
             case Hybridization::SP: return 1; break;
             case Hybridization::SP2: return 2; break;
@@ -52,7 +52,7 @@ size_t AtomVertex::expected_bonds() const {
         }
     }
 
-    if(atomic_num == 8) { // Oxygen
+    if(atomic_num == Element::O) {
         switch (hybridization_state) {
             case Hybridization::SP: return 1; break;
             case Hybridization::SP2: return 1; break;

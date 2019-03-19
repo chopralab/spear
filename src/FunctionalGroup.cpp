@@ -58,8 +58,9 @@ FunctionalGroup::FunctionalGroup(const std::string& smiles) {
     for (size_t i = 0; i < smiles.size(); ++i) {
         if (in_prop_list) {
             size_t bonds = 0;
+            size_t i_copy = i;
             switch (smiles[i]) {
-            case 'D':
+            case 'D': // Degree
                 bonds = read_number(i);
 
                 // Add a lambda function to compare the bond counts
@@ -69,50 +70,76 @@ FunctionalGroup::FunctionalGroup(const std::string& smiles) {
                     }
                 );
                 continue;
-            case 'X':
+            case 'X': // Total bonds (explicit + implicit Hs)
                 bonds = read_number(i);
                 properties_.back().emplace_back(
                     [bonds](const AtomVertex& a1) {
-                        return a1.expected_bonds() == bonds;
+                        return a1.degree() + a1.implicit_hydrogens() == bonds;
                     }
                 );
                 continue;
-            case 'h':
+            case 'h': // Implicit hydrogens
                 bonds = read_number(i);
-                properties_.back().emplace_back(
-                    [bonds](const AtomVertex& a1) {
-                        return a1.implicit_hydrogens() == bonds;
-                    }
-                );
+                if (i != i_copy) {
+                    properties_.back().emplace_back(
+                        [bonds](const AtomVertex& a1) {
+                            return a1.implicit_hydrogens() == bonds;
+                        }
+                    );
+                } else {
+                    properties_.back().emplace_back(
+                        [bonds](const AtomVertex& a1) {
+                            return a1.implicit_hydrogens() >= 1;
+                        }
+                    );
+                }
                 continue;
-            case 'H':
+            case 'H': // Total hydrogens
                 bonds = read_number(i);
                 properties_.back().emplace_back(
                     [bonds](const AtomVertex& a1) {
-                        return a1.explicit_hydrogens() == bonds;
+                        return a1.total_hydrogens() == bonds;
                     }
                 );
                 continue;
             case 'R':
                 bonds = read_number(i);
-                properties_.back().emplace_back(
-                    [bonds](const AtomVertex& a1) {
-                        auto sssrs = a1.sssrs();
-                        return std::distance(sssrs.first, sssrs.second) == bonds;
-                    }
-                );
+                if (i != i_copy) {
+                    properties_.back().emplace_back(
+                        [bonds](const AtomVertex& a1) {
+                            auto sssrs = a1.sssrs();
+                            return std::distance(sssrs.first, sssrs.second) == bonds;
+                        }
+                    );
+                } else {
+                    properties_.back().emplace_back(
+                        [](const AtomVertex& a1) {
+                            auto sssrs = a1.sssrs();
+                            return std::distance(sssrs.first, sssrs.second) != 0;
+                        }
+                    );
+                }
                 continue;
             case 'r':
                 bonds = read_number(i);
-                properties_.back().emplace_back(
-                    [bonds](const AtomVertex& a1) {
-                        auto sssrs = a1.sssrs();
-                        for (auto ring = sssrs.first; ring != sssrs.second; ++ring) {
-                            if (ring->second.size() == bonds) return true;
+                if (i != i_copy) {
+                    properties_.back().emplace_back(
+                        [bonds](const AtomVertex& a1) {
+                            auto sssrs = a1.sssrs();
+                            for (auto ring = sssrs.first; ring != sssrs.second; ++ring) {
+                                if (ring->second.size() == bonds) return true;
+                            }
+                            return false;
                         }
-                        return false;
-                    }
-                );
+                    );
+                } else {
+                    properties_.back().emplace_back(
+                        [](const AtomVertex& a1) {
+                            auto sssrs = a1.sssrs();
+                            return std::distance(sssrs.first, sssrs.second) != 0;
+                        }
+                    );
+                }
                 continue;
             case 'a':
                 properties_.back().emplace_back(
@@ -127,6 +154,10 @@ FunctionalGroup::FunctionalGroup(const std::string& smiles) {
                         return !a1.is_aromatic();
                     }
                 );
+                continue;
+            case '#':
+                bonds = read_number(i);
+                add_atom(static_cast<Element::Symbol>(bonds));
                 continue;
             default:
                 break;
@@ -250,7 +281,7 @@ struct FunctionalGroupFinder {
         for (auto v = verticies_iter.first; v != verticies_iter.second; ++v) {
 
             const auto& mol_id = boost::get(fg_to_mol, *v); // v is the functional group index
-            const auto& mol_index = boost::get(boost::vertex_index_t(), mol_.graph(), mol_id);
+            const auto& mol_index = boost::get(boost::vertex_index, mol_.graph(), mol_id);
 
             // Final property check
             auto fg_index = boost::get(boost::vertex_index_t(), fg_.graph(), *v);
