@@ -53,6 +53,159 @@ static bool follows_rule(const AtomVertex& vert, const std::string& rule) {
     return false;
 }
 
+static size_t num_withdrawing(const AtomVertex& av) {
+    size_t count = 0;
+    for (auto neighbor : av.neighbors()) {
+        switch (neighbor.atomic_number()) {
+        case Element::N:
+        case Element::O:
+        case Element::F:
+        case Element::S:
+        case Element::Cl:
+        case Element::Br:
+        case Element::I:
+            ++count;
+        }
+    }
+    return count;
+}
+
+static size_t type_hydrogen(const AtomVertex& av) {
+    if (av.degree() != 1) {
+        return gaff::hc; // hc is 'other' carbon
+    }
+
+    auto neighbor = av[0]; // The only neighbor
+    switch (neighbor.atomic_number()) {
+    case Element::O:
+        return gaff::ho;
+    case Element::N:
+        return gaff::hn;
+    case Element::S:
+        return gaff::hs;
+    case Element::P:
+        return gaff::hp;
+    case Element::Ge:
+        return gaff::DU;
+    case Element::C:
+        break;
+    default:
+        return gaff::ha; // ha is also 'other' carbon
+    }
+
+    // We know it must be next to a carbon!
+    if (neighbor.is_aromatic()) {
+        if (num_withdrawing(neighbor) == 1)        return gaff::h4;
+        if (num_withdrawing(neighbor) == 2)        return gaff::h5;
+        if (follows_rule(av, "[#1X1][c]-[#15X3]")) return gaff::h4;
+        if (follows_rule(av, "[#1X1][c]:[#15X3]")) return gaff::h4;
+        return gaff::ha;
+    }
+
+    switch (num_withdrawing(neighbor)) {
+    case 1:
+        return gaff::h1;
+    case 2:
+        return gaff::h2;
+    case 3:
+        return gaff::h3;
+    default:
+        break;
+    }
+
+    if (neighbor.expected_bonds() == 4) {
+        return gaff::hc;
+    }
+
+    return gaff::ha; // Must be conjugated somehow
+}
+
+static size_t type_nitrogen(const AtomVertex& av) {
+    auto sssrs = av.sssrs();
+    auto sssrs_count = std::distance(sssrs.first, sssrs.second);
+    switch(av.degree() + av.implicit_hydrogens()) {
+    case 1:
+        return gaff::n1;
+    case 2:
+        if (sssrs_count == 0) {
+            if (follows_rule(av, "[#7X2;R0](#*)-*#*")) return gaff::ne;
+            if (follows_rule(av, "[#7X2;R0](=*)-*#*")) return gaff::ne;
+            if (follows_rule(av, "[#7X2;R0](=*)-*=*")) return gaff::ne;
+        } else {
+
+            if (follows_rule(av, "[#7X2;R](-[#7X3]-[#6X3])=[#6X3]")) return gaff::nc;
+            if (follows_rule(av, "[#7X2;R](=*)-*=*"))                return gaff::nc;
+            if (follows_rule(av, "[#7X2;R](=*)-*#*"))                return gaff::nc;
+            if (follows_rule(av, "[#7X2;R](#*)-*#*"))                return gaff::nc;
+            if (follows_rule(av, "[#7X2;R](:[#7])[#7]"))             return gaff::nc;
+            if (follows_rule(av, "[#7X2;R](:[#7])[#16X2]"))          return gaff::nc;
+            if (follows_rule(av, "[#7X2;R]([#7])[#7]"))              return gaff::nc;
+            if (follows_rule(av, "[#7X2;R]=[#6]([#7])[#7]"))         return gaff::nc;
+
+            // special ring cases
+            if (follows_rule(av, "[nX2r5]([#6])[#8,#16]")) return gaff::nc;
+            if (follows_rule(av, "[nX2r6](:[#6X3][NX3])([#6X3]=[O])")) return gaff::nd;
+            if (follows_rule(av, "[#7X2r5](:[#6])[#6]")) return gaff::nb;            
+
+            // SP2 and in a conjugated ring
+            if (follows_rule(av, "[#7X2;R](=[#7])[#16]")) return gaff::nd;
+            if (follows_rule(av, "[#7X2;R](:[#6])[#7]"))  return gaff::nd;
+            if (follows_rule(av, "[#7X2;R]=[#6][#7]"))    return gaff::nd;
+            if (follows_rule(av, "[#7X2;R]=[#6][#8]"))    return gaff::nd;
+            if (follows_rule(av, "[#7X2;R]=[#6][#16]"))   return gaff::nd;
+
+            // Label as aromatic (even if they are not technically)
+            if (follows_rule(av, "[#7X2;R](=*)=*"))    return gaff::nb;
+            if (follows_rule(av, "[#7X2;R](=*)(-*)"))  return gaff::nb;
+        }
+
+        if (av.is_aromatic())                             return gaff::nb;
+        if (follows_rule(av, "[#7X2](=[#7X2])-*"))        return gaff::n2;
+        if (follows_rule(av, "[#7X2](#*)-*"))             return gaff::n1;
+        if (follows_rule(av, "[#7X2](=[#7X2])(=[#7X2])")) return gaff::n1;
+        if (follows_rule(av, "[#7X2](=[#7X2]=[#7X2])"))   return gaff::n1;
+
+        return gaff::n2;
+    case 3:
+        // Nitro group
+        if (follows_rule(av, "[#7X3&H0](=O)=O"))          return gaff::no;
+        if (follows_rule(av, "[#7X3&H0](=O)-O"))          return gaff::no;
+
+        // Amides
+        if (follows_rule(av, "[#7X3r6]([#6X3]=[#8])([#6X3])[#6X4]"))      return gaff::n;
+        if (follows_rule(av, "[#7X3r6]([#6X3]=[#8])([#6X3])[#1]"))        return gaff::n;
+        if (follows_rule(av, "[#7X3r6]([#6X3]=[#8])([#6X3]=[#8])[#6X4]")) return gaff::n;
+        if (follows_rule(av, "[#7X3r6]([#6X3]=[#8])([#6X3]=[#8])[#1]"))   return gaff::n;
+        if (follows_rule(av, "[#7X3r5]([#6X3]=[#8])([#6X3])[#6X4]"))      return gaff::n;
+        if (follows_rule(av, "[#7X3r5]([#6X3]=[#8])([#6X3])[#1]"))        return gaff::n;
+        if (follows_rule(av, "[#7X3]-[CX3]=O"))                           return gaff::n;
+        if (follows_rule(av, "[#7X3]-[CX3]=S"))                           return gaff::n;
+
+        // Amines
+        if (follows_rule(av, "[#7X3H2]-[*r6;a]"))    return gaff::nh;
+        if (follows_rule(av, "[NX3]-[*R;a]"))        return gaff::nh;
+        if (follows_rule(av, "[#7X3H2]-[*R;a]"))     return gaff::nh;
+
+        // SP3 Nitrogen, strong evidence
+        if (follows_rule(av, "[#7X3r6]([#6])([#6])[#1]"))   return gaff::n3;
+
+        if (av.is_aromatic()) return gaff::na;
+
+        if (follows_rule(av, "[#7X3r5]([#6])([#6])[#1]"))   return gaff::n3;
+        if (follows_rule(av, "[#7X3r5]([#6])([#6])[#6]"))   return gaff::n3;
+        if (follows_rule(av, "[#7X3r6]([#6])([#6])[#1]"))   return gaff::n3;
+        if (follows_rule(av, "[#7X3r6]([#6])([#6])[#6]"))   return gaff::n3;
+
+        if (follows_rule(av, "[#7X3;R](-*)=*-*"))   return gaff::na;
+
+        return gaff::n3;
+    case 4:
+        return gaff::n4;
+    default: // no idea
+        return gaff:n4;
+    }
+}
+
 static size_t type_oxygen(const AtomVertex& av) {
     auto sssrs = av.sssrs();
     auto sssrs_count = std::distance(sssrs.first, sssrs.second);
@@ -150,6 +303,7 @@ static size_t type_sulfur(const AtomVertex& av) {
         // fall through
     case 5:
     case 6:
+    default: // no idea
         return gaff::s6;
     }
 }
@@ -160,6 +314,12 @@ size_t GAFF::add_atom(size_t new_idx) {
     // NEED TO RESIZE FIRST
 
     switch(av.atomic_number()) {
+    case Element::H:
+        atom_types_[new_idx] = type_hydrogens(mol[new_idx]);
+        break;
+    case Element::N:
+        atom_types_[new_idx] = type_hydrogens(mol[new_idx]);
+        break;
     case Element::O:
         atom_types_[new_idx] = type_oxygen(mol_[new_idx]);
         break;
