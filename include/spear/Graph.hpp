@@ -99,6 +99,10 @@ struct SPEAR_EXPORT Bonds {
         BondIterator(OutEdgeIterator be, const Molecule* br) :
             bindex_(be), br_(br) {}
 
+        const Molecule& br() const {
+            return *br_;
+        }
+
         bool operator==(const BondIterator& rhs) const;
 
         bool operator!=(const BondIterator& rhs) const;
@@ -147,6 +151,10 @@ class SPEAR_EXPORT AtomVertex {
 public:
 
     AtomVertex(const Molecule* br, VertexDescriptor index);
+
+    const Molecule& br() const {
+        return *br_;
+    }
 
     const std::string& name() const;
 
