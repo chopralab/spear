@@ -120,6 +120,31 @@ static size_t type_hydrogen(const AtomVertex& av) {
     return gaff::ha; // Must be conjugated somehow
 }
 
+static size_t type_carbon(const AtomVertex& av) {
+    auto sssrs = av.sssrs();
+    auto sssrs_count = std::distance(sssrs.first, sssrs.second);
+    switch(av.degree() + av.implicit_hydrogens()) {
+    case 1:
+        return gaff::c1;
+    case 2:
+        if (follows_rule(av, "[#6X2](#[#6])[#1]"))    return gaff::c1;
+        if (follows_rule(av, "[#6X2](#[#7])[#6X3]"))  return gaff::cg;
+        if (follows_rule(av, "[#6X2](#*)-*#*"))       return gaff::cg;
+        if (follows_rule(av, "[#6X2](#*)-*=*"))       return gaff::cg;
+        if (follows_rule(av, "[#6X2](=*)-*=*"))       return gaff::cg;
+        return gaff::c1;
+    case 3:
+        if (follows_rule(av, "[#6X3](N)(N)N"))        return gaff::cz;
+        
+        return gaff::c2;
+    case 4:
+        if (follows_rule(av, "[#6X4r6]([#6X3])([#6X3])[#6X4]")) return gaff::cc;
+        if (follows_rule(av, "[#6X4r4]"))                       return gaff::cy;
+        if (follows_rule(av, "[#6X4r3]"))                       return gaff::cx;
+        return gaff::c3;
+    }
+}
+
 static size_t type_nitrogen(const AtomVertex& av) {
     auto sssrs = av.sssrs();
     auto sssrs_count = std::distance(sssrs.first, sssrs.second);
@@ -202,7 +227,7 @@ static size_t type_nitrogen(const AtomVertex& av) {
     case 4:
         return gaff::n4;
     default: // no idea
-        return gaff:n4;
+        return gaff::n4;
     }
 }
 
@@ -315,10 +340,10 @@ size_t GAFF::add_atom(size_t new_idx) {
 
     switch(av.atomic_number()) {
     case Element::H:
-        atom_types_[new_idx] = type_hydrogens(mol[new_idx]);
+        atom_types_[new_idx] = type_hydrogen(mol_[new_idx]);
         break;
     case Element::N:
-        atom_types_[new_idx] = type_hydrogens(mol[new_idx]);
+        atom_types_[new_idx] = type_nitrogen(mol_[new_idx]);
         break;
     case Element::O:
         atom_types_[new_idx] = type_oxygen(mol_[new_idx]);
