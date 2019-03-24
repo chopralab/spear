@@ -26,6 +26,23 @@ enum gaff : uint64_t {
     Fr, Ra, Ac, Th, Pa, U,  Np, Pu, Am, Cm, Bk, Cf, Es, Fm, Md, No, Lr,
 };
 
+const char* const gaff_unmask[]{
+    "X", "DU",
+    "hc", "ha", "ho", "hn", "hs", "hp", "h1", "h2", "h3", "h4", "h5",
+    "c",  "ca", "c1", "c2", "c3", "cg", "cz", "ce", "cc", "cu", "cv", "cd", "cp", "cx", "cy",
+    "f",  "cl", "br", "i",
+    "p2", "p3", "pc", "pe", "pb", "px", "p4", "p5", "py",
+    "n",  "n1", "n2", "n3", "n4", "na", "nb", "nc", "nd", "ne", "nh", "no",
+    "o",  "os", "oh", "ow", 
+    "s",  "ss", "s2", "sh", "s4", "sx", "sy", "s6", 
+    "He", "Li", "Be", "B",  "Ne", "Na", "Mg", "Al", "Si", "Ar",
+    "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Kr",
+    "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "Xe",
+    "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu",
+          "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn",
+    "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr",
+};
+
 GAFF::GAFF(const Molecule& mol) : mol_(mol) {
     atom_types_.reserve(mol.size());
 
@@ -123,26 +140,126 @@ static size_t type_hydrogen(const AtomVertex& av) {
 static size_t type_carbon(const AtomVertex& av) {
     auto sssrs = av.sssrs();
     auto sssrs_count = std::distance(sssrs.first, sssrs.second);
+    size_t r = sssrs_count != 0? 10000 : 0;
+    for (auto riter = sssrs.first; riter != sssrs.second; ++riter) {
+        r = std::min(r, riter->second.size()); // ring size
+    }
     switch(av.degree() + av.implicit_hydrogens()) {
     case 1:
         return gaff::c1;
     case 2:
-        if (follows_rule(av, "[#6X2](#[#6])[#1]"))    return gaff::c1;
-        if (follows_rule(av, "[#6X2](#[#7])[#6X3]"))  return gaff::cg;
-        if (follows_rule(av, "[#6X2](#*)-*#*"))       return gaff::cg;
-        if (follows_rule(av, "[#6X2](#*)-*=*"))       return gaff::cg;
-        if (follows_rule(av, "[#6X2](=*)-*=*"))       return gaff::cg;
+        if (follows_rule(av, "[#6](#[#6])[#1]"))    return gaff::c1;
+        if (follows_rule(av, "[#6](#[#7])[#6X3]"))  return gaff::cg;
+        if (follows_rule(av, "[#6](#*)-*#*"))       return gaff::cg;
+        if (follows_rule(av, "[#6](#*)-*=*"))       return gaff::cg;
+        if (follows_rule(av, "[#6](=*)-*=*"))       return gaff::cg;
         return gaff::c1;
     case 3:
-        if (follows_rule(av, "[#6X3](N)(N)N"))        return gaff::cz;
-        
-        return gaff::c2;
+        switch (r) {
+        case 8:
+            if (follows_rule(av, "[#6]=*-*=*"))       return gaff::cc;
+            if (follows_rule(av, "[#6](=[#6])([#6])[#1]"))      return gaff::c2;
+            if (follows_rule(av, "[#6](=[#6]-*)(-[#6]=*)[#1]")) return gaff::cc;
+            break;
+        case 7:
+            if (follows_rule(av, "[#6]([#6X3]:[#6X3][#6X3]=[O])[#6X3][#1]")) return gaff::cc;
+            if (follows_rule(av, "[#6](:[#6X3][#6X3]=[O])[#6X3][#1]"))       return gaff::cc;
+            if (follows_rule(av, "[#6](:[#6X3])([#6X3]=[O])[#1]"))           return gaff::cc;
+            if (follows_rule(av, "[#6](=[#6][#15])([#6])[#1]"))              return gaff::cc;
+            if (follows_rule(av, "[#6](!:[#6])([#6]=[#6])"))                 return gaff::cc;
+            if (follows_rule(av, "[#6](=[#6X3])([#15X3])[#1]"))              return gaff::cc;
+            if (follows_rule(av, "[#6](=[#6][#15])([#6])[#1]"))              return gaff::cc;
+            if (follows_rule(av, "[#6][#6]=[#6]-[#15]"))                     return gaff::cc;
+            if (follows_rule(av, "[#6](=[#6])([#6])[#1]"))                   return gaff::c2;
+        case 6:
+            if (follows_rule(av, "[c]([nX3])([cX3][cX3]=O)"))                return gaff::cc;
+            if (follows_rule(av, "[c]([cX3]=O)"))                            return gaff::cd;
+            if (follows_rule(av, "[c](:[c][cX3][NX3])([nX3])"))              return gaff::cc;
+            if (follows_rule(av, "[c](:[c][nX3])([c][NX3])"))                return gaff::cd;
+            if (follows_rule(av, "[c](:[n][c]=[O])([NX3])[c]"))              return gaff::cd;
+            if (follows_rule(av, "[c]=O"))                                   return gaff::c;
+            if (follows_rule(av, "[c]([c][n])"))                               return gaff::ca;
+            if (follows_rule(av, "[c]n"))                                      return gaff::ca;
+            if (follows_rule(av, "[#6](=[#6X3][#6X3](=[O])[O])([#6X3]=[O])[#1]")) return gaff::cc;
+            if (follows_rule(av, "[#6](=[#6X3])([#6X3](=[O])[O])[#6X3]=[O]"))     return gaff::cc;
+            if (follows_rule(av, "[#6](=[#6X3][#7])([#6X3]=[#7])[#1]"))           return gaff::cc;
+            if (follows_rule(av, "[#6]([#6X4]-[#6X3])(=[#6X3]-[#8])[#1]"))        return gaff::c2;
+            if (follows_rule(av, "[#6](-[#6X4]-[#6X4])(=[#6X3]-[#8])[#1]"))       return gaff::c2;
+            if (follows_rule(av, "[#6](=[#6X3]-[F])([#6X4]-[#6X4])[#1]"))         return gaff::c2;
+            if (follows_rule(av, "[#6](=[#6X3][#6X4])([#6X3])[#1]"))              return gaff::c2;
+            if (follows_rule(av, "[#6]([#6X4])(=[#6X3]-[#6X3])[#1]"))             return gaff::c2;
+            if (follows_rule(av, "[#6](=[#6X3]-[#6X4])([#6X3]=[#8])[#1]"))        return gaff::c2;
+            if (follows_rule(av, "[#6](=[#6X3]-[#6X4])([#8]-[#6X3])[#1]"))        return gaff::c2;
+            if (follows_rule(av, "[#6](=[#6]-[#6X4])([#8]-[#6X4])[#1]"))          return gaff::c2;
+            if (follows_rule(av, "[#6](=[#6X3]-[#6X3]=[#8X1])([#6X3])[#1]"))      return gaff::cd;
+            if (follows_rule(av, "[#6](:[#6])([#6]@[#7])[#1]"))                   return gaff::cc;
+            if (follows_rule(av, "[#6](=[#6X3])([#6X3])[F]"))                     return gaff::ca;
+            if (follows_rule(av, "[#6](=[#6X3])([#6X3])[Cl]"))                    return gaff::ca;
+            if (follows_rule(av, "[#6](=[#6X3])([#6X3])[Br]"))                    return gaff::ca;
+            if (follows_rule(av, "[#6](=[#6X3])([#6X3])[I]"))                     return gaff::ca;
+            if (follows_rule(av, "[#6](=[#6X3])([#6X4])[#6X4]"))                  return gaff::c2;
+            if (follows_rule(av, "[#6](=[#6])([#6X4])[#1]"))                      return gaff::c2;
+            break;
+        }
+
+        if (follows_rule(av, "c-c"))                                              return gaff::cp;
+
+        switch (r) {
+        case 5:
+            if (follows_rule(av, "[#6]=O"))                                       return gaff::c;
+            if (follows_rule(av, "[#6]=S"))                                       return gaff::c;
+            if (follows_rule(av, "[#6](=[#6X3]-[#16X2])(-[#6X4]-[#6X4])[#1]"))    return gaff::c2;
+            if (follows_rule(av, "[#6](=[#6X3]-[#6X4])([#6X4]-[#6X4])[#1]"))      return gaff::c2;
+            if (follows_rule(av, "[#6](=[#6X3][#8X2])([#6X4]-[#6X3])[#1]"))       return gaff::c2;
+            if (follows_rule(av, "[#6](-[#6X3]=[#6X3])(=[#6X3]-[#6X4])[#1]"))     return gaff::cd;
+            if (follows_rule(av, "[#6]([#6X4])(=[#6X3]-[#8])[#1]"))               return gaff::c2;
+            if (follows_rule(av, "[#6](=[#6X3])(-[#6X4]-[#8])[#1]"))              return gaff::c2;
+            if (follows_rule(av, "[#6](-[#6X4])(=[#6X3]-[#6X3])[#1]"))            return gaff::cc;
+            if (follows_rule(av, "[#6](=[#6X3][#6X3]=[#8X1])[#6X3]"))             return gaff::cc;
+            if (follows_rule(av, "[#6](=[#6X3][#6X3])[#6X3]=[#8X1]"))             return gaff::cc;
+            if (follows_rule(av, "[#6](:[#6X3]-[#16X2])([#6X3])[#1]"))            return gaff::cd;
+            if (follows_rule(av, "[#6](:[#6X3])(-[#16X2])[#1]"))                  return gaff::cc;
+            if (follows_rule(av, "[#6](=[#6X3])(-[#6X3]=[#8X1])[#1]"))            return gaff::cc;
+            if (follows_rule(av, "[#6](=[#6])([#6])[#1]"))                        return gaff::c2;
+            if (follows_rule(av, "[#6](-[#6]=[#6]-[#6])"))                        return gaff::cc;
+            if (follows_rule(av, "[c][nX3]"))                                     return gaff::cc;
+            if (follows_rule(av, "[c][nX2]"))                                     return gaff::cd;
+            if (follows_rule(av, "[c]n"))                                         return gaff::cc;
+            if (follows_rule(av, "[c]o"))                                         return gaff::cc;
+            break;
+        case 4:
+            if (follows_rule(av, "[#6]=O"))                                       return gaff::c;
+            if (follows_rule(av, "[#6]-*=*-*"))                                   return gaff::cc;
+            if (follows_rule(av, "[#6]=*-*=*"))                                   return gaff::cc;
+            return gaff::c;
+        case 3:
+            if (follows_rule(av, "[#6]=O"))                                       return gaff::c;
+            return gaff::cu;
+        }
+
+        if (follows_rule(av, "[#6]=[OA]"))                                        return gaff::c;
+        if (follows_rule(av, "[#6]=[SA]"))                                        return gaff::c;
+
+        if (sssrs_count == 0) {
+            if (follows_rule(av, "[#6H](=*)-*~a"))                                return gaff::ce;
+            if (follows_rule(av, "[#6](=*)-*#*"))                                 return gaff::ce;
+            if (follows_rule(av, "[#6](=*)-*=*"))                                 return gaff::ce;
+            if (follows_rule(av, "[#6](=[#7])([#7])[#7]"))                        return gaff::cz;
+        } else {
+            if (follows_rule(av, "[#6](=*)-*#*"))                                 return gaff::cc;
+            if (follows_rule(av, "[#6](=*)-*=*"))                                 return gaff::ca;
+        }
+
+        return av.is_aromatic()? gaff::ca : gaff::c2;
     case 4:
-        if (follows_rule(av, "[#6X4r6]([#6X3])([#6X3])[#6X4]")) return gaff::cc;
-        if (follows_rule(av, "[#6X4r4]"))                       return gaff::cy;
-        if (follows_rule(av, "[#6X4r3]"))                       return gaff::cx;
+        if (follows_rule(av, "[#6r6]([#6X3])([#6X3])[#6X4]")) return gaff::cc;
+        if (follows_rule(av, "[#6r4]"))                       return gaff::cy;
+        if (follows_rule(av, "[#6r3]"))                       return gaff::cx;
         return gaff::c3;
     }
+
+    // No idea
+    return gaff::c3;
 }
 
 static size_t type_nitrogen(const AtomVertex& av) {
@@ -153,75 +270,74 @@ static size_t type_nitrogen(const AtomVertex& av) {
         return gaff::n1;
     case 2:
         if (sssrs_count == 0) {
-            if (follows_rule(av, "[#7X2;R0](#*)-*#*")) return gaff::ne;
-            if (follows_rule(av, "[#7X2;R0](=*)-*#*")) return gaff::ne;
-            if (follows_rule(av, "[#7X2;R0](=*)-*=*")) return gaff::ne;
+            if (follows_rule(av, "[#7](#*)-*#*")) return gaff::ne;
+            if (follows_rule(av, "[#7](=*)-*#*")) return gaff::ne;
+            if (follows_rule(av, "[#7](=*)-*=*")) return gaff::ne;
         } else {
-
-            if (follows_rule(av, "[#7X2;R](-[#7X3]-[#6X3])=[#6X3]")) return gaff::nc;
-            if (follows_rule(av, "[#7X2;R](=*)-*=*"))                return gaff::nc;
-            if (follows_rule(av, "[#7X2;R](=*)-*#*"))                return gaff::nc;
-            if (follows_rule(av, "[#7X2;R](#*)-*#*"))                return gaff::nc;
-            if (follows_rule(av, "[#7X2;R](:[#7])[#7]"))             return gaff::nc;
-            if (follows_rule(av, "[#7X2;R](:[#7])[#16X2]"))          return gaff::nc;
-            if (follows_rule(av, "[#7X2;R]([#7])[#7]"))              return gaff::nc;
-            if (follows_rule(av, "[#7X2;R]=[#6]([#7])[#7]"))         return gaff::nc;
+            if (follows_rule(av, "[#7](-[#7X3]-[#6X3])=[#6X3]")) return gaff::nc;
+            if (follows_rule(av, "[#7](=*)-*=*"))                return gaff::nc;
+            if (follows_rule(av, "[#7](=*)-*#*"))                return gaff::nc;
+            if (follows_rule(av, "[#7](#*)-*#*"))                return gaff::nc;
+            if (follows_rule(av, "[#7](:[#7])[#7]"))             return gaff::nc;
+            if (follows_rule(av, "[#7](:[#7])[#16X2]"))          return gaff::nc;
+            if (follows_rule(av, "[#7]([#7])[#7]"))              return gaff::nc;
+            if (follows_rule(av, "[#7]=[#6]([#7])[#7]"))         return gaff::nc;
 
             // special ring cases
-            if (follows_rule(av, "[nX2r5]([#6])[#8,#16]")) return gaff::nc;
-            if (follows_rule(av, "[nX2r6](:[#6X3][NX3])([#6X3]=[O])")) return gaff::nd;
-            if (follows_rule(av, "[#7X2r5](:[#6])[#6]")) return gaff::nb;            
+            if (follows_rule(av, "[nr5]([#6])[#8,#16]")) return gaff::nc;
+            if (follows_rule(av, "[nr6](:[#6X3][NX3])([#6X3]=[O])")) return gaff::nd;
+            if (follows_rule(av, "[#7r5](:[#6])[#6]")) return gaff::nb;            
 
             // SP2 and in a conjugated ring
-            if (follows_rule(av, "[#7X2;R](=[#7])[#16]")) return gaff::nd;
-            if (follows_rule(av, "[#7X2;R](:[#6])[#7]"))  return gaff::nd;
-            if (follows_rule(av, "[#7X2;R]=[#6][#7]"))    return gaff::nd;
-            if (follows_rule(av, "[#7X2;R]=[#6][#8]"))    return gaff::nd;
-            if (follows_rule(av, "[#7X2;R]=[#6][#16]"))   return gaff::nd;
+            if (follows_rule(av, "[#7](=[#7])[#16]")) return gaff::nd;
+            if (follows_rule(av, "[#7](:[#6])[#7]"))  return gaff::nd;
+            if (follows_rule(av, "[#7]=[#6][#7]"))    return gaff::nd;
+            if (follows_rule(av, "[#7]=[#6][#8]"))    return gaff::nd;
+            if (follows_rule(av, "[#7]=[#6][#16]"))   return gaff::nd;
 
             // Label as aromatic (even if they are not technically)
-            if (follows_rule(av, "[#7X2;R](=*)=*"))    return gaff::nb;
-            if (follows_rule(av, "[#7X2;R](=*)(-*)"))  return gaff::nb;
+            if (follows_rule(av, "[#7](=*)=*"))    return gaff::nb;
+            if (follows_rule(av, "[#7](=*)(-*)"))  return gaff::nb;
         }
 
         if (av.is_aromatic())                             return gaff::nb;
-        if (follows_rule(av, "[#7X2](=[#7X2])-*"))        return gaff::n2;
-        if (follows_rule(av, "[#7X2](#*)-*"))             return gaff::n1;
-        if (follows_rule(av, "[#7X2](=[#7X2])(=[#7X2])")) return gaff::n1;
-        if (follows_rule(av, "[#7X2](=[#7X2]=[#7X2])"))   return gaff::n1;
+        if (follows_rule(av, "[#7](=[#7X2])-*"))        return gaff::n2;
+        if (follows_rule(av, "[#7](#*)-*"))             return gaff::n1;
+        if (follows_rule(av, "[#7](=[#7X2])(=[#7X2])")) return gaff::n1;
+        if (follows_rule(av, "[#7](=[#7X2]=[#7X2])"))   return gaff::n1;
 
         return gaff::n2;
     case 3:
         // Nitro group
-        if (follows_rule(av, "[#7X3&H0](=O)=O"))          return gaff::no;
-        if (follows_rule(av, "[#7X3&H0](=O)-O"))          return gaff::no;
+        if (follows_rule(av, "[#7H0](=O)=O"))          return gaff::no;
+        if (follows_rule(av, "[#7H0](=O)-O"))          return gaff::no;
 
         // Amides
-        if (follows_rule(av, "[#7X3r6]([#6X3]=[#8])([#6X3])[#6X4]"))      return gaff::n;
-        if (follows_rule(av, "[#7X3r6]([#6X3]=[#8])([#6X3])[#1]"))        return gaff::n;
-        if (follows_rule(av, "[#7X3r6]([#6X3]=[#8])([#6X3]=[#8])[#6X4]")) return gaff::n;
-        if (follows_rule(av, "[#7X3r6]([#6X3]=[#8])([#6X3]=[#8])[#1]"))   return gaff::n;
-        if (follows_rule(av, "[#7X3r5]([#6X3]=[#8])([#6X3])[#6X4]"))      return gaff::n;
-        if (follows_rule(av, "[#7X3r5]([#6X3]=[#8])([#6X3])[#1]"))        return gaff::n;
-        if (follows_rule(av, "[#7X3]-[CX3]=O"))                           return gaff::n;
-        if (follows_rule(av, "[#7X3]-[CX3]=S"))                           return gaff::n;
+        if (follows_rule(av, "[#7r6]([#6X3]=[#8])([#6X3])[#6X4]"))      return gaff::n;
+        if (follows_rule(av, "[#7r6]([#6X3]=[#8])([#6X3])[#1]"))        return gaff::n;
+        if (follows_rule(av, "[#7r6]([#6X3]=[#8])([#6X3]=[#8])[#6X4]")) return gaff::n;
+        if (follows_rule(av, "[#7r6]([#6X3]=[#8])([#6X3]=[#8])[#1]"))   return gaff::n;
+        if (follows_rule(av, "[#7r5]([#6X3]=[#8])([#6X3])[#6X4]"))      return gaff::n;
+        if (follows_rule(av, "[#7r5]([#6X3]=[#8])([#6X3])[#1]"))        return gaff::n;
+        if (follows_rule(av, "[#7]-[CX3]=[OA]"))                        return gaff::n;
+        if (follows_rule(av, "[#7]-[CX3]=[SA]"))                        return gaff::n;
 
         // Amines
-        if (follows_rule(av, "[#7X3H2]-[*r6;a]"))    return gaff::nh;
-        if (follows_rule(av, "[NX3]-[*R;a]"))        return gaff::nh;
-        if (follows_rule(av, "[#7X3H2]-[*R;a]"))     return gaff::nh;
+        if (follows_rule(av, "[#7H2]-[*r6;a]"))    return gaff::nh;
+        if (follows_rule(av, "[NA]-[*R;a]"))       return gaff::nh;
+        if (follows_rule(av, "[#7H2]-[*R;a]"))     return gaff::nh;
 
         // SP3 Nitrogen, strong evidence
-        if (follows_rule(av, "[#7X3r6]([#6])([#6])[#1]"))   return gaff::n3;
+        if (follows_rule(av, "[#7r6]([#6])([#6])[#1]"))   return gaff::n3;
 
         if (av.is_aromatic()) return gaff::na;
 
-        if (follows_rule(av, "[#7X3r5]([#6])([#6])[#1]"))   return gaff::n3;
-        if (follows_rule(av, "[#7X3r5]([#6])([#6])[#6]"))   return gaff::n3;
-        if (follows_rule(av, "[#7X3r6]([#6])([#6])[#1]"))   return gaff::n3;
-        if (follows_rule(av, "[#7X3r6]([#6])([#6])[#6]"))   return gaff::n3;
+        if (follows_rule(av, "[#7r5]([#6])([#6])[#1]"))   return gaff::n3;
+        if (follows_rule(av, "[#7r5]([#6])([#6])[#6]"))   return gaff::n3;
+        if (follows_rule(av, "[#7r6]([#6])([#6])[#1]"))   return gaff::n3;
+        if (follows_rule(av, "[#7r6]([#6])([#6])[#6]"))   return gaff::n3;
 
-        if (follows_rule(av, "[#7X3;R](-*)=*-*"))   return gaff::na;
+        if (follows_rule(av, "[#7;R](-*)=*-*"))   return gaff::na;
 
         return gaff::n3;
     case 4:
@@ -336,11 +452,16 @@ static size_t type_sulfur(const AtomVertex& av) {
 size_t GAFF::add_atom(size_t new_idx) {
     auto av = mol_[new_idx];
 
-    // NEED TO RESIZE FIRST
+    if (new_idx >= atom_types_.size()) {
+        atom_types_.resize(new_idx + 1);
+    }
 
     switch(av.atomic_number()) {
     case Element::H:
         atom_types_[new_idx] = type_hydrogen(mol_[new_idx]);
+        break;
+    case Element::C:
+        atom_types_[new_idx] = type_carbon(mol_[new_idx]);
         break;
     case Element::N:
         atom_types_[new_idx] = type_nitrogen(mol_[new_idx]);
@@ -375,6 +496,7 @@ void GAFF::add_bond(size_t idx1, size_t idx2, Bond::Order bo) {
 }
 
 template<> std::string atomtype_name_for_id<GAFF>(size_t id) {
+    return gaff_unmask[id];
 }
 
 template<> size_t atomtype_id_for_name<GAFF>(std::string name) {
