@@ -140,9 +140,9 @@ static size_t type_hydrogen(const AtomVertex& av) {
 static size_t type_carbon(const AtomVertex& av) {
     auto sssrs = av.sssrs();
     auto sssrs_count = std::distance(sssrs.first, sssrs.second);
-    size_t r = sssrs_count != 0? 10000 : 0;
+    std::set<size_t> r;
     for (auto riter = sssrs.first; riter != sssrs.second; ++riter) {
-        r = std::min(r, riter->second.size()); // ring size
+        r.insert(riter->second.size()); // ring size
     }
     switch(av.degree() + av.implicit_hydrogens()) {
     case 1:
@@ -155,13 +155,12 @@ static size_t type_carbon(const AtomVertex& av) {
         if (follows_rule(av, "[#6](=*)-*=*"))       return gaff::cg;
         return gaff::c1;
     case 3:
-        switch (r) {
-        case 8:
+        if(r.count(8)) {
             if (follows_rule(av, "[#6]=*-*=*"))       return gaff::cc;
             if (follows_rule(av, "[#6](=[#6])([#6])[#1]"))      return gaff::c2;
             if (follows_rule(av, "[#6](=[#6]-*)(-[#6]=*)[#1]")) return gaff::cc;
-            break;
-        case 7:
+        }
+        if(r.count(7)) {
             if (follows_rule(av, "[#6]([#6X3]:[#6X3][#6X3]=[O])[#6X3][#1]")) return gaff::cc;
             if (follows_rule(av, "[#6](:[#6X3][#6X3]=[O])[#6X3][#1]"))       return gaff::cc;
             if (follows_rule(av, "[#6](:[#6X3])([#6X3]=[O])[#1]"))           return gaff::cc;
@@ -171,15 +170,16 @@ static size_t type_carbon(const AtomVertex& av) {
             if (follows_rule(av, "[#6](=[#6][#15])([#6])[#1]"))              return gaff::cc;
             if (follows_rule(av, "[#6][#6]=[#6]-[#15]"))                     return gaff::cc;
             if (follows_rule(av, "[#6](=[#6])([#6])[#1]"))                   return gaff::c2;
-        case 6:
-            if (follows_rule(av, "[c]([nX3])([cX3][cX3]=O)"))                return gaff::cc;
-            if (follows_rule(av, "[c]([cX3]=O)"))                            return gaff::cd;
-            if (follows_rule(av, "[c](:[c][cX3][NX3])([nX3])"))              return gaff::cc;
-            if (follows_rule(av, "[c](:[c][nX3])([c][NX3])"))                return gaff::cd;
-            if (follows_rule(av, "[c](:[n][c]=[O])([NX3])[c]"))              return gaff::cd;
-            if (follows_rule(av, "[c]=O"))                                   return gaff::c;
-            if (follows_rule(av, "[c]([c][n])"))                               return gaff::ca;
-            if (follows_rule(av, "[c]n"))                                      return gaff::ca;
+        }
+        if(r.count(6)) {
+            if (follows_rule(av, "c([nX3])([cX3][cX3]=O)"))                       return gaff::cc;
+            if (follows_rule(av, "c([cX3]=O)"))                                   return gaff::cd;
+            if (follows_rule(av, "c(:[c][cX3][NX3A])([nX3])"))                    return gaff::cc;
+            if (follows_rule(av, "c(:[c][nX3])([c][NX3A])"))                      return gaff::cd;
+            if (follows_rule(av, "c(:nc=[OA])([NX3A])c"))                         return gaff::cd;
+            if (follows_rule(av, "c=O"))                                          return gaff::c;
+            if (follows_rule(av, "ccn"))                                          return gaff::ca;
+            if (follows_rule(av, "cn"))                                           return gaff::ca;
             if (follows_rule(av, "[#6](=[#6X3][#6X3](=[O])[O])([#6X3]=[O])[#1]")) return gaff::cc;
             if (follows_rule(av, "[#6](=[#6X3])([#6X3](=[O])[O])[#6X3]=[O]"))     return gaff::cc;
             if (follows_rule(av, "[#6](=[#6X3][#7])([#6X3]=[#7])[#1]"))           return gaff::cc;
@@ -192,20 +192,18 @@ static size_t type_carbon(const AtomVertex& av) {
             if (follows_rule(av, "[#6](=[#6X3]-[#6X4])([#8]-[#6X3])[#1]"))        return gaff::c2;
             if (follows_rule(av, "[#6](=[#6]-[#6X4])([#8]-[#6X4])[#1]"))          return gaff::c2;
             if (follows_rule(av, "[#6](=[#6X3]-[#6X3]=[#8X1])([#6X3])[#1]"))      return gaff::cd;
-            if (follows_rule(av, "[#6](:[#6])([#6]@[#7])[#1]"))                   return gaff::cc;
+            //if (follows_rule(av, "[#6](:[#6])([#6]@[#7])[#1]"))                   return gaff::cc; Needs to be fixed
             if (follows_rule(av, "[#6](=[#6X3])([#6X3])[F]"))                     return gaff::ca;
             if (follows_rule(av, "[#6](=[#6X3])([#6X3])[Cl]"))                    return gaff::ca;
             if (follows_rule(av, "[#6](=[#6X3])([#6X3])[Br]"))                    return gaff::ca;
             if (follows_rule(av, "[#6](=[#6X3])([#6X3])[I]"))                     return gaff::ca;
             if (follows_rule(av, "[#6](=[#6X3])([#6X4])[#6X4]"))                  return gaff::c2;
             if (follows_rule(av, "[#6](=[#6])([#6X4])[#1]"))                      return gaff::c2;
-            break;
         }
 
         if (follows_rule(av, "c-c"))                                              return gaff::cp;
 
-        switch (r) {
-        case 5:
+        if (r.count(5)) {
             if (follows_rule(av, "[#6]=O"))                                       return gaff::c;
             if (follows_rule(av, "[#6]=S"))                                       return gaff::c;
             if (follows_rule(av, "[#6](=[#6X3]-[#16X2])(-[#6X4]-[#6X4])[#1]"))    return gaff::c2;
@@ -226,13 +224,14 @@ static size_t type_carbon(const AtomVertex& av) {
             if (follows_rule(av, "[c][nX2]"))                                     return gaff::cd;
             if (follows_rule(av, "[c]n"))                                         return gaff::cc;
             if (follows_rule(av, "[c]o"))                                         return gaff::cc;
-            break;
-        case 4:
+        }
+        if (r.count(4)) {
             if (follows_rule(av, "[#6]=O"))                                       return gaff::c;
             if (follows_rule(av, "[#6]-*=*-*"))                                   return gaff::cc;
             if (follows_rule(av, "[#6]=*-*=*"))                                   return gaff::cc;
             return gaff::c;
-        case 3:
+        }
+        if (r.count(3)) {
             if (follows_rule(av, "[#6]=O"))                                       return gaff::c;
             return gaff::cu;
         }
@@ -256,10 +255,9 @@ static size_t type_carbon(const AtomVertex& av) {
         if (follows_rule(av, "[#6r4]"))                       return gaff::cy;
         if (follows_rule(av, "[#6r3]"))                       return gaff::cx;
         return gaff::c3;
+    default: // No idea
+        return gaff::c3;
     }
-
-    // No idea
-    return gaff::c3;
 }
 
 static size_t type_nitrogen(const AtomVertex& av) {
@@ -438,7 +436,7 @@ static size_t type_sulfur(const AtomVertex& av) {
         if (follows_rule(av, "[SX3](=*)-*=*"))   return gaff::sx;
         if (follows_rule(av, "[SX3](=*)-*#*"))   return gaff::sx;
         return gaff::s4;
-    case 4: // check for sulfoxides and sulfates
+    case 4: // check for conjugation
         if (follows_rule(av, "[SX4](=*)-*=*"))   return gaff::sy;
         if (follows_rule(av, "[SX4](=*)-*#*"))   return gaff::sy;
         // fall through
