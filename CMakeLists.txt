@@ -76,9 +76,8 @@ else()
     include(InstallChemfiles)
 endif()
 
-set(Boost_USE_STATIC_LIBS        ON)
 set(Boost_USE_MULTITHREADED      ON)
-find_package(Boost REQUIRED COMPONENTS graph filesystem program_options)
+find_package(Boost REQUIRED COMPONENTS graph filesystem)
 find_package(Eigen3 REQUIRED)
 
 file(GLOB_RECURSE SPEAR_objects_sources src/**.cpp)

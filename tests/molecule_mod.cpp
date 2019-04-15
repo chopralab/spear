@@ -3,6 +3,11 @@
 #include "spear/Graph_impl.hpp"
 #include "spear/Geometry.hpp"
 
+#ifndef M_PI
+static const auto M_PI = std::acos(0.0) * 2;
+#endif 
+
+
 #include "chemfiles.hpp"
 #include <utility>
 

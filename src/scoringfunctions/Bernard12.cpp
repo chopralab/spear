@@ -5,6 +5,10 @@
 #include "spear/Grid.hpp"
 #include "spear/Molecule_impl.hpp"
 
+#ifndef M_PI
+static const auto M_PI = std::acos(0.0) * 2.0;
+#endif
+
 using namespace Spear;
 
 Bernard12::Bernard12(Options opt, double cutoff,

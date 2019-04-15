@@ -29,18 +29,34 @@ endfunction()
 function(spear_cpp_test _file_)
     get_filename_component(_name_ ${_file_} NAME_WE)
     spear_unit_test(${_name_} ${_file_})
-    target_link_libraries(${_name_} spear chemfiles)
+	if (MSVC)
+		target_link_libraries(${_name_} spear chemfiles ws2_32)
+	else()
+		target_link_libraries(${_name_} spear chemfiles)
+	endif()
 endfunction()
 
-execute_process(
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_BINARY_DIR}/share share
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-)
+if (NOT MSVC)
+	execute_process(
+		COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_BINARY_DIR}/share share
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	)
 
-execute_process(
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/data data
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-)
+	execute_process(
+		COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/data data
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	)
+else()
+	execute_process(
+		COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/share share
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	)
+
+	execute_process(
+		COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/data data
+		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	)
+endif()
 
 file(GLOB all_test_files
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp

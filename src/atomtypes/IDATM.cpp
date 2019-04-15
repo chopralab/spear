@@ -1341,7 +1341,7 @@ template<> size_t Spear::atomtype_id_for_name<IDATM>(std::string name) {
     return idatm_mask.at(name);
 }
 
-template<> size_t atomtype_id_count<IDATM>() {
+template<> size_t Spear::atomtype_id_count<IDATM>() {
     assert(idatm_mask.size() == idatm::unk + 1);
     assert(idatm_mask.size() == sizeof(idatm_unmask) / sizeof(char*));
     return idatm_mask.size();

@@ -41,7 +41,7 @@ public:
     bool is_planar(size_t atom_id) const override;
 
     Hybridization hybridization(size_t atom_id) const override {
-        
+		return Hybridization::FORCED;
     }
 
     std::vector<size_t>::const_iterator cbegin() const override {

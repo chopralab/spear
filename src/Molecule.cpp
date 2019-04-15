@@ -8,6 +8,10 @@
 #include "spear/AtomType.hpp"
 #include "spear/atomtypes/Default.hpp"
 
+#ifndef M_PI
+static const auto M_PI = std::acos(0.0) * 2;
+#endif
+
 using Eigen::Vector3d;
 
 using namespace Spear;

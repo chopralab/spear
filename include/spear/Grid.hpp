@@ -46,9 +46,22 @@ struct SPEAR_EXPORT GridPoint : public std::array<uint64_t, 3> {
         (*this)[2] = static_cast<uint64_t>(zcrd);
     }
 
+	friend size_t hash_value(const GridPoint& p) {
+		size_t seed = 0;
+		boost::hash_combine(seed, p[0]);
+		boost::hash_combine(seed, p[1]);
+		boost::hash_combine(seed, p[2]);
+
+		return seed;
+	}
+
     GridPoint(uint64_t i, uint64_t j, uint64_t k)
         : std::array<uint64_t, 3>({i, j, k}) {}
 };
+
+inline bool operator==(const GridPoint& a, const GridPoint& b) {
+	return a[0] == b[0] && a[1] == b[1] && a[2] == b[2];
+}
 
 class SPEAR_EXPORT Grid {
     constexpr static auto eps = std::numeric_limits<double>::epsilon();

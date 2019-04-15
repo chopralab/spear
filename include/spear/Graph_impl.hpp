@@ -37,6 +37,7 @@ inline bool Neighbors::NeighborIterator::operator!=(const NeighborIterator& rhs)
 
 inline Neighbors::NeighborIterator& Neighbors::NeighborIterator::operator++() {
     index_++;
+	return *this;
 }
 
 inline Neighbors::NeighborIterator Neighbors::NeighborIterator::operator++(int) {
@@ -64,6 +65,7 @@ inline bool Bonds::BondIterator::operator!=(const BondIterator& rhs) const {
 
 inline Bonds::BondIterator& Bonds::BondIterator::operator++() {
    bindex_++;
+   return *this;
 }
 
 inline Bonds::BondIterator Bonds::BondIterator::operator++(int) {

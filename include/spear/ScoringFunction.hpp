@@ -4,6 +4,7 @@
 #define SPEAR_SCORINGFUNCTION_HPP
 
 #include <functional>   // std::bad_function_call
+#include <string>
 
 #include "spear/exports.hpp"
 

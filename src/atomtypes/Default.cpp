@@ -193,18 +193,18 @@ void Default::add_bond(size_t idx1, size_t idx2, Bond::Order bo) {
     }
 }
 
-template<> std::string atomtype_name_for_id<Default>(size_t id) {
+template<> std::string Spear::atomtype_name_for_id<Default>(size_t id) {
     return Element::Name[id];
 }
 
-template<> size_t atomtype_id_for_name<Default>(std::string name) {
+template<> size_t Spear::atomtype_id_for_name<Default>(std::string name) {
     return Element::SymbolForName.at(name);
 }
 
-template<> size_t atomtype_id_count<Default>() {
+template<> size_t Spear::atomtype_id_count<Default>() {
     return 119; // Includes lone-pair
 }
 
-template<> double van_der_waals<Default>(size_t id) {
+template<> double Spear::van_der_waals<Default>(size_t id) {
     return 0.0;
 }

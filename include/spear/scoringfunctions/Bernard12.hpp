@@ -9,7 +9,7 @@
 
 namespace Spear {
 
-class AtomicDistributions;
+struct AtomicDistributions;
 
 class SPEAR_EXPORT Bernard12 : public ScoringFunction {
 public:

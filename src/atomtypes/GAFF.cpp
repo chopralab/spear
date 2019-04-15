@@ -52,9 +52,11 @@ GAFF::GAFF(const Molecule& mol) : mol_(mol) {
 }
 
 bool GAFF::is_aromatic(size_t atom_id) const {
+	return false;
 }
 
 bool GAFF::is_planar(size_t atom_id) const {
+	return false;
 }
 
 static bool follows_rule(const AtomVertex& vert, const std::string& rule) {
@@ -493,15 +495,18 @@ size_t GAFF::add_atom(size_t new_idx) {
 void GAFF::add_bond(size_t idx1, size_t idx2, Bond::Order bo) {
 }
 
-template<> std::string atomtype_name_for_id<GAFF>(size_t id) {
+template<> std::string Spear::atomtype_name_for_id<GAFF>(size_t id) {
     return gaff_unmask[id];
 }
 
-template<> size_t atomtype_id_for_name<GAFF>(std::string name) {
+template<> size_t Spear::atomtype_id_for_name<GAFF>(std::string name) {
+	return 0;
 }
 
-template<> size_t atomtype_id_count<GAFF>() {
+template<> size_t Spear::atomtype_id_count<GAFF>() {
+	return gaff::Lr;
 }
 
-template<> double van_der_waals<GAFF>(size_t id) {
+template<> double Spear::van_der_waals<GAFF>(size_t id) {
+	return 0.0;
 }

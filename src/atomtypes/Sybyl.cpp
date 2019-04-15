@@ -509,7 +509,7 @@ template<> size_t Spear::atomtype_id_for_name<Sybyl>(std::string name) {
     return sybyl_mask.at(name);
 }
 
-template<> size_t atomtype_id_count<Sybyl>() {
+template<> size_t Spear::atomtype_id_count<Sybyl>() {
     assert(sybyl_mask.size() == sybyl::Du + 1);
     assert(sybyl_mask.size() == sizeof(sybyl_unmask) / sizeof(char*));
     return sybyl_mask.size();
