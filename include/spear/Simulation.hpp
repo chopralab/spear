@@ -35,6 +35,9 @@ public:
     /// class.
     virtual bool add_molecule(const Molecule& mol, const Forcefield& ff);
 
+    /// Adds a Langevin integrator
+    virtual void add_langevin(double temperature, double friction, double stepsize);
+
     /// Initializes the context of the simulation and prepares it for further
     /// operations.
     virtual void initialize_context();

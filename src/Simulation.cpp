@@ -36,6 +36,10 @@ bool Simulation::add_molecule(const Molecule& mol, const Forcefield& ff) {
     return true;
 }
 
+void Simulation::add_langevin(double temperature, double friction, double stepsize) {
+    integrator_ = std::make_unique<OpenMM::LangevinIntegrator>(temperature, friction, stepsize);
+}
+
 void Simulation::initialize_context() {
 
     // Do nothing if everything is already initialized
