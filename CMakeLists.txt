@@ -79,6 +79,7 @@ endif()
 set(Boost_USE_MULTITHREADED      ON)
 find_package(Boost REQUIRED COMPONENTS graph filesystem)
 find_package(Eigen3 REQUIRED)
+find_package(OpenMM REQUIRED)
 
 file(GLOB_RECURSE SPEAR_objects_sources src/**.cpp)
 add_library(spear ${SPEAR_objects_sources})
@@ -90,6 +91,7 @@ target_include_directories(spear PUBLIC
 
 target_link_libraries(spear PUBLIC
     Boost::graph
+    OPENMM::openmm
     chemfiles
 )
 
