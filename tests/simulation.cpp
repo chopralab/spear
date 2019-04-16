@@ -160,3 +160,138 @@ TEST_CASE("NaCl") {
         traj.write(start);
     }
 }
+
+class EthaneSystem : public Spear::Forcefield {
+public:
+    virtual void add_forces(const Spear::Molecule& mol,
+                            OpenMM::System& system) const override {
+
+        auto* nonbond = new OpenMM::NonbondedForce();
+        system.addForce(nonbond);
+
+        const double sigma_h   = 1.4870 * OpenMM::NmPerAngstrom * OpenMM::SigmaPerVdwRadius;
+        const double epsilon_h = 0.0157 * OpenMM::KJPerKcal;
+
+        const double sigma_c   = 1.9080 * OpenMM::NmPerAngstrom * OpenMM::SigmaPerVdwRadius;
+        const double epsilon_c = 0.1094 * OpenMM::KJPerKcal;
+
+        for (auto av : mol) {
+            if (av.atomic_number() == Spear::Element::H) {
+                nonbond->addParticle(0.0605, sigma_h, epsilon_h);
+            }
+
+            if (av.atomic_number() == Spear::Element::C) {
+                nonbond->addParticle(-.1815, sigma_c, epsilon_c);
+            }
+        }
+
+        auto* hbond = new OpenMM::HarmonicBondForce();
+        system.addForce(hbond);
+
+        std::vector<std::pair<int,int>> bonds;
+
+        for (auto bond : mol.frame().topology().bonds()) {
+            bonds.push_back(std::make_pair(static_cast<size_t>(bond[0]),
+                                           static_cast<size_t>(bond[1])
+            ));
+            if (mol[bond[0]].atomic_number() == Spear::Element::C &&
+                mol[bond[1]].atomic_number() == Spear::Element::C) {
+                hbond->addBond(bond[0], bond[1],
+                               1.526 * OpenMM::NmPerAngstrom,
+                               310.0 * 2 * OpenMM::KJPerKcal *
+                               OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm
+                );
+            }
+
+            if (mol[bond[0]].atomic_number() == Spear::Element::C &&
+                mol[bond[1]].atomic_number() == Spear::Element::H) {
+                hbond->addBond(bond[0], bond[1],
+                               1.09 * OpenMM::NmPerAngstrom,
+                               340.0 * 2 * OpenMM::KJPerKcal *
+                               OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm
+                );
+            }
+        }
+
+        nonbond->createExceptionsFromBonds(bonds, 0.5, 0.5);
+
+        auto* hangle = new OpenMM::HarmonicAngleForce();
+        system.addForce(hangle);
+
+        for (auto angle : mol.frame().topology().angles()) {
+            if (mol[angle[0]].atomic_number() == Spear::Element::C &&
+                mol[angle[2]].atomic_number() == Spear::Element::H) {
+                hangle->addAngle(angle[0], angle[1], angle[2],
+                                 109.5 * OpenMM::RadiansPerDegree,
+                                 50.0 * 2 * OpenMM::KJPerKcal
+                );
+            }
+
+            if (mol[angle[0]].atomic_number() == Spear::Element::H &&
+                mol[angle[2]].atomic_number() == Spear::Element::H) {
+                hangle->addAngle(angle[0], angle[1], angle[2],
+                                 109.5 * OpenMM::RadiansPerDegree,
+                                 35.0 * 2 * OpenMM::KJPerKcal
+                );
+            }
+        }
+
+        auto* torsion = new OpenMM::PeriodicTorsionForce();
+        system.addForce(torsion);
+
+        for (auto dihedral : mol.frame().topology().dihedrals()) {
+            torsion->addTorsion(dihedral[0], dihedral[1], dihedral[2], dihedral[3],
+                3, 0 * OpenMM::RadiansPerDegree, 0.150 * OpenMM::KJPerKcal
+            );
+        }
+    }
+
+    virtual std::vector<double> masses(const Spear::Molecule& mol) const override {
+        std::vector<double> ret;
+        ret.reserve(mol.size());
+        for (auto av : mol) {
+            if (av.atomic_number() == Spear::Element::H) {
+                ret.push_back( 1.008);
+            }
+
+            if (av.atomic_number() == Spear::Element::C) {
+                ret.push_back(12.011);
+            }
+        }
+        return ret;
+    }
+};
+
+TEST_CASE("Ethane") {
+    chemfiles::Frame start;
+    start.add_atom(chemfiles::Atom("C"), { -.7605,   0,   0});
+    start.add_atom(chemfiles::Atom("C"), {  .7605,   0,   0});
+    start.add_atom(chemfiles::Atom("H"), {-1.135, 1.03,   0});
+    start.add_atom(chemfiles::Atom("H"), {-1.135, -.51, .89});
+    start.add_atom(chemfiles::Atom("H"), {-1.135, -.51,-.89});
+    start.add_atom(chemfiles::Atom("H"), { 1.135, 1.03,   0});
+    start.add_atom(chemfiles::Atom("H"), { 1.135, -.51, .89});
+    start.add_atom(chemfiles::Atom("H"), { 1.135, -.51,-.89});
+    start.add_bond(0, 1);
+    start.add_bond(0, 2);
+    start.add_bond(0, 3);
+    start.add_bond(0, 4);
+    start.add_bond(1, 5);
+    start.add_bond(1, 6);
+    start.add_bond(1, 7);
+    auto mol = Spear::Molecule(std::move(start.clone()));
+
+    Spear::Simulation sim;
+    EthaneSystem eth;
+    sim.add_molecule(mol, eth);
+    chemfiles::Trajectory traj("ethane.xyz.gz", 'w');
+    auto pos = sim.positions();
+    traj.write(start);
+
+    while (sim.time() <= 100.0) {
+        sim.dynamic_steps(100);
+        pos = sim.positions();
+        update_chfl_frame(start, pos);
+        traj.write(start);
+    }
+}

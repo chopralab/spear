@@ -12,6 +12,9 @@ Simulation::Simulation() : system_(new OpenMM::System) {
 }
 
 Simulation::~Simulation() {
+    context_ = nullptr;
+    integrator_ = nullptr;
+    system_ = nullptr;
 }
 
 bool Simulation::add_molecule(const Molecule& mol, const Forcefield& ff) {
@@ -106,13 +109,13 @@ double Simulation::kinetic_energy() {
     return state.getKineticEnergy();
 }
 
-std::vector<Eigen::Vector3d> convert_to_eigen(const std::vector<OpenMM::Vec3>& vec) {
+static std::vector<Eigen::Vector3d> convert_to_eigen(const std::vector<OpenMM::Vec3>& vec) {
     std::vector<Eigen::Vector3d> ret;
     ret.reserve(vec.size());
     for (auto current : vec) {
-        ret.push_back({ current[0] / OpenMM::NmPerAngstrom,
-                        current[1] / OpenMM::NmPerAngstrom,
-                        current[2] / OpenMM::NmPerAngstrom
+        ret.push_back({ current[0] * OpenMM::AngstromsPerNm,
+                        current[1] * OpenMM::AngstromsPerNm,
+                        current[2] * OpenMM::AngstromsPerNm
         });
     }
 
