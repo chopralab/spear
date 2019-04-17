@@ -167,7 +167,7 @@ const std::map<Element::Symbol, std::map<Bond::Order, size_t>> bond_maps = {
 };
 
 static bool check_dihedrals_for_planarity(const Molecule& mol, const std::set<size_t>& ring) {
-    auto& dihedrals = mol.frame().topology().dihedrals();
+    auto& dihedrals = mol.topology().dihedrals();
     // test dihedral angles
     for (const auto& d : dihedrals) {
 
@@ -232,7 +232,7 @@ static size_t freeOxygens(const Spear::AtomVertex& atom,
                           const std::vector<size_t>& heavys) {
     size_t freeOxygens = 0;
     for (auto neighbor : atom.neighbors()) {
-        if (neighbor.type() == "O" && heavys[neighbor] == 1) {
+        if (neighbor.atomic_number() == Element::O && heavys[neighbor] == 1) {
             ++freeOxygens;
         }
     }
@@ -366,8 +366,8 @@ void IDATM::infallible_() {
                 }
             }
 
-            const auto& type = atom.type();
-            bool isHyd = (std::toupper(type[0], loc) == 'H');
+            // TODO: Update once Chemfiles is fixed
+            bool isHyd = mol_.topology()[atom].mass() != 2.0;
 
             atom_types_[atom] = bondedToCarbon ? (isHyd ? HC: DC)
                                                : (isHyd ? H : D);
@@ -386,9 +386,10 @@ void IDATM::infallible_() {
     }
 
     // Use templates for "infallible" typing of standard residues
-    for (auto& residue : mol_.frame().topology().residues()) {
+    for (auto& residue : mol_.topology().residues()) {
         auto it = standard_residues.find(residue.name());
         if (it != standard_residues.end()) {
+
             for (auto i : residue) {
                 // Hydrogens are mapped
                 if (mapped_[i]) {
@@ -433,7 +434,7 @@ void IDATM::infallible_() {
         if ((element >= 2 && element <= 4) ||
             (element >= 10 && element <= 14) ||
             element >= 17) {
-            atom_types_[atom] = idatm_mask.at(atom.type());
+            atom_types_[atom] = idatm_mask.at(Element::Name[atom.atomic_number()]);
             mapped_[atom] = true; // infallible type
             continue;
         }
@@ -507,7 +508,7 @@ std::vector<size_t> IDATM::valence_() {
                                                 : idatm::S3p;
             }
         } else if (valence == 2) {
-            double ang = mol_.frame().angle(atom[0], atom, atom[1]) * 180 / 3.14159;
+            double ang = angle(atom[0].position(), atom.position(), atom[1].position()) * 180 / 3.14159;
             if (element == Element::C) {
                 if (ang < angle23val1) { // could be tetralhedral, let's redo
                     atom_types_[atom] = idatm::C3;
@@ -537,7 +538,7 @@ std::vector<size_t> IDATM::valence_() {
 
         // For valence 1, ensure that a default type gets assigned.
         if (atom_types_[atom] == idatm::unk) {
-            atom_types_[atom] = idatm_mask.at(atom.type());
+            atom_types_[atom] = idatm_mask.at(Element::Name[atom.atomic_number()]);
         }
     }
 
@@ -1280,7 +1281,7 @@ size_t IDATM::add_atom(size_t idx) {
         atom_types_.push_back(idatm::P3p);
         break;
     default:
-        atom_types_.push_back(idatm_mask.at(mol_[idx].type()));
+        atom_types_.push_back(idatm_mask.at(Element::Name[mol_[idx].atomic_number()]));
         break;
     }
 

@@ -157,8 +157,6 @@ public:
     }
 
     const std::string& name() const;
-
-    const std::string& type() const;
     
     const Eigen::Vector3d& position() const;
 

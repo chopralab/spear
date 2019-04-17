@@ -41,14 +41,9 @@ TEST_CASE("Protein-Ligand Score") {
     auto options = Bernard12::Options(Bernard12::RADIAL | Bernard12::MEAN | Bernard12::REDUCED);
     Bernard12 scoring_func(options, 6.0, atomic_distrib, atomtype_name, all_types);
 
-    std::vector<Eigen::Vector3d> positions;
-    for (auto& pos : protein.frame().positions()) {
-        positions.push_back({pos[0], pos[1], pos[2]});
-    }
-
-    auto grid = Grid(positions);
+    auto grid = Grid(protein.positions());
     CHECK(std::fabs(scoring_func.score(grid, protein, ligand) - -61.8901) < 1e-3);
-
+std::cout << scoring_func.score(grid, protein, ligand) << std::endl;
     auto junk = chemfiles::Trajectory("data/3qox_pocket.pdb");
     auto junk2 = Molecule(junk.read());
     CHECK_THROWS(scoring_func.score(grid, protein, junk2));

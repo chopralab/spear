@@ -100,19 +100,19 @@ public:
         const Molecule* br_;
     };
 
-    explicit Molecule(chemfiles::Frame frame) :
-        frame_(std::move(frame)), graph_() {
-        init_();
+    explicit Molecule(const chemfiles::Frame& frame) :
+        graph_(), topology_(frame.topology()) {
+        init_(frame);
         rings_();
         smallest_set_of_smallest_rings_();
     }
 
-    const Graph& graph() const {
-        return graph_;
+    const chemfiles::Topology& topology() const {
+        return topology_;
     }
 
-    const chemfiles::Frame& frame() const {
-        return frame_;
+    const Graph& graph() const {
+        return graph_;
     }
 
     const std::vector<Eigen::Vector3d>& positions() const {
@@ -167,14 +167,11 @@ public:
     AllBonds bonds() const;
 
 private:
-    void init_();
+    void init_(const chemfiles::Frame& frame);
 
     void rings_();
 
     void smallest_set_of_smallest_rings_();
-
-    /// Chemfiles frame
-    chemfiles::Frame frame_;
 
     /// Coordinates of the molecule
     std::vector<Eigen::Vector3d> positions_;
@@ -193,6 +190,9 @@ private:
 
     /// Maps an atom to all sssr rings that contain it
     AtomRingMap atom_to_sssr_;
+
+    /// Store just the topology
+    chemfiles::Topology topology_;
 
     typedef std::unique_ptr<AtomType> unqiue_AtomType;
     std::unordered_map<std::string, unqiue_AtomType> atom_types_;

@@ -163,7 +163,7 @@ double Bernard12::score( const Grid& grid, const Molecule& mol, size_t residue_i
     auto opt_types1 = mol.get_atomtype(atomtype_);
     auto& types1 = opt_types1->all_types();
 
-    const auto& residue = mol.frame().topology().residues()[residue_id];
+    const auto& residue = mol.topology().residues()[residue_id];
 
     auto energy_sum = 0.0;
     for (auto atom2_id : residue) {

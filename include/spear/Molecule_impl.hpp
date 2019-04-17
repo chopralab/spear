@@ -176,7 +176,7 @@ inline const AtomType* Molecule::get_default_atomtype() const {
 }
 
 inline size_t Molecule::size() const {
-    return frame_.size();
+    return topology_.size();
 }
 
 inline AtomVertex Molecule::operator[](size_t index) const {

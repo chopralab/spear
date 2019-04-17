@@ -212,7 +212,7 @@ TEST_CASE("Dimensionality") {
     SECTION("Point") {
         chemfiles::Frame f;
         f.add_atom(chemfiles::Atom("C"), {1, 2, 3});
-        auto mol = Spear::Molecule(std::move(f));
+        auto mol = Spear::Molecule(f);
         CHECK(mol.dimensionality() == 0);
     }
 
@@ -221,27 +221,27 @@ TEST_CASE("Dimensionality") {
         f.add_atom(chemfiles::Atom("C"), {1, 2, 3});
         f.add_atom(chemfiles::Atom("C"), {2, 3, 4});
 
-        auto mol1 = Spear::Molecule(std::move(f.clone()));
+        auto mol1 = Spear::Molecule(f);
         CHECK(mol1.dimensionality() == 1);
 
         f.add_atom(chemfiles::Atom("C"), {3, 4, 5});
-        auto mol2 = Spear::Molecule(std::move(f.clone()));
+        auto mol2 = Spear::Molecule(f);
         CHECK(mol2.dimensionality() == 1);
 
         f.add_atom(chemfiles::Atom("C"), {5, 6, 7});
-        auto mol3 = Spear::Molecule(std::move(f.clone()));
+        auto mol3 = Spear::Molecule(f);
         CHECK(mol3.dimensionality() == 1);
 
         f.add_atom(chemfiles::Atom("C"), {6, 8, 8});
-        auto mol4 = Spear::Molecule(std::move(f.clone()));
+        auto mol4 = Spear::Molecule(f);
         CHECK(mol4.dimensionality() == 2); // No longer linear
 
         f.add_atom(chemfiles::Atom("C"), {6, 7, 8});
-        auto mol5 = Spear::Molecule(std::move(f.clone()));
+        auto mol5 = Spear::Molecule(f);
         CHECK(mol5.dimensionality() == 2); // Still planar
 
         f.add_atom(chemfiles::Atom("C"), {7, 8, 8});
-        auto mol6 = Spear::Molecule(std::move(f.clone()));
+        auto mol6 = Spear::Molecule(f);
         CHECK(mol6.dimensionality() == 3); // Still planar
     }
 
@@ -252,17 +252,17 @@ TEST_CASE("Dimensionality") {
         f1.add_atom(chemfiles::Atom("C"), {0, 1, 0});
 
         // L-shaped
-        auto mol1 = Spear::Molecule(std::move(f1.clone()));
+        auto mol1 = Spear::Molecule(f1);
         CHECK(mol1.dimensionality() == 2);
 
         // T-shaped
         f1.add_atom(chemfiles::Atom("C"), {-1, 0, 0});
-        auto mol2 = Spear::Molecule(std::move(f1.clone()));
+        auto mol2 = Spear::Molecule(f1);
         CHECK(mol2.dimensionality() == 2);
 
         // No longer planer
         f1.add_atom(chemfiles::Atom("C"), {0, 0, 1});
-        auto mol3 = Spear::Molecule(std::move(f1.clone()));
+        auto mol3 = Spear::Molecule(f1);
         CHECK(mol3.dimensionality() == 3);        
     }
 }

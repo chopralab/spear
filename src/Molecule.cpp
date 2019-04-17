@@ -109,10 +109,8 @@ struct cycle_saver {
     RingSet& found_rings;
 };
 
-void Molecule::init_() {
-    auto &topo = frame_.topology();
-
-    for (auto atom : frame_) {
+void Molecule::init_(const chemfiles::Frame& frame) {
+    for (auto atom : frame) {
         auto atomic_number = atom.atomic_number();
         if (atomic_number) {
             auto an = static_cast<Element::Symbol>(*atomic_number);
@@ -122,16 +120,17 @@ void Molecule::init_() {
         }
     }
 
-    for (size_t i = 0; i < frame_.size(); ++i) {
-        auto& pos = frame_.positions()[i];
+    for (size_t i = 0; i < frame.size(); ++i) {
+        auto& pos = frame.positions()[i];
         positions_.push_back({pos[0], pos[1], pos[2]});
     }
 
     // Create the graph representation
-    auto bonds = topo.bonds();
+    auto bonds = topology_.bonds();
+    auto bos = topology_.bond_orders();
     for ( size_t i = 0; i < bonds.size(); ++i) {
         boost::add_edge(bonds[i][0], bonds[i][1],
-            static_cast<Bond::Order>(topo.bond_orders()[i]), graph_);
+            static_cast<Bond::Order>(bos[i]), graph_);
     }
 
     add_atomtype<Default>();
@@ -348,7 +347,7 @@ void Molecule::remove_hydrogens() {
                 skip_len = *v;
                 boost::clear_vertex(*v, graph_);
                 boost::remove_vertex(*v, graph_);
-                frame_.remove(index);
+                topology_.remove(index);
                 for (const auto& at : atom_types_) {
                     at.second->remove_atom(index);
                 }
@@ -362,7 +361,7 @@ void Molecule::remove_hydrogens() {
 AtomVertex Molecule::add_atom(Element::Symbol n_atom, const Eigen::Vector3d& pos) {
     auto desc = boost::add_vertex(n_atom, graph_);
     positions_.push_back(pos);
-    frame_.add_atom(chemfiles::Atom(Element::Name[n_atom]), {pos[0], pos[1], pos[2]});
+    topology_.add_atom(chemfiles::Atom(Element::Name[n_atom]));
     for (const auto& at : atom_types_) {
         at.second->add_atom(desc);
     }
@@ -376,7 +375,7 @@ BondEdge Molecule::add_bond(size_t idx1, size_t idx2, Bond::Order order) {
                                  std::to_string(idx1) + " and " +
                                  std::to_string(idx2));
     }
-    frame_.add_bond(idx1, idx2, static_cast<chemfiles::Bond::BondOrder>(order));
+    topology_.add_bond(idx1, idx2, static_cast<chemfiles::Bond::BondOrder>(order));
     for (const auto& at : atom_types_) {
         at.second->add_bond(idx1, idx2, order);
     }

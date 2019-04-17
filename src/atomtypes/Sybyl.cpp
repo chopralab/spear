@@ -2,6 +2,7 @@
 
 #include "spear/Molecule.hpp"
 #include "spear/Molecule_impl.hpp"
+#include "spear/Geometry.hpp"
 
 using namespace Spear;
 
@@ -169,7 +170,7 @@ void Sybyl::type_atoms_topo_(const AtomVertex& atom) {
                                                : Cr_oh;
         break;
     default:
-        atom_types_[atom] = sybyl_mask.at(atom.type());
+        atom_types_[atom] = sybyl_mask.at(Element::Name[atom.atomic_number()]);
         break;
     }
 }
@@ -300,7 +301,7 @@ size_t Sybyl::assign_carbon_3d_(const AtomVertex& atom) {
     if (num_neighbors >= 4) {
         return C_3;
     } else if (num_neighbors == 1) {
-        auto dist = mol_.frame().distance(atom, atom[0]);
+        auto dist = distance(atom.position(), atom[0].position());
         if (dist > 1.41)
             return C_3;
         if (dist <= 1.22)
@@ -311,7 +312,9 @@ size_t Sybyl::assign_carbon_3d_(const AtomVertex& atom) {
         size_t angCount = 0;
         for (size_t n1 = 0; n1 < atom.degree(); ++n1) {
             for (size_t n2 = n1 + 1; n2 < atom.degree(); ++n2) {
-                avgAngle += mol_.frame().angle(atom[n1], atom, atom[n2]);
+                avgAngle += angle(atom[n1].position(),
+                                  atom.position(),
+                                  atom[n2].position());
                 ++angCount;
             }
         }
@@ -336,7 +339,7 @@ size_t Sybyl::assign_nitrogen_3d_(const AtomVertex& atom) {
     if (numnonmetal == 4) {
         return N_4;
     } else if (numnonmetal == 1) {
-        auto dist = mol_.frame().distance(atom, atom[0]);
+        auto dist = distance(atom.position(), atom[0].position());
         if (dist > 1.2)
             return N_3;
         return N_1;
@@ -349,9 +352,9 @@ size_t Sybyl::assign_nitrogen_3d_(const AtomVertex& atom) {
         }
 
         auto sumAngle = 0.0;
-        sumAngle += mol_.frame().angle(atom[0], atom, atom[1]);
-        sumAngle += mol_.frame().angle(atom[0], atom, atom[2]);
-        sumAngle += mol_.frame().angle(atom[1], atom, atom[2]);
+        sumAngle += angle(atom[0].position(), atom.position(), atom[1].position());
+        sumAngle += angle(atom[0].position(), atom.position(), atom[2].position());
+        sumAngle += angle(atom[1].position(), atom.position(), atom[2].position());
         sumAngle *= 180 / 3.14149;
 
         if (sumAngle >= 350.0) {
@@ -365,7 +368,7 @@ size_t Sybyl::assign_nitrogen_3d_(const AtomVertex& atom) {
     size_t angCount = 0;
     for (size_t n1 = 0; n1 < atom.degree(); ++n1) {
         for (size_t n2 = n1 + 1; n2 < atom.degree(); ++n2) {
-            avgAngle += mol_.frame().angle(atom[n1], atom, atom[n2]);
+            avgAngle += angle(atom[n1].position(), atom.position(), atom[n2].position());
             ++angCount;
         }
     }
@@ -488,7 +491,7 @@ size_t Sybyl::add_atom(size_t idx) {
         atom_types_.push_back(sybyl::P_3);
         break;
     default:
-        atom_types_.push_back(sybyl_mask.at(mol_[idx].type()));
+        atom_types_.push_back(sybyl_mask.at(Element::Name[mol_[idx].atomic_number()]));
         break;
     }
 

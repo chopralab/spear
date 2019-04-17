@@ -88,11 +88,7 @@ inline AtomVertex::AtomVertex(const Molecule* br, VertexDescriptor index) :
 }
 
 inline const std::string& AtomVertex::name() const {
-    return br_->frame()[index_].name();
-}
-
-inline const std::string& AtomVertex::type() const {
-    return br_->frame()[index_].type();
+    return br_->topology()[index_].name();
 }
 
 inline const Eigen::Vector3d& AtomVertex::position() const {

@@ -40,7 +40,7 @@ TEST_CASE("Argon") {
     start.add_atom(chemfiles::Atom("Ar"), {0.0, 0.0, 0.0});
     start.add_atom(chemfiles::Atom("Ar"), {5.0, 0.0, 0.0});
     start.add_atom(chemfiles::Atom("Ar"), {10., 0.0, 0.0});
-    auto mol = Spear::Molecule(std::move(start.clone()));
+    auto mol = Spear::Molecule(start);
 
     Spear::Simulation sim;
     ArLJFluid arlj;
@@ -141,7 +141,7 @@ TEST_CASE("NaCl") {
     start.add_atom(chemfiles::Atom("Cl"), { 0, -9,   0});
     start.add_atom(chemfiles::Atom("Na"), { 0,  0, -10});
     start.add_atom(chemfiles::Atom("Cl"), { 0,  0,  10});
-    auto mol = Spear::Molecule(std::move(start.clone()));
+    auto mol = Spear::Molecule(start);
 
     Spear::Simulation sim;
     NaClSystem nacl;
@@ -190,7 +190,7 @@ public:
 
         std::vector<std::pair<int,int>> bonds;
 
-        for (auto bond : mol.frame().topology().bonds()) {
+        for (auto bond : mol.topology().bonds()) {
             bonds.push_back(std::make_pair(static_cast<size_t>(bond[0]),
                                            static_cast<size_t>(bond[1])
             ));
@@ -218,7 +218,7 @@ public:
         auto* hangle = new OpenMM::HarmonicAngleForce();
         system.addForce(hangle);
 
-        for (auto angle : mol.frame().topology().angles()) {
+        for (auto angle : mol.topology().angles()) {
             if (mol[angle[0]].atomic_number() == Spear::Element::C &&
                 mol[angle[2]].atomic_number() == Spear::Element::H) {
                 hangle->addAngle(angle[0], angle[1], angle[2],
@@ -239,7 +239,7 @@ public:
         auto* torsion = new OpenMM::PeriodicTorsionForce();
         system.addForce(torsion);
 
-        for (auto dihedral : mol.frame().topology().dihedrals()) {
+        for (auto dihedral : mol.topology().dihedrals()) {
             torsion->addTorsion(dihedral[0], dihedral[1], dihedral[2], dihedral[3],
                 3, 0 * OpenMM::RadiansPerDegree, 0.150 * OpenMM::KJPerKcal
             );
@@ -279,7 +279,7 @@ TEST_CASE("Ethane") {
     start.add_bond(1, 5);
     start.add_bond(1, 6);
     start.add_bond(1, 7);
-    auto mol = Spear::Molecule(std::move(start.clone()));
+    auto mol = Spear::Molecule(start);
 
     Spear::Simulation sim;
     EthaneSystem eth;
