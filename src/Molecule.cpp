@@ -8,6 +8,8 @@
 #include "spear/AtomType.hpp"
 #include "spear/atomtypes/Default.hpp"
 
+#include "spear/Geometry.hpp"
+
 #ifndef M_PI
 static const auto M_PI = std::acos(0.0) * 2;
 #endif
@@ -244,9 +246,8 @@ void Molecule::smallest_set_of_smallest_rings_() {
                              std::to_string(sssr_count));
 }
 
-static double cos_sim(const Eigen::Vector3d& u, const Eigen::Vector3d& v) {
-    auto arc = u.dot(v) / (u.norm() * v.norm());
-    return arc >= 1? 0 : std::acos(arc);
+static double cos_diff(const Eigen::Vector3d& u, const Eigen::Vector3d& v) {
+    return 1.0 - std::abs(u.dot(v) / (u.norm() * v.norm()));
 }
 
 size_t Molecule::dimensionality(double eps) const {
@@ -261,40 +262,43 @@ size_t Molecule::dimensionality(double eps) const {
         return 1;
     }
 
-    Vector3d lin_vec = positions_[1] - positions_[0];
-    Vector3d plane_vec = positions_[2] - positions_[0];
-
     if (size() == 3) {
-        if (cos_sim(lin_vec, plane_vec) < eps) {
+        Vector3d lin_vec = positions_[1] - positions_[0];
+        Vector3d plane_vec = positions_[2] - positions_[0];
+        if (cos_diff(lin_vec, plane_vec) < eps) {
             return 1; // It's still linear!
         } else {
             return 2; // Any three points makes a plane
         }
     }
 
-    Vector3d norm_vec =lin_vec.cross(plane_vec);
-    auto d = norm_vec.dot(positions_[0]);
+    // These two points, along with the first point, must be nonlinear
+    // this allows one to calculate the 
+    const Vector3d* nonlin1;
+    const Vector3d* nonlin2;
 
     bool is_linear = true;
     for (size_t i = 3; i < size(); ++i) {
         Vector3d curr_vec = positions_[i] - positions_[0];
-        if (is_linear && cos_sim(lin_vec, curr_vec) > eps) {
-            is_linear = false;
+        if (is_linear) {
+            // Check all previous points for non-linearity
+            // If we find something non-linear, we store this point
+            // and the other non-linear point to check for non-planarity
+            for (size_t j = 0; j < i; ++j) {
+                if (cos_diff(positions_[j] - positions_[0], curr_vec) > eps) {
+                    nonlin1 = &positions_[j];
+                    nonlin2 = &positions_[i];
+                    is_linear = false;
+                    break;
+                }
+            }
+
+            continue;
         }
 
-        if (!is_linear) {
-            auto test_d = norm_vec.dot(positions_[i]);
-            if (d < eps && test_d < eps) {
-                continue;
-            }
-
-            if (d < eps && test_d > eps) {
-                return 3;
-            }
-
-            if (std::fabs(std::fmod(test_d, d)) > eps) {
-                return 3;
-            }
+        auto nplane = nonplanar(positions_[0], positions_[i], *nonlin1, *nonlin2);
+        if (std::abs(nplane) > eps) {
+            return 3;
         }
     }
 

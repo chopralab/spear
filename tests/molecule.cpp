@@ -235,6 +235,14 @@ TEST_CASE("Dimensionality") {
         f.add_atom(chemfiles::Atom("C"), {6, 8, 8});
         auto mol4 = Spear::Molecule(std::move(f.clone()));
         CHECK(mol4.dimensionality() == 2); // No longer linear
+
+        f.add_atom(chemfiles::Atom("C"), {6, 7, 8});
+        auto mol5 = Spear::Molecule(std::move(f.clone()));
+        CHECK(mol5.dimensionality() == 2); // Still planar
+
+        f.add_atom(chemfiles::Atom("C"), {7, 8, 8});
+        auto mol6 = Spear::Molecule(std::move(f.clone()));
+        CHECK(mol6.dimensionality() == 3); // Still planar
     }
 
     SECTION("Planar") {

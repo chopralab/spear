@@ -27,7 +27,7 @@ TEST_CASE("Add Atoms and Bonds") {
     }
 
     SECTION("Given Atom in 2D") {
-        auto traj = chemfiles::Trajectory("data/palmitic.sdf");
+        auto traj = chemfiles::Trajectory("data/palmitic_2d.sdf");
         auto mol = Spear::Molecule(traj.read());
 
         CHECK(mol.dimensionality() == 2);
