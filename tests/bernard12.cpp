@@ -43,7 +43,7 @@ TEST_CASE("Protein-Ligand Score") {
 
     auto grid = Grid(protein.positions());
     CHECK(std::fabs(scoring_func.score(grid, protein, ligand) - -61.8901) < 1e-3);
-std::cout << scoring_func.score(grid, protein, ligand) << std::endl;
+
     auto junk = chemfiles::Trajectory("data/3qox_pocket.pdb");
     auto junk2 = Molecule(junk.read());
     CHECK_THROWS(scoring_func.score(grid, protein, junk2));

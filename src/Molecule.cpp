@@ -239,6 +239,10 @@ void Molecule::smallest_set_of_smallest_rings_() {
         ++iterations;
     } while(all_rings.size() != 0 && iterations < 100);
 
+    if (sssr_.size() > sssr_count) {
+        // Print warning
+        return;
+    }
 
     throw std::runtime_error(std::string("Unable to find SSSR: found ") +
                              std::to_string(sssr_.size()) + " rings, but expected " +

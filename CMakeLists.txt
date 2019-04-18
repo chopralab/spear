@@ -21,6 +21,7 @@ option(SPEAR_BUILD_DOCUMENTATION "Build the documentation." OFF)
 option(SPEAR_CODE_COVERAGE "Enable code coverage" OFF)
 option(SPEAR_USE_WARNINGS "Compile the code with warnings (default in debug mode)" OFF)
 option(SPEAR_BUILD_CHEMFILES "Build chemfiles in addition to spear." ON)
+option(SPEAR_MINT "Build spearmint interface to MINT" OFF)
 
 mark_as_advanced(SPEAR_BUILD_DOCTESTS)
 
@@ -168,4 +169,8 @@ endif()
 enable_testing()
 if(SPEAR_BUILD_TESTS)
     add_subdirectory(tests)
+endif()
+
+if(SPEAR_MINT)
+    add_subdirectory(spearmint)
 endif()
