@@ -24,8 +24,8 @@ public:
     };
 
     Bernard12(Options opt, double cutoff,
-              const AtomicDistributions& atom_dist, const std::string& atomtype,
-              const std::unordered_set<size_t>& allowed_atoms = std::unordered_set<size_t>());
+              const AtomicDistributions& atom_dist, std::string atomtype,
+              std::unordered_set<size_t> allowed_atoms = std::unordered_set<size_t>());
 
     double score(const Grid& grid, const Molecule& mol1, const Molecule& mol2) const override;
     double score(const Grid& grid, const Molecule& mol, size_t residue_id) const override;

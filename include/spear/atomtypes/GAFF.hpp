@@ -54,6 +54,8 @@ public:
 
 private:
 
+    size_t add_atom_(size_t new_idx);
+
     const Molecule& mol_;
     std::vector<size_t> atom_types_;
 
@@ -62,7 +64,7 @@ private:
 
 template<> std::string SPEAR_EXPORT atomtype_name_for_id<GAFF>(size_t id);
 
-template<> size_t SPEAR_EXPORT atomtype_id_for_name<GAFF>(std::string name);
+template<> size_t SPEAR_EXPORT atomtype_id_for_name<GAFF>(const std::string& name);
 
 template<> size_t SPEAR_EXPORT atomtype_id_count<GAFF>();
 

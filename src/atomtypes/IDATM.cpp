@@ -1194,10 +1194,7 @@ bool IDATM::is_aromatic(size_t atom_id) const {
     }
 
     auto aro_search = aromatic_ring_sizes_.find(atom_id);
-    if (aro_search != aromatic_ring_sizes_.end()) {
-        return true;
-    }
-    return false;
+    return aro_search != aromatic_ring_sizes_.end();
 }
 
 bool IDATM::is_planar(size_t atom_id) const {
@@ -1222,11 +1219,7 @@ bool IDATM::is_planar(size_t atom_id) const {
     }
 
     auto aro_search = aromatic_ring_sizes_.find(atom_id);
-    if (aro_search != aromatic_ring_sizes_.end()) {
-        return true;
-    }
-
-    return false;
+    return aro_search != aromatic_ring_sizes_.end();
 }
 
 Hybridization IDATM::hybridization(size_t atom_id) const {
@@ -1338,7 +1331,7 @@ template<> std::string Spear::atomtype_name_for_id<IDATM>(size_t id) {
     return idatm_unmask[id];
 }
 
-template<> size_t Spear::atomtype_id_for_name<IDATM>(std::string name) {
+template<> size_t Spear::atomtype_id_for_name<IDATM>(const std::string& name) {
     return idatm_mask.at(name);
 }
 

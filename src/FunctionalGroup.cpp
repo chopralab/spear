@@ -36,17 +36,17 @@ FunctionalGroup::FunctionalGroup(const std::string& smiles) {
         first_atom = false;
         previous = current;
         bond_order = Bond::Order::UNKNOWN;
-        properties_.push_back(std::list<AtomPropertyCompare>());
+        properties_.emplace_back(std::list<AtomPropertyCompare>());
     };
 
     auto read_number =
     [&smiles](size_t& start) {
-        if (!std::isdigit(smiles[start + 1])) {
+        if (std::isdigit(smiles[start + 1]) == 0) {
             return static_cast<size_t>(1);
         }
         ++start;
         size_t number = 0;
-        while (start < smiles.size() && std::isdigit(smiles[start])) {
+        while (start < smiles.size() && (std::isdigit(smiles[start]) != 0)) {
             number *= 10;
             number += static_cast<size_t>(smiles[start] - '0');
             ++start;
@@ -165,7 +165,7 @@ FunctionalGroup::FunctionalGroup(const std::string& smiles) {
         }
 
         if (smiles[i] == 'a' || smiles[i] == 'A') {
-            bool should_be_aromatic = std::islower(smiles[i]);
+            bool should_be_aromatic = std::islower(smiles[i]) != 0;
             if (!in_prop_list) {
                 add_atom(Element::Symbol(0));
             }
@@ -179,14 +179,14 @@ FunctionalGroup::FunctionalGroup(const std::string& smiles) {
             continue;
         }
 
-        if (std::islower(smiles[i])) {
+        if (std::islower(smiles[i]) != 0) {
             auto is_found = Element::SymbolForName.find(
                 str_toupper(smiles.substr(i, 1))
             );
             if (is_found != Element::SymbolForName.end()) {
                 add_atom(is_found->second);
             } else {
-                throw std::invalid_argument("Element not found: " + smiles[i]);
+                throw std::invalid_argument(std::string("Element not found: ") + smiles[i]);
             }
             properties_.back().emplace_back(
                 [](const AtomVertex& a1) {
@@ -197,9 +197,9 @@ FunctionalGroup::FunctionalGroup(const std::string& smiles) {
         }
 
         // Unlike a smiles string, C does not imply aliphatic!
-        if (std::isupper(smiles[i])) {
+        if (std::isupper(smiles[i]) != 0) {
             size_t element_length =
-                i + 1 < smiles.size() && std::islower(smiles[i+1])? 2 : 1;
+                i + 1 < smiles.size() && (std::islower(smiles[i+1]) != 0)? 2 : 1;
 
             auto element_name = smiles.substr(i, element_length);
             auto is_found = Element::SymbolForName.find(element_name);
@@ -213,8 +213,8 @@ FunctionalGroup::FunctionalGroup(const std::string& smiles) {
             continue;
         }
 
-        if (std::isdigit(smiles[i])) {
-            size_t ring_id = static_cast<size_t>(smiles[i] - '0');
+        if (std::isdigit(smiles[i]) != 0) {
+            auto ring_id = static_cast<size_t>(smiles[i] - '0');
             auto ring_lookup = rings.find(ring_id);
 
             if (ring_lookup == rings.end()) {
@@ -268,7 +268,7 @@ struct FunctionalGroupFinder {
     // Map2 should be the molecule
     // Therefore, fg_to_mol coverts the functional group mapping to the molecule
     template <typename Map1To2, typename Map2To1>
-    bool operator()(Map1To2 fg_to_mol, Map2To1) {
+    bool operator()(Map1To2 fg_to_mol, Map2To1 /*unused*/) {
 
         std::vector<size_t> group;
 

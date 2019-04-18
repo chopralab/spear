@@ -65,7 +65,7 @@ private:
 
 template<> std::string SPEAR_EXPORT atomtype_name_for_id<Default>(size_t id);
 
-template<> size_t SPEAR_EXPORT atomtype_id_for_name<Default>(std::string name);
+template<> size_t SPEAR_EXPORT atomtype_id_for_name<Default>(const std::string& name);
 
 template<> size_t SPEAR_EXPORT atomtype_id_count<Default>();
 

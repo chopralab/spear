@@ -80,7 +80,7 @@ std::string atomtype_name_for_id(size_t id) {
 }
 
 template<class Format>
-size_t atomtype_id_for_name(std::string name) {
+size_t atomtype_id_for_name(const std::string& name) {
     throw FormatFeatureUnimplemented("atomtype_id_for_name");
 }
 

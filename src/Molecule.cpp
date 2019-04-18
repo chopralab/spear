@@ -110,7 +110,7 @@ struct cycle_saver {
 };
 
 void Molecule::init_(const chemfiles::Frame& frame) {
-    for (auto atom : frame) {
+    for (const auto& atom : frame) {
         auto atomic_number = atom.atomic_number();
         if (atomic_number) {
             auto an = static_cast<Element::Symbol>(*atomic_number);
@@ -122,7 +122,7 @@ void Molecule::init_(const chemfiles::Frame& frame) {
 
     for (size_t i = 0; i < frame.size(); ++i) {
         auto& pos = frame.positions()[i];
-        positions_.push_back({pos[0], pos[1], pos[2]});
+        positions_.emplace_back(pos[0], pos[1], pos[2]);
     }
 
     // Create the graph representation
@@ -232,12 +232,12 @@ void Molecule::smallest_set_of_smallest_rings_() {
         }
 
         // things just got really weird - suppress the current SSSRs and try again
-        for (auto added : sssr_) {
+        for (const auto& added : sssr_) {
             all_rings.erase(added);
         }
 
         ++iterations;
-    } while(all_rings.size() && iterations < 100);
+    } while(all_rings.size() != 0 && iterations < 100);
 
 
     throw std::runtime_error(std::string("Unable to find SSSR: found ") +
@@ -384,24 +384,24 @@ BondEdge Molecule::add_bond(size_t idx1, size_t idx2, Bond::Order order) {
 
 static Eigen::Vector3d perpendicular(const Eigen::Vector3d& other) {
     Vector3d res(0.0, 0.0, 0.0);
-    if (other[0]) {
-        if (other[1]) {
+    if (other[0] != 0.0) {
+        if (other[1] != 0.0) {
             res[1] = -1 * other[0];
             res[0] = other[1];
-        } else if (other[2]) {
+        } else if (other[2] != 0.0) {
             res[2] = -1 * other[0];
             res[0] = other[2];
         } else {
             res[1] = 1;
         }
-    } else if (other[1]) {
-        if (other[2]) {
+    } else if (other[1] != 0.0) {
+        if (other[2] != 0.0) {
             res[2] = -1 * other[1];
             res[1] = other[2];
         } else {
             res[0] = 1;
         }
-    } else if (other[2]) {
+    } else if (other[2] != 0.0) {
         res[0] = 1;
     }
     res.normalize();
@@ -421,7 +421,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
     Vector3d heavyPos = av.position();
 
     Vector3d perpVect, rotnAxis, nbrPerp;
-    Vector3d nbr1Vect, nbr2Vect, nbr3Vect;
+    Vector3d nbr1Vect(0.0,0.0,0.0), nbr2Vect(0.0,0.0,0.0), nbr3Vect(0.0,0.0,0.0);
 
     auto dimensional = dimensionality();
 
@@ -479,9 +479,10 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         switch (hybrid) {
         case Hybridization::SP3:
             // get a perpendicular to nbr1Vect:
-            if (is3D) {
-                perpVect = perpendicular(nbr1Vect);
-            } else {
+            perpVect = perpendicular(nbr1Vect);
+            if (!is3D) {
+                perpVect[0] = 0.0;
+                perpVect[1] = 0.0;
                 perpVect[2] = 1.0;
             }
             // and move off it:
@@ -583,11 +584,11 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
             double minDot = nbr1Vect.dot(nbr2Vect);
             dirVect = nbr1Vect + nbr2Vect;
             if (nbr2Vect.dot(nbr3Vect) < minDot) {
-                minDot = nbr2Vect.dot(nbr3Vect);
+                nbr2Vect.dot(nbr3Vect);
                 dirVect = nbr2Vect + nbr3Vect;
             }
             if (nbr1Vect.dot(nbr3Vect) < minDot) {
-                minDot = nbr1Vect.dot(nbr3Vect);
+                nbr1Vect.dot(nbr3Vect);
                 dirVect = nbr1Vect + nbr3Vect;
             }
             dirVect *= -1;

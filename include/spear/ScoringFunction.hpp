@@ -26,7 +26,7 @@ public:
 
 template<class ScoringFunction>
 std::string scoringfunction_name() {
-    throw std::bad_function_call("scoringfunction_name is unimplemented for this scoring function");
+    throw std::bad_function_call();
 }
 
 }

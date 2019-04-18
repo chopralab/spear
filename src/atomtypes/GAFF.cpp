@@ -47,15 +47,15 @@ GAFF::GAFF(const Molecule& mol) : mol_(mol) {
     atom_types_.reserve(mol.size());
 
     for (auto av : mol) {
-        add_atom(av);
+        add_atom_(av);
     }
 }
 
-bool GAFF::is_aromatic(size_t atom_id) const {
+bool GAFF::is_aromatic(size_t /*atom_id*/) const {
 	return false;
 }
 
-bool GAFF::is_planar(size_t atom_id) const {
+bool GAFF::is_planar(size_t /*atom_id*/) const {
 	return false;
 }
 
@@ -64,7 +64,7 @@ static bool follows_rule(const AtomVertex& vert, const std::string& rule) {
     auto groups = find_functional_groups(vert.br(), fg);
 
     for (auto match : groups) {
-        if (match.size() && match[0] == vert) {
+        if (match.size() != 0 && match[0] == vert) {
             return true;
         }
     }
@@ -84,6 +84,9 @@ static size_t num_withdrawing(const AtomVertex& av) {
         case Element::Br:
         case Element::I:
             ++count;
+            break;
+        default:
+            break;
         }
     }
     return count;
@@ -157,12 +160,12 @@ static size_t type_carbon(const AtomVertex& av) {
         if (follows_rule(av, "[#6](=*)-*=*"))       return gaff::cg;
         return gaff::c1;
     case 3:
-        if(r.count(8)) {
+        if(r.count(8) != 0) {
             if (follows_rule(av, "[#6]=*-*=*"))       return gaff::cc;
             if (follows_rule(av, "[#6](=[#6])([#6])[#1]"))      return gaff::c2;
             if (follows_rule(av, "[#6](=[#6]-*)(-[#6]=*)[#1]")) return gaff::cc;
         }
-        if(r.count(7)) {
+        if(r.count(7) != 0) {
             if (follows_rule(av, "[#6]([#6X3]:[#6X3][#6X3]=[O])[#6X3][#1]")) return gaff::cc;
             if (follows_rule(av, "[#6](:[#6X3][#6X3]=[O])[#6X3][#1]"))       return gaff::cc;
             if (follows_rule(av, "[#6](:[#6X3])([#6X3]=[O])[#1]"))           return gaff::cc;
@@ -173,7 +176,7 @@ static size_t type_carbon(const AtomVertex& av) {
             if (follows_rule(av, "[#6][#6]=[#6]-[#15]"))                     return gaff::cc;
             if (follows_rule(av, "[#6](=[#6])([#6])[#1]"))                   return gaff::c2;
         }
-        if(r.count(6)) {
+        if(r.count(6) != 0) {
             if (follows_rule(av, "c([nX3])([cX3][cX3]=O)"))                       return gaff::cc;
             if (follows_rule(av, "c([cX3]=O)"))                                   return gaff::cd;
             if (follows_rule(av, "c(:[c][cX3][NX3A])([nX3])"))                    return gaff::cc;
@@ -205,7 +208,7 @@ static size_t type_carbon(const AtomVertex& av) {
 
         if (follows_rule(av, "c-c"))                                              return gaff::cp;
 
-        if (r.count(5)) {
+        if (r.count(5) != 0) {
             if (follows_rule(av, "[#6]=O"))                                       return gaff::c;
             if (follows_rule(av, "[#6]=S"))                                       return gaff::c;
             if (follows_rule(av, "[#6](=[#6X3]-[#16X2])(-[#6X4]-[#6X4])[#1]"))    return gaff::c2;
@@ -227,13 +230,13 @@ static size_t type_carbon(const AtomVertex& av) {
             if (follows_rule(av, "[c]n"))                                         return gaff::cc;
             if (follows_rule(av, "[c]o"))                                         return gaff::cc;
         }
-        if (r.count(4)) {
+        if (r.count(4) != 0) {
             if (follows_rule(av, "[#6]=O"))                                       return gaff::c;
             if (follows_rule(av, "[#6]-*=*-*"))                                   return gaff::cc;
             if (follows_rule(av, "[#6]=*-*=*"))                                   return gaff::cc;
             return gaff::c;
         }
-        if (r.count(3)) {
+        if (r.count(3) != 0) {
             if (follows_rule(av, "[#6]=O"))                                       return gaff::c;
             return gaff::cu;
         }
@@ -394,8 +397,8 @@ static size_t type_phosphorus(const AtomVertex& av) {
     case 1:
         return gaff::p2;
     case 2:
-        if (sssrs_count && av.is_aromatic()) return gaff::pb;
-        if (sssrs_count) {
+        if (sssrs_count != 0 && av.is_aromatic()) return gaff::pb;
+        if (sssrs_count != 0) {
             if (follows_rule(av, "[#15X2](#*)-*#*"))    return gaff::pc;
             if (follows_rule(av, "[#15X2](=[#6])[#8]")) return gaff::pc;
             if (follows_rule(av, "[#15X2](=*)-*#*"))    return gaff::pc;
@@ -430,7 +433,7 @@ static size_t type_sulfur(const AtomVertex& av) {
     case 1:
         return gaff::s;
     case 2:
-        if (av.total_hydrogens())          return gaff::sh;
+        if (av.total_hydrogens() != 0)     return gaff::sh;
         if (follows_rule(av, "[SX2]=*"))   return gaff::s2;
         if (follows_rule(av, "[SX2]#*"))   return gaff::s2;
         return gaff::ss;
@@ -450,6 +453,10 @@ static size_t type_sulfur(const AtomVertex& av) {
 }
 
 size_t GAFF::add_atom(size_t new_idx) {
+    return add_atom_(new_idx);
+}
+
+size_t GAFF::add_atom_(size_t new_idx) {
     auto av = mol_[new_idx];
 
     if (new_idx >= atom_types_.size()) {
@@ -487,26 +494,30 @@ size_t GAFF::add_atom(size_t new_idx) {
     case Element::I:
         atom_types_[new_idx] = gaff::i;
         break;
+    default:
+        atom_types_[new_idx] = gaff::X;
+        break;
     }
 
     return atom_types_[new_idx];
 }
 
-void GAFF::add_bond(size_t idx1, size_t idx2, Bond::Order bo) {
+void GAFF::add_bond(size_t /*idx1*/, size_t /*idx2*/, Bond::Order /*bo*/) {
 }
 
 template<> std::string Spear::atomtype_name_for_id<GAFF>(size_t id) {
     return gaff_unmask[id];
 }
 
-template<> size_t Spear::atomtype_id_for_name<GAFF>(std::string name) {
+template<> size_t Spear::atomtype_id_for_name<GAFF>(const std::string& /*name*/) {
 	return 0;
 }
 
 template<> size_t Spear::atomtype_id_count<GAFF>() {
-	return gaff::Lr;
+	return gaff::Lr + 1;
 }
 
-template<> double Spear::van_der_waals<GAFF>(size_t id) {
+template<> double Spear::van_der_waals<GAFF>(size_t /*id*/) {
 	return 0.0;
 }
+

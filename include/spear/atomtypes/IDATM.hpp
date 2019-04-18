@@ -42,7 +42,7 @@ public:
 
     bool is_planar(size_t atom_id) const override;
 
-    size_t add_atom(size_t new_idx) override;
+    size_t add_atom(size_t idx) override;
 
     void add_bond(size_t idx1, size_t idx2, Bond::Order bo) override;
 
@@ -127,11 +127,11 @@ private:
     /// element only in previous pass, but can be typed more accurately
     /// now that the atoms they are bonded to have been typed.
     /// Bond lengths are used in this pass to perform this assignment.
-    void terminal_(std::vector<size_t>& redo_);
+    void terminal_(std::vector<size_t>& redo);
 
     /// Re-examine all atoms with non-zero 'redo' values and
     ///   retype them if necessary
-    void redo_(const std::vector<size_t>& redo_);
+    void redo_(const std::vector<size_t>& redo);
 
     /// change isolated sp2 carbons to sp3 since it is
     /// impossible for an atom to be sp2 hybrizided if all its
@@ -196,7 +196,7 @@ private:
 
 template<> std::string SPEAR_EXPORT atomtype_name_for_id<IDATM>(size_t id);
 
-template<> size_t SPEAR_EXPORT atomtype_id_for_name<IDATM>(std::string name);
+template<> size_t SPEAR_EXPORT atomtype_id_for_name<IDATM>(const std::string& name);
 
 template<> size_t SPEAR_EXPORT atomtype_id_count<IDATM>();
 

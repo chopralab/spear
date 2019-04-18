@@ -66,10 +66,10 @@ void Simulation::initialize_context() {
     for (auto& mol : molecules_) {
         auto& mol_positions = mol->positions();
         for (auto& pos : mol_positions) {
-            positions.push_back({ pos[0] * OpenMM::NmPerAngstrom,
-                                  pos[1] * OpenMM::NmPerAngstrom,
-                                  pos[2] * OpenMM::NmPerAngstrom
-            });
+            positions.emplace_back(pos[0] * OpenMM::NmPerAngstrom,
+                                   pos[1] * OpenMM::NmPerAngstrom,
+                                   pos[2] * OpenMM::NmPerAngstrom
+            );
         }
     }
 
@@ -113,10 +113,10 @@ static std::vector<Eigen::Vector3d> convert_to_eigen(const std::vector<OpenMM::V
     std::vector<Eigen::Vector3d> ret;
     ret.reserve(vec.size());
     for (auto current : vec) {
-        ret.push_back({ current[0] * OpenMM::AngstromsPerNm,
-                        current[1] * OpenMM::AngstromsPerNm,
-                        current[2] * OpenMM::AngstromsPerNm
-        });
+        ret.emplace_back(current[0] * OpenMM::AngstromsPerNm,
+                         current[1] * OpenMM::AngstromsPerNm,
+                         current[2] * OpenMM::AngstromsPerNm
+        );
     }
 
     return ret;

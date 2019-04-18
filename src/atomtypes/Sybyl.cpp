@@ -187,11 +187,11 @@ size_t Sybyl::assign_carbon_topo_(const AtomVertex& atom){
 
     for (auto bond : atom.bonds()) {
         if (bond.source().atomic_number() == Element::N) {
-            num_nitrogen += (freeOxygens(bond.source()) == 0);
+            num_nitrogen += static_cast<size_t>(freeOxygens(bond.source()) == 0);
         }
 
         if (bond.target().atomic_number() == Element::N) {
-            num_nitrogen += (freeOxygens(bond.target()) == 0);
+            num_nitrogen += static_cast<size_t>(freeOxygens(bond.target()) == 0);
         }
 
         if (bond.order() == Bond::DOUBLE) {
@@ -231,11 +231,11 @@ size_t Sybyl::assign_nitrogen_topo_(const AtomVertex& atom) {
 
     auto update = [&] (const AtomVertex& be) {
         if (be.atomic_number() == 6) {
-            num_amide += (freeOxygens(be) != 0);
-            num_deloc += is_decloc(be);
+            num_amide += static_cast<size_t>(freeOxygens(be) != 0);
+            num_deloc += static_cast<size_t>(is_decloc(be));
             num_nitrogens = 0;
             for (auto bondee_bondee : be.neighbors()) {
-                num_nitrogens += bondee_bondee.atomic_number() == Element::N;
+                num_nitrogens += static_cast<size_t>(bondee_bondee.atomic_number() == Element::N);
             }
         }
     };
@@ -499,7 +499,7 @@ size_t Sybyl::add_atom(size_t idx) {
 
 }
 
-void Sybyl::add_bond(size_t idx1, size_t idx2, Bond::Order) {
+void Sybyl::add_bond(size_t idx1, size_t idx2, Bond::Order /*unused*/) {
     type_atoms_topo_(mol_[idx1]);
     type_atoms_topo_(mol_[idx2]);
 }
@@ -508,7 +508,7 @@ template<> std::string Spear::atomtype_name_for_id<Sybyl>(size_t id) {
     return sybyl_unmask[id];
 }
 
-template<> size_t Spear::atomtype_id_for_name<Sybyl>(std::string name) {
+template<> size_t Spear::atomtype_id_for_name<Sybyl>(const std::string& name) {
     return sybyl_mask.at(name);
 }
 

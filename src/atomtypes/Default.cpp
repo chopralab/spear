@@ -12,6 +12,7 @@ static void dec_hybridization(Hybridization& h) {
     switch(h) {
         case Hybridization::SP2: h = Hybridization::SP; break;
         case Hybridization::SP3: h = Hybridization::SP2; break;
+        default: break; // Do nothing
     }
 }
 
@@ -197,7 +198,7 @@ template<> std::string Spear::atomtype_name_for_id<Default>(size_t id) {
     return Element::Name[id];
 }
 
-template<> size_t Spear::atomtype_id_for_name<Default>(std::string name) {
+template<> size_t Spear::atomtype_id_for_name<Default>(const std::string& name) {
     return Element::SymbolForName.at(name);
 }
 
@@ -205,6 +206,6 @@ template<> size_t Spear::atomtype_id_count<Default>() {
     return 119; // Includes lone-pair
 }
 
-template<> double Spear::van_der_waals<Default>(size_t id) {
+template<> double Spear::van_der_waals<Default>(size_t /*unused*/) {
     return 0.0;
 }

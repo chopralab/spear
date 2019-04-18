@@ -12,17 +12,17 @@ static const auto M_PI = std::acos(0.0) * 2.0;
 using namespace Spear;
 
 Bernard12::Bernard12(Options opt, double cutoff,
-              const AtomicDistributions& atom_dist, const std::string& atomtype,
-              const std::unordered_set<size_t>& allowed_atoms):
-            options_(opt), dist_cutoff_(cutoff), allowed_atoms_(allowed_atoms),
-            atomtype_(atomtype) {
+              const AtomicDistributions& atom_dist, std::string atomtype,
+              std::unordered_set<size_t> allowed_atoms):
+            options_(opt), dist_cutoff_(cutoff), allowed_atoms_(std::move(allowed_atoms)),
+            atomtype_(std::move(atomtype)) {
     compile_scoring_function_(atom_dist);
 }
 
 void Bernard12::compile_scoring_function_(const AtomicDistributions& distributions) {
 
     step_in_file_ = distributions.step_in_file;
-    size_t cutoff_index = static_cast<size_t>(dist_cutoff_ / step_in_file_);
+    auto cutoff_index = static_cast<size_t>(dist_cutoff_ / step_in_file_);
 
     // Temporary structures to hold the atomic distributions and reductions there of.
     PairVectorDouble gij_of_r; // radial distribution of j given i at distance r
@@ -33,7 +33,7 @@ void Bernard12::compile_scoring_function_(const AtomicDistributions& distributio
     // From here on out, pair_dist represents a pair of atoms and their distances
     for (const auto& pair_dist : distributions.values) {
         const auto& atom_pair = pair_dist.first;
-        if (options_ & REDUCED &&
+        if ( (options_ & REDUCED) != 0 &&
             (allowed_atoms_.count(atom_pair.first) == 0 ||
              allowed_atoms_.count(atom_pair.second) == 0)) {
             continue;
@@ -53,22 +53,23 @@ void Bernard12::compile_scoring_function_(const AtomicDistributions& distributio
             auto quantity = pair_dist.second[index];
 
             auto shell_volume =
-                options_ & RADIAL ? 4.0 * M_PI * pow(upper_bound, 3) / 3.0 -
-                                    4.0 * M_PI * pow(lower_bound, 3) / 3.0 :
-                                    1.0;
+                (options_ & RADIAL) != 0 ?
+                    4.0 * M_PI * pow(upper_bound, 3) / 3.0 -
+                    4.0 * M_PI * pow(lower_bound, 3) / 3.0 :
+                    1.0;
 
             auto shell_density = quantity / shell_volume;
 
             gij_of_r[atom_pair][index] = shell_density;
             sum_gij_of_r[atom_pair] += shell_density;
 
-            if (options_ & MEAN) continue;
+            if ((options_ & MEAN) != 0) continue;
             distance_range_sum[index] += shell_density;
             total_quantity += shell_density;
         }
     }
 
-    if (options_ & MEAN) {
+    if ((options_ & MEAN) != 0) {
         for (auto& pair_dist : gij_of_r) {
 
             // Avoid a divide by zero
@@ -84,7 +85,7 @@ void Bernard12::compile_scoring_function_(const AtomicDistributions& distributio
     }
 
     // Now we can actually start compiling the scoring function
-    auto num_atom_types = static_cast<double>(options_ & REDUCED ?
+    auto num_atom_types = static_cast<double>( (options_ & REDUCED) != 0 ?
         static_cast<size_t>(allowed_atoms_.size()) :
         distributions.max_ids
     );
@@ -113,7 +114,7 @@ void Bernard12::compile_scoring_function_(const AtomicDistributions& distributio
                 auto gij_r_ratio = pair_dist.second[i] /
                                 sum_gij_of_r[pair_dist.first];
 
-                auto reference = options_ & MEAN ?
+                auto reference = (options_ & MEAN) != 0 ?
                                  distance_range_sum[i] / num_pairs :
                                  distance_range_sum[i] / total_quantity;
 
@@ -127,7 +128,7 @@ double Bernard12::score(const Grid& grid, const Molecule& mol1, const Molecule& 
     auto opt_types1 = mol1.get_atomtype(atomtype_);
     auto opt_types2 = mol2.get_atomtype(atomtype_);
 
-    if (!opt_types1 || !opt_types2) {
+    if (opt_types1 == nullptr || opt_types2 == nullptr) {
         throw std::invalid_argument("Correct atom types not present in molecule");
     }
 
