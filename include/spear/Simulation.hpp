@@ -22,7 +22,7 @@ namespace Spear {
 class Forcefield;
 class Molecule;
 
-class SPEAR_EXPORT Simulation {
+class SPEAR_EXPORT Simulation final {
 
 public:
 
@@ -33,38 +33,38 @@ public:
     /// Adds a molecule to the system with a given forcefield.
     /// The molecule must stay valid during all operations performed by this
     /// class.
-    virtual bool add_molecule(const Molecule& mol, const Forcefield& ff);
+    bool add_molecule(const Molecule& mol, const Forcefield& ff);
 
     /// Adds a Langevin integrator to the context instead of verlet
-    virtual void add_langevin(double temperature, double friction, double stepsize);
+    void add_langevin(double temperature, double friction, double stepsize);
 
     /// Initializes the context of the simulation and prepares it for further
     /// operations.
-    virtual void initialize_context();
+    void initialize_context();
 
     /// Run minimization
-    virtual void minimize(double tolerance, std::size_t max_iterations);
+    void minimize(double tolerance, std::size_t max_iterations);
 
     /// Run dynamics
-    virtual void dynamic_steps(std::size_t steps);
+    void dynamic_steps(std::size_t steps);
 
     /// Get the system's time in pico seconds
-    virtual double time();
+    double time();
 
     /// Get the potential energy of the system
-    virtual double potential_energy();
+    double potential_energy();
 
     /// Get the kinetic energy of the system
-    virtual double kinetic_energy();
+    double kinetic_energy();
 
     /// Get the positions of the system
-    virtual std::vector<Eigen::Vector3d> positions();
+    std::vector<Eigen::Vector3d> positions();
 
     /// Get the velocities of the system
-    virtual std::vector<Eigen::Vector3d> velocities();
+    std::vector<Eigen::Vector3d> velocities();
 
     /// Get the forces of the system
-    virtual std::vector<Eigen::Vector3d> forces();
+    std::vector<Eigen::Vector3d> forces();
 
 private:
     /// We want to store pointers as we want to compare if it is the EXACT SAME

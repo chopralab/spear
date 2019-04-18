@@ -380,9 +380,11 @@ void IDATM::infallible_() {
 
         auto neighs = atom.neighbors();
 
-        heavys_[atom] = std::count_if(neighs.begin(), neighs.end(),
+        auto heavys = std::count_if(neighs.begin(), neighs.end(),
             [](AtomVertex n) {return n.atomic_number() > 1;}
         );
+
+        heavys_[atom] = static_cast<std::size_t>(heavys);
     }
 
     // Use templates for "infallible" typing of standard residues

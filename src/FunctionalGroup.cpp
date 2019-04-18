@@ -108,7 +108,8 @@ FunctionalGroup::FunctionalGroup(const std::string& smiles) {
                     properties_.back().emplace_back(
                         [bonds](const AtomVertex& a1) {
                             auto sssrs = a1.sssrs();
-                            return std::distance(sssrs.first, sssrs.second) == bonds;
+                            return std::distance(sssrs.first, sssrs.second) ==
+                                   static_cast<std::ptrdiff_t>(bonds);
                         }
                     );
                 } else {

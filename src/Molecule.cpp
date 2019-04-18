@@ -341,7 +341,8 @@ void Molecule::remove_hydrogens() {
     do {
         auto verticies_iter = boost::vertices(graph_);    
         has_hydrogens = false;
-        for (auto v = verticies_iter.first + skip_len; v != verticies_iter.second; ++v) {
+        for (auto v = verticies_iter.first + static_cast<std::ptrdiff_t>(skip_len);
+                  v != verticies_iter.second; ++v) {
             auto index = boost::get(boost::vertex_index, graph_, *v);
             if (mol[index].atomic_number() == 1) {
                 skip_len = *v;

@@ -29,7 +29,7 @@ public:
     void add_bond(size_t idx1, size_t idx2, Bond::Order bo) override;
 
     void remove_atom(size_t idx) override {
-        atom_types_.erase(atom_types_.begin() + idx);
+        atom_types_.erase(atom_types_.begin() + static_cast<std::ptrdiff_t>(idx));
     }
 
     size_t operator[](size_t atom_id) const override {
@@ -40,7 +40,7 @@ public:
 
     bool is_planar(size_t atom_id) const override;
 
-    Hybridization hybridization(size_t atom_id) const override {
+    Hybridization hybridization(size_t /*atom_id*/) const override {
 		return Hybridization::FORCED;
     }
 

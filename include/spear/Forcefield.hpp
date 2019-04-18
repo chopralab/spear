@@ -13,6 +13,8 @@ class SPEAR_EXPORT Forcefield {
 
 public:
 
+    virtual ~Forcefield(){}
+
     /// Add force to system. `Simulation` take ownership of the force.
     /// This function must be called after all the particles have been added
     /// to the system.

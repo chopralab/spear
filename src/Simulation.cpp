@@ -79,14 +79,25 @@ void Simulation::initialize_context() {
 void Simulation::minimize(double tolerance, std::size_t max_iterations) {
     initialize_context();
 
-    OpenMM::LocalEnergyMinimizer::minimize(*context_, tolerance, max_iterations);
+    OpenMM::LocalEnergyMinimizer::minimize(*context_, tolerance, static_cast<int>(max_iterations));
 }
 
 void Simulation::dynamic_steps(std::size_t steps) {
     initialize_context();
 
-    integrator_->step(steps);
+    integrator_->step(static_cast<int>(steps));
 }
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#elif defined(__GNUC__) || defined(__GNUG__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#elif defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4018 )
+#endif
 
 double Simulation::time() {
     initialize_context();
@@ -142,3 +153,11 @@ std::vector<Eigen::Vector3d> Simulation::forces() {
     auto state = context_->getState(OpenMM::State::Forces);
     return convert_to_eigen(state.getForces());
 }
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__) || defined(__GNUG__)
+#pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning( pop )
+#endif

@@ -29,8 +29,8 @@ public:
 
     void add_bond(size_t idx1, size_t idx2, Bond::Order bo) override;
 
-    void remove_atom(size_t idx) {
-        atom_types_.erase(atom_types_.begin() + idx);
+    void remove_atom(size_t idx) override {
+        atom_types_.erase(atom_types_.begin() + static_cast<std::ptrdiff_t>(idx));
     }
 
     Hybridization hybridization(size_t atom_id) const override;

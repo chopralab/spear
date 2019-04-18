@@ -97,7 +97,7 @@ struct SPEAR_EXPORT Bonds {
         BondIterator() : br_(nullptr), bindex_() {}
 
         BondIterator(OutEdgeIterator be, const Molecule* br) :
-            bindex_(be), br_(br) {}
+            br_(br), bindex_(be) {}
 
         const Molecule& br() const {
             return *br_;
@@ -113,8 +113,8 @@ struct SPEAR_EXPORT Bonds {
 
         BondEdge operator* () const;
     private:
-        OutEdgeIterator bindex_;
         const Molecule* br_;
+        OutEdgeIterator bindex_;
     };
 
     Bonds(OutBondIteratorPair be, const Molecule* br) :

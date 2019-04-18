@@ -196,7 +196,7 @@ public:
             );
             if (mol[bond[0]].atomic_number() == Spear::Element::C &&
                 mol[bond[1]].atomic_number() == Spear::Element::C) {
-                hbond->addBond(bond[0], bond[1],
+                hbond->addBond(static_cast<int>(bond[0]), static_cast<int>(bond[1]),
                                1.526 * OpenMM::NmPerAngstrom,
                                310.0 * 2 * OpenMM::KJPerKcal *
                                OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm
@@ -205,7 +205,7 @@ public:
 
             if (mol[bond[0]].atomic_number() == Spear::Element::C &&
                 mol[bond[1]].atomic_number() == Spear::Element::H) {
-                hbond->addBond(bond[0], bond[1],
+                hbond->addBond(static_cast<int>(bond[0]), static_cast<int>(bond[1]),
                                1.09 * OpenMM::NmPerAngstrom,
                                340.0 * 2 * OpenMM::KJPerKcal *
                                OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm
@@ -221,7 +221,9 @@ public:
         for (auto angle : mol.topology().angles()) {
             if (mol[angle[0]].atomic_number() == Spear::Element::C &&
                 mol[angle[2]].atomic_number() == Spear::Element::H) {
-                hangle->addAngle(angle[0], angle[1], angle[2],
+                hangle->addAngle(static_cast<int>(angle[0]),
+                                 static_cast<int>(angle[1]),
+                                 static_cast<int>(angle[2]),
                                  109.5 * OpenMM::RadiansPerDegree,
                                  50.0 * 2 * OpenMM::KJPerKcal
                 );
@@ -229,7 +231,9 @@ public:
 
             if (mol[angle[0]].atomic_number() == Spear::Element::H &&
                 mol[angle[2]].atomic_number() == Spear::Element::H) {
-                hangle->addAngle(angle[0], angle[1], angle[2],
+                hangle->addAngle(static_cast<int>(angle[0]),
+                                 static_cast<int>(angle[1]),
+                                 static_cast<int>(angle[2]),
                                  109.5 * OpenMM::RadiansPerDegree,
                                  35.0 * 2 * OpenMM::KJPerKcal
                 );
@@ -240,8 +244,13 @@ public:
         system.addForce(torsion);
 
         for (auto dihedral : mol.topology().dihedrals()) {
-            torsion->addTorsion(dihedral[0], dihedral[1], dihedral[2], dihedral[3],
-                3, 0 * OpenMM::RadiansPerDegree, 0.150 * OpenMM::KJPerKcal
+            torsion->addTorsion(static_cast<int>(dihedral[0]),
+                                static_cast<int>(dihedral[1]),
+                                static_cast<int>(dihedral[2]),
+                                static_cast<int>(dihedral[3]),
+                                3,
+                                0 * OpenMM::RadiansPerDegree,
+                                0.150 * OpenMM::KJPerKcal
             );
         }
     }

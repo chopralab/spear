@@ -70,10 +70,11 @@ const char* const sybyl_unmask[] {
 
 static size_t num_nonmetal(const AtomVertex& atom) {
     auto neighs = atom.neighbors();
-    return std::count_if(
+    auto counts = std::count_if(
         neighs.begin(), neighs.end(),
         [](AtomVertex n){ return n.is_non_metal();}
     );
+    return static_cast<std::size_t>(counts);
 }
 
 static size_t freeOxygens(const Spear::AtomVertex& atom) {
