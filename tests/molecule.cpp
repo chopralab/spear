@@ -87,8 +87,8 @@ TEST_CASE("Ring Finding") {
     SECTION("No rings") {
         auto traj = chemfiles::Trajectory("data/palmitic.sdf");
         auto mol = Spear::Molecule(traj.read());
-        auto ring = mol.rings();
-        auto sssr = mol.smallest_set_of_smallest_rings();
+        auto& ring = mol.rings();
+        auto& sssr = mol.smallest_set_of_smallest_rings();
 
         CHECK(mol.size() == 18);
         CHECK(ring.size() == 0);
@@ -98,8 +98,8 @@ TEST_CASE("Ring Finding") {
     SECTION("Pazopanib's rings") {
         auto traj = chemfiles::Trajectory("data/pazopanib.sdf");
         auto mol = Spear::Molecule(traj.read());
-        auto ring = mol.rings();
-        auto sssr = mol.smallest_set_of_smallest_rings();
+        auto& ring = mol.rings();
+        auto& sssr = mol.smallest_set_of_smallest_rings();
 
         // Holds the total number of expected rings:
         //    ring_size -> #expected rings
@@ -127,8 +127,8 @@ TEST_CASE("Ring Finding") {
     SECTION("Steroid rings") {
         auto traj = chemfiles::Trajectory("data/tibolone.sdf");
         auto mol = Spear::Molecule(traj.read());
-        auto ring = mol.rings();
-        auto sssr = mol.smallest_set_of_smallest_rings();
+        auto& ring = mol.rings();
+        auto& sssr = mol.smallest_set_of_smallest_rings();
 
         std::map<size_t,size_t> ring_counts = {{5,1}, {6,3}, {9,1}, {10,2},
          {13,1}, {14,1}, {17,1}};
@@ -159,7 +159,7 @@ TEST_CASE("Ring Finding") {
     SECTION("Large rings - 1") {
         auto traj = chemfiles::Trajectory("data/large_rings.sdf");
         auto mol = Spear::Molecule(traj.read());
-        auto sssr = mol.smallest_set_of_smallest_rings();
+        auto& sssr = mol.smallest_set_of_smallest_rings();
 
         CHECK(sssr.size() == 6);
         auto ring_iter = sssr.begin();
@@ -174,7 +174,7 @@ TEST_CASE("Ring Finding") {
     SECTION("Large rings - 2") {
         auto traj = chemfiles::Trajectory("data/large_rings.sdf");
         auto mol = Spear::Molecule(traj.read_step(1));
-        auto sssr = mol.smallest_set_of_smallest_rings();
+        auto& sssr = mol.smallest_set_of_smallest_rings();
 
         CHECK(sssr.size() == 9);
         auto ring_iter = sssr.begin();
@@ -192,7 +192,7 @@ TEST_CASE("Ring Finding") {
     SECTION("Large rings - 3") {
         auto traj = chemfiles::Trajectory("data/large_rings.sdf");
         auto mol = Spear::Molecule(traj.read_step(2));
-        auto sssr = mol.smallest_set_of_smallest_rings();
+        auto& sssr = mol.smallest_set_of_smallest_rings();
 
         CHECK(sssr.size() == 9);
         auto ring_iter = sssr.begin();

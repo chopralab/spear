@@ -24,7 +24,7 @@ TEST_CASE("IDATM") {
         auto mol = Molecule(traj.read());
 
         IDATM idatm(mol, AtomType::GEOMETRY);
-        auto alltypes = idatm.all_types();
+        auto& alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 
         auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
@@ -40,7 +40,7 @@ TEST_CASE("IDATM") {
         }
 
         IDATM idatm2(mol, AtomType::TOPOLOGY);
-        auto alltypes_2 = idatm2.all_types();
+        auto& alltypes_2 = idatm2.all_types();
         CHECK(alltypes == alltypes_2);
     }
 
@@ -49,7 +49,7 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         IDATM idatm(mol, AtomType::GEOMETRY);
-        auto alltypes = idatm.all_types();
+        auto& alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 
         auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
@@ -61,7 +61,7 @@ TEST_CASE("IDATM") {
         CHECK(unique_types.count(idatm_type("O3")) != 0);
 
         IDATM idatm2(mol, AtomType::TOPOLOGY);
-        auto alltypes_2 = idatm2.all_types();
+        auto& alltypes_2 = idatm2.all_types();
         CHECK(alltypes == alltypes_2);
     }
 
@@ -70,7 +70,7 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         IDATM idatm(mol, AtomType::GEOMETRY);
-        auto alltypes = idatm.all_types();
+        auto& alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 
         auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
@@ -119,7 +119,7 @@ TEST_CASE("IDATM") {
         }
 
         IDATM idatm2(mol, AtomType::TOPOLOGY);
-        auto alltypes_2 = idatm2.all_types();
+        auto& alltypes_2 = idatm2.all_types();
         CHECK(alltypes == alltypes_2);
     }
 
@@ -128,7 +128,7 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         IDATM idatm(mol, AtomType::GEOMETRY);
-        auto alltypes = idatm.all_types();
+        auto& alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 
         auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
@@ -155,7 +155,7 @@ TEST_CASE("IDATM") {
         }
 
         IDATM idatm2(mol, AtomType::TOPOLOGY);
-        auto alltypes_2 = idatm2.all_types();
+        auto& alltypes_2 = idatm2.all_types();
         CHECK(alltypes == alltypes_2);
 	}
 
@@ -164,7 +164,7 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         IDATM idatm(mol, AtomType::GEOMETRY);
-        auto alltypes = idatm.all_types();
+        auto& alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 
 		auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
@@ -181,7 +181,7 @@ TEST_CASE("IDATM") {
         CHECK(unique_types.count(idatm_type("Sxd")) != 0);
 
         IDATM idatm2(mol, AtomType::TOPOLOGY);
-        auto alltypes_2 = idatm2.all_types();
+        auto& alltypes_2 = idatm2.all_types();
         CHECK(alltypes == alltypes_2);
 	}
 
@@ -190,7 +190,7 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         IDATM idatm(mol, AtomType::GEOMETRY);
-        auto alltypes = idatm.all_types();
+        auto& alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 
 		auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
@@ -213,7 +213,7 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         IDATM idatm(mol, AtomType::GEOMETRY);
-        auto alltypes = idatm.all_types();
+        auto& alltypes = idatm.all_types();
         CHECK(alltypes.size() == mol.size());
 
 		auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());

@@ -12,8 +12,8 @@
 
 class ArLJFluid : public Spear::Forcefield {
 public:
-    virtual void add_forces(const Spear::Molecule& mol, OpenMM::System& system) const override {
-        OpenMM::NonbondedForce* nonbond = new OpenMM::NonbondedForce();
+    void add_forces(const Spear::Molecule& mol, OpenMM::System& system) const override {
+        auto nonbond = new OpenMM::NonbondedForce();
         system.addForce(nonbond);
 
         for (size_t i = 0; i < mol.size(); ++i) {
@@ -21,7 +21,7 @@ public:
         }
     }
 
-    virtual std::vector<double> masses(const Spear::Molecule& mol) const override {
+    std::vector<double> masses(const Spear::Molecule& mol) const override {
         return std::vector<double>(mol.size(), 39.95);
     }
 };
@@ -85,13 +85,13 @@ TEST_CASE("Argon") {
 
 class NaClSystem : public Spear::Forcefield {
 public:
-    virtual void add_forces(const Spear::Molecule& mol, OpenMM::System& system) const override {
-        OpenMM::GBSAOBCForce* gbsa = new OpenMM::GBSAOBCForce();
+    void add_forces(const Spear::Molecule& mol, OpenMM::System& system) const override {
+        auto gbsa = new OpenMM::GBSAOBCForce();
         gbsa->setSolventDielectric(80.);
         gbsa->setSoluteDielectric(2.);
         system.addForce(gbsa);
 
-        OpenMM::NonbondedForce* nonbond = new OpenMM::NonbondedForce();
+        auto nonbond = new OpenMM::NonbondedForce();
         system.addForce(nonbond);
 
         const double sigma_na = 1.8680 * OpenMM::NmPerAngstrom * OpenMM::SigmaPerVdwRadius;
@@ -115,7 +115,7 @@ public:
         }
     }
 
-    virtual std::vector<double> masses(const Spear::Molecule& mol) const override {
+    std::vector<double> masses(const Spear::Molecule& mol) const override {
         std::vector<double> ret;
         ret.reserve(mol.size());
 
@@ -163,10 +163,10 @@ TEST_CASE("NaCl") {
 
 class EthaneSystem : public Spear::Forcefield {
 public:
-    virtual void add_forces(const Spear::Molecule& mol,
-                            OpenMM::System& system) const override {
+    void add_forces(const Spear::Molecule& mol,
+                    OpenMM::System& system) const override {
 
-        auto* nonbond = new OpenMM::NonbondedForce();
+        auto nonbond = new OpenMM::NonbondedForce();
         system.addForce(nonbond);
 
         const double sigma_h   = 1.4870 * OpenMM::NmPerAngstrom * OpenMM::SigmaPerVdwRadius;
@@ -185,15 +185,15 @@ public:
             }
         }
 
-        auto* hbond = new OpenMM::HarmonicBondForce();
+        auto hbond = new OpenMM::HarmonicBondForce();
         system.addForce(hbond);
 
         std::vector<std::pair<int,int>> bonds;
 
         for (auto bond : mol.topology().bonds()) {
-            bonds.push_back(std::make_pair(static_cast<size_t>(bond[0]),
-                                           static_cast<size_t>(bond[1])
-            ));
+            bonds.emplace_back(static_cast<size_t>(bond[0]),
+                               static_cast<size_t>(bond[1])
+            );
             if (mol[bond[0]].atomic_number() == Spear::Element::C &&
                 mol[bond[1]].atomic_number() == Spear::Element::C) {
                 hbond->addBond(bond[0], bond[1],
@@ -215,7 +215,7 @@ public:
 
         nonbond->createExceptionsFromBonds(bonds, 0.5, 0.5);
 
-        auto* hangle = new OpenMM::HarmonicAngleForce();
+        auto hangle = new OpenMM::HarmonicAngleForce();
         system.addForce(hangle);
 
         for (auto angle : mol.topology().angles()) {
@@ -236,7 +236,7 @@ public:
             }
         }
 
-        auto* torsion = new OpenMM::PeriodicTorsionForce();
+        auto torsion = new OpenMM::PeriodicTorsionForce();
         system.addForce(torsion);
 
         for (auto dihedral : mol.topology().dihedrals()) {
@@ -246,7 +246,7 @@ public:
         }
     }
 
-    virtual std::vector<double> masses(const Spear::Molecule& mol) const override {
+    std::vector<double> masses(const Spear::Molecule& mol) const override {
         std::vector<double> ret;
         ret.reserve(mol.size());
         for (auto av : mol) {

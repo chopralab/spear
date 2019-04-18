@@ -42,7 +42,7 @@ TEST_CASE("Grid protein") {
 
     std::vector<Eigen::Vector3d> positions;
     for (auto pos : protf.positions()) {
-        positions.push_back({pos[0], pos[1], pos[2]});
+        positions.emplace_back(pos[0], pos[1], pos[2]);
     }
 
     Grid grid(positions, {2.0, 2.0, 2.0});

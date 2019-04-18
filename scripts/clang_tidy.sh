@@ -9,7 +9,7 @@
 # in the root of chemfiles sources. You can then run this script from the root
 # as ./scripts/tidy.sh
 
-ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/" && pwd)
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
 if [[ ! -f "$ROOT/compile_commands.json" ]]; then
     echo "Missing compile_commands.json. See the script for how to generate it"
@@ -48,3 +48,4 @@ do
 done
 
 popd > /dev/null
+
