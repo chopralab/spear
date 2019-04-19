@@ -30,6 +30,7 @@ public:
 
     void remove_atom(size_t idx) override {
         atom_types_.erase(atom_types_.begin() + static_cast<std::ptrdiff_t>(idx));
+        hybridizations_.erase(hybridizations_.begin() + static_cast<std::ptrdiff_t>(idx));
     }
 
     size_t operator[](size_t atom_id) const override {

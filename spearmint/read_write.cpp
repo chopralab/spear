@@ -10,12 +10,6 @@
 #include "spear/Molecule_impl.hpp"
 #include "spear/Graph_impl.hpp"
 #include "spear/Grid.hpp"
-#include "spear/ScoringFunction.hpp"
-
-#include "spear/atomtypes/IDATM.hpp"
-#include "spear/scoringfunctions/Bernard12.hpp"
-
-void set_error(const std::string& error);
 
 /******************************************************************************
  * Stolen from Lemon :)
@@ -152,6 +146,12 @@ size_t spear_write_complex(const char* filename) {
         complex.reserve(ligand->size() + receptor->size());
         complex.resize(receptor->size());
         complex.set_topology(receptor->topology());
+
+        for (size_t i = 0; i < complex.topology().residues().size(); ++i) {
+            // ugh
+            auto& res = complex.topology().residues()[i];
+            const_cast<chemfiles::Residue&>(res).set("is_standard_pdb", true);
+        }
 
         auto out_positions = complex.positions();
         const auto& rec_positions = receptor->positions();

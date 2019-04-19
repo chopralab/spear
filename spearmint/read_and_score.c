@@ -1,5 +1,6 @@
 #include "spearmint.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char** argv) {
 
@@ -35,6 +36,32 @@ int main(int argc, char** argv) {
 
     float score = spear_calculate_score();
 
+    printf("score is %f\n", score);
+
+    size_t lig_atom_count = spear_ligand_atom_count();
+
+    printf("There's %lu ligand atoms\n", lig_atom_count);
+    printf("There's %lu receptor atoms\n", spear_receptor_atom_count());
+
+    float* pos = (float*)malloc(sizeof(float)*spear_ligand_atom_count()*3);
+    spear_ligand_atoms(pos);
+
+    for (size_t i = 0; i < lig_atom_count; ++i) {
+        // Change the X position of atom 'i' by 5 angstroms
+        pos[ i * 3 + 0 ] = pos[ i * 3 + 0 ] + 5.0f;
+                        
+        // Change the Y position of atom 'i' by 4 angstroms
+        pos[ i * 3 + 1 ] = pos[ i * 3 + 1 ] + 4.0f;
+                        
+        // Change the Z position of atom 'i' by 3 angstroms
+        pos[ i * 3 + 2 ] = pos[ i * 3 + 2 ] + 3.0f;
+    }
+
+    if (spear_ligand_set_positions(pos) == 0) {
+        printf("%s\n", spear_get_error());
+    }
+
+    // Nothing else needs to be done to recalculate the score.
     printf("score is %f\n", score);
 
     return 0;

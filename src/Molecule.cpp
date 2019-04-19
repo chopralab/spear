@@ -334,6 +334,11 @@ std::vector<Spear::BondEdge> Molecule::get_bonds_in(const std::set<size_t>& atom
     return ret;
 }
 
+void Molecule::remove_bond(size_t idx1, size_t idx2) {
+    boost::remove_edge(idx1, idx2, graph_);
+    topology_.remove_bond(idx1, idx2);
+}
+
 void Molecule::remove_hydrogens() {
     auto& mol = *this;
 
@@ -348,11 +353,12 @@ void Molecule::remove_hydrogens() {
         for (auto v = verticies_iter.first + static_cast<std::ptrdiff_t>(skip_len);
                   v != verticies_iter.second; ++v) {
             auto index = boost::get(boost::vertex_index, graph_, *v);
-            if (mol[index].atomic_number() == 1) {
+            if (mol[index].atomic_number() == Element::H) {
                 skip_len = *v;
                 boost::clear_vertex(*v, graph_);
                 boost::remove_vertex(*v, graph_);
                 topology_.remove(index);
+                positions_.erase(positions_.begin() + index);
                 for (const auto& at : atom_types_) {
                     at.second->remove_atom(index);
                 }
@@ -426,7 +432,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
     Vector3d heavyPos = av.position();
 
     Vector3d perpVect, rotnAxis, nbrPerp;
-    Vector3d nbr1Vect(0.0,0.0,0.0), nbr2Vect(0.0,0.0,0.0), nbr3Vect(0.0,0.0,0.0);
+    Vector3d nbr1Vect, nbr2Vect, nbr3Vect;
 
     auto dimensional = dimensionality();
 
@@ -462,7 +468,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         bondLength += 0.04;
     }
 
-    if (is3D && av.atomic_number() == Element::C && hybrid == Hybridization::SP2) {
+    if (is3D && av.atomic_number() == Element::C && hybrid == Hybridization::SP3) {
         bondLength += 0.07;
     }
 
@@ -472,8 +478,6 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         break;
 
     case 1: // One Neighbor present
-        heavyPos = av.position();
-
         // get a normalized vector pointing away from the neighbor:
         nbr1Vect = av[0].position() - heavyPos;
 
@@ -527,7 +531,6 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         break;
     case 2: // Two other neighbors:
         // start along the average of the two vectors:
-        heavyPos = av.position();
         nbr1Vect = heavyPos - av[0].position();
         nbr2Vect = heavyPos - av[1].position();
 
@@ -569,7 +572,6 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         }
 
         // use the average of the three vectors:
-        heavyPos = av.position();
         nbr1Vect = heavyPos - av[0].position();
         nbr2Vect = heavyPos - av[1].position();
         nbr3Vect = heavyPos - av[2].position();
@@ -582,6 +584,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         // direction...
         if (is3D) {
             dirVect = nbr1Vect + nbr2Vect + nbr3Vect;
+            dirVect.normalize();
         } else {
             // we're in flatland
             // We're in a 2D conformation, put the H between the two neighbors
@@ -610,6 +613,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         break;
     }
 
+    dirVect.normalize();
     auto h_atom = add_atom(n_atom, heavyPos + dirVect * bondLength);
     add_bond(index, h_atom);
 

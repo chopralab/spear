@@ -11,7 +11,7 @@ namespace Spear {
 
 struct AtomicDistributions;
 
-class SPEAR_EXPORT Bernard12 : public ScoringFunction {
+class SPEAR_EXPORT Bernard12 final : public ScoringFunction {
 public:
 
     enum Options {
