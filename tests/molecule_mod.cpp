@@ -54,7 +54,7 @@ TEST_CASE("Add Atoms and Bonds") {
         auto h1 = mol.add_atom_to(Spear::Element::H, 0);
         auto h2 = mol.add_atom_to(Spear::Element::H, 0);
         auto h3 = mol.add_atom_to(Spear::Element::H, 0);
-        CHECK(std::fabs(Spear::distance(mol[0].position(), h1.position()) - 0.99) < 1e-4);
+        CHECK(std::fabs(Spear::distance(mol[0].position(), h1.position()) - 1.06) < 1e-4);
         auto tetra_ang = std::fabs(Spear::angle(h2.position(), mol[0].position(), h1.position()));
         CHECK(std::fabs(tetra_ang * 180.0 / M_PI - 109.47) < 1e-1);
         auto dihedral_ang = std::fabs(Spear::dihedral(h2.position(), mol[0].position(), h1.position(), h3.position()));
