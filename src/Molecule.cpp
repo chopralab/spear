@@ -4,6 +4,7 @@
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/hawick_circuits.hpp>
 #include <boost/graph/undirected_graph.hpp>
+#include <boost/graph/connected_components.hpp>
 
 #include "spear/AtomType.hpp"
 #include "spear/atomtypes/Default.hpp"
@@ -164,7 +165,9 @@ void Molecule::smallest_set_of_smallest_rings_() {
         return;
     }
 
-    auto sssr_count = boost::num_edges(graph_) - size() + 1;
+    std::vector<int> component(size());
+    auto num = static_cast<size_t>(boost::connected_components(graph_, &component[0]));
+    auto sssr_count = boost::num_edges(graph_) + 1 + (num - 1) - size();
 
     if (sssr_count >= all_rings.size()) {
         sssr_ = all_rings_;
@@ -238,11 +241,6 @@ void Molecule::smallest_set_of_smallest_rings_() {
 
         ++iterations;
     } while(all_rings.size() != 0 && iterations < 100);
-
-    if (sssr_.size() > sssr_count) {
-        // Print warning
-        return;
-    }
 
     throw std::runtime_error(std::string("Unable to find SSSR: found ") +
                              std::to_string(sssr_.size()) + " rings, but expected " +
