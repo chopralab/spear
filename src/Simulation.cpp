@@ -12,9 +12,6 @@ Simulation::Simulation() : system_(new OpenMM::System) {
 }
 
 Simulation::~Simulation() {
-    context_ = nullptr;
-    integrator_ = nullptr;
-    system_ = nullptr;
 }
 
 bool Simulation::add_molecule(const Molecule& mol, const Forcefield& ff) {
