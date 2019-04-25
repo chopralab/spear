@@ -81,6 +81,7 @@ set(Boost_USE_MULTITHREADED      ON)
 find_package(Boost REQUIRED COMPONENTS graph filesystem)
 find_package(Eigen3 REQUIRED)
 find_package(OpenMM REQUIRED)
+find_package(pugixml REQUIRED)
 
 file(GLOB_RECURSE SPEAR_objects_sources src/**.cpp)
 add_library(spear ${SPEAR_objects_sources})
@@ -97,6 +98,7 @@ target_link_libraries(spear PUBLIC
     Boost::graph
     OPENMM::openmm
     chemfiles
+    pugixml
 )
 
 target_compile_definitions(spear PRIVATE SPEAR_EXPORTS)

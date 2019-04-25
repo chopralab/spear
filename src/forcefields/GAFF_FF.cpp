@@ -20,6 +20,19 @@ GAFF_FF::GAFF_FF(std::istream& input) {
     }
 }
 
+template<typename T>
+T& get_force(OpenMM::System& system, int& force_id) {
+    T* force = nullptr;
+    if (force_id == -1) {
+        force = new T();
+        force_id = system.addForce(force);
+    } else {
+        force = dynamic_cast<T*>(&system.getForce(force_id));
+    }
+
+    return *force;
+}
+
 void GAFF_FF::add_forces(const Molecule& mol, OpenMM::System& system) const {
     auto gaff_types = mol.get_atomtype("gaff");
 
@@ -32,13 +45,7 @@ void GAFF_FF::add_forces(const Molecule& mol, OpenMM::System& system) const {
         throw std::runtime_error("You must add the 'GAFF' atomtype to the molecule.");
     }
 
-    OpenMM::NonbondedForce* nonbond = nullptr;
-    if (non_bond_force_ == -1) {
-        nonbond = new OpenMM::NonbondedForce();
-        non_bond_force_ = system.addForce(nonbond);
-    } else {
-        nonbond = dynamic_cast<OpenMM::NonbondedForce*>(&system.getForce(non_bond_force_));
-    }
+    auto& nonbond = get_force<OpenMM::NonbondedForce>(system, non_bond_force_);
 
     auto& all_types = gaff_types->all_types();
 
@@ -49,16 +56,10 @@ void GAFF_FF::add_forces(const Molecule& mol, OpenMM::System& system) const {
                       << atomtype_name_for_id<GAFF>(all_types[av]) << "'"
                       << " not found.\n";
         }
-        nonbond->addParticle(0.0, lookup->second.sigma, lookup->second.epsilon); //FIXME
+        nonbond.addParticle(0.0, lookup->second.sigma, lookup->second.epsilon); //FIXME
     }
 
-    OpenMM::HarmonicBondForce* hbond = nullptr;
-    if (bond_force_ == -1) {
-        hbond = new OpenMM::HarmonicBondForce();
-        bond_force_ = system.addForce(hbond);
-    } else {
-        hbond = dynamic_cast<OpenMM::HarmonicBondForce*>(&system.getForce(bond_force_));
-    }
+    auto& hbond = get_force<OpenMM::HarmonicBondForce>(system, bond_force_);
 
     std::vector<std::pair<int,int>> bonds;
     for (auto bond : mol.topology().bonds()) {
@@ -79,21 +80,15 @@ void GAFF_FF::add_forces(const Molecule& mol, OpenMM::System& system) const {
             continue;
         }
 
-        hbond->addBond(static_cast<int>(bond[0] + added),
-                       static_cast<int>(bond[1] + added),
+        hbond.addBond(static_cast<int>(bond[0] + added),
+                      static_cast<int>(bond[1] + added),
             lookup->second.length, lookup->second.k
         );
     }
 
-    nonbond->createExceptionsFromBonds(bonds, 0.5, 0.833333333);
+    nonbond.createExceptionsFromBonds(bonds, 0.5, 0.833333333);
 
-    OpenMM::HarmonicAngleForce* hangle = nullptr;
-    if (angle_force_ == -1) {
-        hangle = new OpenMM::HarmonicAngleForce();
-        angle_force_ = system.addForce(hangle);
-    } else {
-        hangle = dynamic_cast<OpenMM::HarmonicAngleForce*>(&system.getForce(angle_force_));
-    }
+    auto& hangle = get_force<OpenMM::HarmonicAngleForce>(system, angle_force_);
 
     for (auto angle : mol.topology().angles()) {
         auto lookup = type_to_angle_.find({all_types[angle[0]],
@@ -110,20 +105,14 @@ void GAFF_FF::add_forces(const Molecule& mol, OpenMM::System& system) const {
             continue;
         }
 
-        hangle->addAngle(static_cast<int>(angle[0] + added),
-                         static_cast<int>(angle[1] + added),
-                         static_cast<int>(angle[2] + added),
+        hangle.addAngle(static_cast<int>(angle[0] + added),
+                        static_cast<int>(angle[1] + added),
+                        static_cast<int>(angle[2] + added),
             lookup->second.theta, lookup->second.k
         );
     }
 
-    OpenMM::PeriodicTorsionForce* torsion = nullptr;
-    if (torsion_force_ == -1) {
-        torsion = new OpenMM::PeriodicTorsionForce();
-        torsion_force_ = system.addForce(torsion);
-    } else {
-        torsion = dynamic_cast<OpenMM::PeriodicTorsionForce*>(&system.getForce(torsion_force_));
-    }
+    auto& torsion = get_force<OpenMM::PeriodicTorsionForce>(system, torsion_force_);
 
     for (auto dihedral : mol.topology().dihedrals()) {
         auto lookup = type_to_torsion_.find({all_types[dihedral[0]],
@@ -150,25 +139,25 @@ void GAFF_FF::add_forces(const Molecule& mol, OpenMM::System& system) const {
             continue;
         }
 
-        torsion->addTorsion(static_cast<int>(dihedral[0] + added),
-                            static_cast<int>(dihedral[1] + added),
-                            static_cast<int>(dihedral[2] + added),
-                            static_cast<int>(dihedral[3] + added),
-                            static_cast<int>(std::abs(lookup->second.periodicity)),
-                            lookup->second.phase,
-                            lookup->second.k
+        torsion.addTorsion(static_cast<int>(dihedral[0] + added),
+                           static_cast<int>(dihedral[1] + added),
+                           static_cast<int>(dihedral[2] + added),
+                           static_cast<int>(dihedral[3] + added),
+                           static_cast<int>(std::abs(lookup->second.periodicity)),
+                           lookup->second.phase,
+                           lookup->second.k
         );
     }
 
     for (auto improper : mol.topology().impropers()) {
-        auto lookup = type_to_torsion_.find({all_types[improper[0]],
+        auto lookup = type_to_improper_.find({all_types[improper[0]],
                                              all_types[improper[1]],
                                              all_types[improper[2]],
                                              all_types[improper[3]]
         });
 
-        if (lookup == type_to_torsion_.end()) {
-            lookup = type_to_torsion_.find({0,
+        if (lookup == type_to_improper_.end()) {
+            lookup = type_to_improper_.find({0,
                                             all_types[improper[1]],
                                             0,
                                             all_types[improper[2]],
@@ -176,18 +165,18 @@ void GAFF_FF::add_forces(const Molecule& mol, OpenMM::System& system) const {
         }
 
         // No warning, these are rare
-        if (lookup == type_to_torsion_.end()) {
+        if (lookup == type_to_improper_.end()) {
             continue;
         }
 
         // Note the switch!
-        torsion->addTorsion(static_cast<int>(improper[0] + added),
-                            static_cast<int>(improper[2] + added),
-                            static_cast<int>(improper[1] + added),
-                            static_cast<int>(improper[3] + added),
-                            static_cast<int>(std::abs(lookup->second.periodicity)),
-                            lookup->second.phase,
-                            lookup->second.k
+        torsion.addTorsion(static_cast<int>(improper[1] + added),
+                           static_cast<int>(improper[0] + added),
+                           static_cast<int>(improper[2] + added),
+                           static_cast<int>(improper[3] + added),
+                           static_cast<int>(std::abs(lookup->second.periodicity)),
+                           lookup->second.phase,
+                           lookup->second.k
         );
     }
 }

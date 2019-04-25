@@ -613,7 +613,17 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
 
     dirVect.normalize();
     auto h_atom = add_atom(n_atom, heavyPos + dirVect * bondLength);
-    add_bond(index, h_atom);
+    add_bond(av, h_atom);
+
+    const auto& res = topology_.residue_for_atom(av);
+    if (res) {
+        chemfiles::Residue res2(res->name());
+        res2.add_atom(h_atom);
+        auto neigh_name = av.name();
+        neigh_name[0] = 'H';
+        topology_.add_residue(res2);
+        topology_[h_atom].set_name(neigh_name);
+    }
 
     return h_atom;
 }
@@ -624,7 +634,7 @@ size_t Molecule::add_hydrogens() {
     do {
         hydrogens_to_add = false;
         for (auto atom : *this) {
-            if (atom.implicit_hydrogens() < 1) {
+            if (atom.implicit_hydrogens() < 1 || atom.atomic_number() == Element::H) {
                 continue;
             }
             hydrogens_to_add = true;
