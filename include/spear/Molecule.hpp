@@ -119,6 +119,10 @@ public:
         return positions_;
     }
 
+    void set_positions(std::vector<Eigen::Vector3d> pos) {
+        positions_ = std::move(pos);
+    }
+
     const RingSet& rings() const {
         return all_rings_;
     }
@@ -147,6 +151,8 @@ public:
     BondEdge add_bond(size_t idx1, size_t idx2, Bond::Order order = Bond::SINGLE);
 
     AtomVertex add_atom_to(Element::Symbol n_atom, size_t index);
+
+    void remove_bond(size_t idx1, size_t idx2);
 
     void remove_hydrogens();
 

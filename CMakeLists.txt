@@ -21,6 +21,7 @@ option(SPEAR_BUILD_DOCUMENTATION "Build the documentation." OFF)
 option(SPEAR_CODE_COVERAGE "Enable code coverage" OFF)
 option(SPEAR_USE_WARNINGS "Compile the code with warnings (default in debug mode)" OFF)
 option(SPEAR_BUILD_CHEMFILES "Build chemfiles in addition to spear." ON)
+option(SPEAR_MINT "Build spearmint interface to MINT" OFF)
 
 mark_as_advanced(SPEAR_BUILD_DOCTESTS)
 
@@ -80,6 +81,7 @@ set(Boost_USE_MULTITHREADED      ON)
 find_package(Boost REQUIRED COMPONENTS graph filesystem)
 find_package(Eigen3 REQUIRED)
 find_package(OpenMM REQUIRED)
+find_package(pugixml REQUIRED)
 
 file(GLOB_RECURSE SPEAR_objects_sources src/**.cpp)
 add_library(spear ${SPEAR_objects_sources})
@@ -96,6 +98,7 @@ target_link_libraries(spear PUBLIC
     Boost::graph
     OPENMM::openmm
     chemfiles
+    pugixml
 )
 
 target_compile_definitions(spear PRIVATE SPEAR_EXPORTS)
@@ -168,4 +171,8 @@ endif()
 enable_testing()
 if(SPEAR_BUILD_TESTS)
     add_subdirectory(tests)
+endif()
+
+if(SPEAR_MINT)
+    add_subdirectory(spearmint)
 endif()

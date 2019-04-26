@@ -293,11 +293,11 @@ TEST_CASE("Ethane") {
     Spear::Simulation sim;
     EthaneSystem eth;
     sim.add_molecule(mol, eth);
-    chemfiles::Trajectory traj("ethane.xyz.gz", 'w');
+    chemfiles::Trajectory traj("ethane.sdf.gz", 'w');
     auto pos = sim.positions();
     traj.write(start);
 
-    while (sim.time() <= 100.0) {
+    while (sim.time() <= 10.0) {
         sim.dynamic_steps(100);
         pos = sim.positions();
         update_chfl_frame(start, pos);

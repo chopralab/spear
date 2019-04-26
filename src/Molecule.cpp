@@ -4,6 +4,7 @@
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/hawick_circuits.hpp>
 #include <boost/graph/undirected_graph.hpp>
+#include <boost/graph/connected_components.hpp>
 
 #include "spear/AtomType.hpp"
 #include "spear/atomtypes/Default.hpp"
@@ -164,7 +165,9 @@ void Molecule::smallest_set_of_smallest_rings_() {
         return;
     }
 
-    auto sssr_count = boost::num_edges(graph_) - size() + 1;
+    std::vector<int> component(size());
+    auto num = static_cast<size_t>(boost::connected_components(graph_, &component[0]));
+    auto sssr_count = boost::num_edges(graph_) + 1 + (num - 1) - size();
 
     if (sssr_count >= all_rings.size()) {
         sssr_ = all_rings_;
@@ -238,7 +241,6 @@ void Molecule::smallest_set_of_smallest_rings_() {
 
         ++iterations;
     } while(all_rings.size() != 0 && iterations < 100);
-
 
     throw std::runtime_error(std::string("Unable to find SSSR: found ") +
                              std::to_string(sssr_.size()) + " rings, but expected " +
@@ -330,6 +332,11 @@ std::vector<Spear::BondEdge> Molecule::get_bonds_in(const std::set<size_t>& atom
     return ret;
 }
 
+void Molecule::remove_bond(size_t idx1, size_t idx2) {
+    boost::remove_edge(idx1, idx2, graph_);
+    topology_.remove_bond(idx1, idx2);
+}
+
 void Molecule::remove_hydrogens() {
     auto& mol = *this;
 
@@ -344,11 +351,12 @@ void Molecule::remove_hydrogens() {
         for (auto v = verticies_iter.first + static_cast<std::ptrdiff_t>(skip_len);
                   v != verticies_iter.second; ++v) {
             auto index = boost::get(boost::vertex_index, graph_, *v);
-            if (mol[index].atomic_number() == 1) {
+            if (mol[index].atomic_number() == Element::H) {
                 skip_len = *v;
                 boost::clear_vertex(*v, graph_);
                 boost::remove_vertex(*v, graph_);
                 topology_.remove(index);
+                positions_.erase(positions_.begin() + index);
                 for (const auto& at : atom_types_) {
                     at.second->remove_atom(index);
                 }
@@ -422,7 +430,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
     Vector3d heavyPos = av.position();
 
     Vector3d perpVect, rotnAxis, nbrPerp;
-    Vector3d nbr1Vect(0.0,0.0,0.0), nbr2Vect(0.0,0.0,0.0), nbr3Vect(0.0,0.0,0.0);
+    Vector3d nbr1Vect, nbr2Vect, nbr3Vect;
 
     auto dimensional = dimensionality();
 
@@ -458,7 +466,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         bondLength += 0.04;
     }
 
-    if (is3D && av.atomic_number() == Element::C && hybrid == Hybridization::SP2) {
+    if (is3D && av.atomic_number() == Element::C && hybrid == Hybridization::SP3) {
         bondLength += 0.07;
     }
 
@@ -468,8 +476,6 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         break;
 
     case 1: // One Neighbor present
-        heavyPos = av.position();
-
         // get a normalized vector pointing away from the neighbor:
         nbr1Vect = av[0].position() - heavyPos;
 
@@ -523,7 +529,6 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         break;
     case 2: // Two other neighbors:
         // start along the average of the two vectors:
-        heavyPos = av.position();
         nbr1Vect = heavyPos - av[0].position();
         nbr2Vect = heavyPos - av[1].position();
 
@@ -565,7 +570,6 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         }
 
         // use the average of the three vectors:
-        heavyPos = av.position();
         nbr1Vect = heavyPos - av[0].position();
         nbr2Vect = heavyPos - av[1].position();
         nbr3Vect = heavyPos - av[2].position();
@@ -578,6 +582,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         // direction...
         if (is3D) {
             dirVect = nbr1Vect + nbr2Vect + nbr3Vect;
+            dirVect.normalize();
         } else {
             // we're in flatland
             // We're in a 2D conformation, put the H between the two neighbors
@@ -606,8 +611,19 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         break;
     }
 
+    dirVect.normalize();
     auto h_atom = add_atom(n_atom, heavyPos + dirVect * bondLength);
-    add_bond(index, h_atom);
+    add_bond(av, h_atom);
+
+    const auto& res = topology_.residue_for_atom(av);
+    if (res) {
+        chemfiles::Residue res2(res->name());
+        res2.add_atom(h_atom);
+        auto neigh_name = av.name();
+        neigh_name[0] = 'H';
+        topology_.add_residue(res2);
+        topology_[h_atom].set_name(neigh_name);
+    }
 
     return h_atom;
 }
@@ -618,7 +634,7 @@ size_t Molecule::add_hydrogens() {
     do {
         hydrogens_to_add = false;
         for (auto atom : *this) {
-            if (atom.implicit_hydrogens() < 1) {
+            if (atom.implicit_hydrogens() < 1 || atom.atomic_number() == Element::H) {
                 continue;
             }
             hydrogens_to_add = true;

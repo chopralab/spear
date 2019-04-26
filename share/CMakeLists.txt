@@ -2,3 +2,8 @@ execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/csd_distributions.dat.tgz
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
+
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/gaff_2.1.dat .
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)

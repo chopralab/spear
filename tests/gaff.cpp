@@ -9,6 +9,15 @@
 
 using Spear::GAFF;
 using Spear::atomtype_name_for_id;
+using Spear::atomtype_id_for_name;
+
+TEST_CASE("GAFF Types") {
+    CHECK(atomtype_name_for_id<GAFF>(18) == "c2");
+    CHECK(atomtype_id_for_name<GAFF>("c2") == 18);
+
+    CHECK(atomtype_name_for_id<GAFF>(50) == "n2");
+    CHECK(atomtype_id_for_name<GAFF>("n2") == 50);
+}
 
 TEST_CASE("Tibolone") {
     auto traj = chemfiles::Trajectory("data/tibolone.sdf");

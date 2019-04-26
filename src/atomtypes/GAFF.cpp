@@ -11,11 +11,15 @@ using namespace Spear;
 
 enum gaff : uint64_t {
     X = 0, DU = 1,
-    hc, ha, ho, hn, hs, hp, h1, h2, h3, h4, h5,
+    hc, ha, ho, hn, hs, hp, h1, h2, h3, h4, h5, hw,
+        hx, // Unused
     c,  ca, c1, c2, c3, cg, cz, ce, cc, cu, cv, cd, cp, cx, cy,
+        cs, cq, cf, // Unused
     f,  cl, br, i,
     p2, p3, pc, pe, pb, px, p4, p5, py,
+        pd, pf, // Unused
     n,  n1, n2, n3, n4, na, nb, nc, nd, ne, nh, no,
+        nf, ns, nt, nx, ny, nz, nP, nu, nv, n7, n8, n9, // Unused
     o,  os, oh, ow, 
     s,  ss, s2, sh, s4, sx, sy, s6, 
     He, Li, Be, B,  Ne, Na, Mg, Al, Si, Ar,
@@ -28,11 +32,12 @@ enum gaff : uint64_t {
 
 const char* const gaff_unmask[]{
     "X", "DU",
-    "hc", "ha", "ho", "hn", "hs", "hp", "h1", "h2", "h3", "h4", "h5",
-    "c",  "ca", "c1", "c2", "c3", "cg", "cz", "ce", "cc", "cu", "cv", "cd", "cp", "cx", "cy",
+    "hc", "ha", "ho", "hn", "hs", "hp", "h1", "h2", "h3", "h4", "h5", "hw", "hx",
+    "c",  "ca", "c1", "c2", "c3", "cg", "cz", "ce", "cc", "cu", "cv", "cd", "cp", "cx", "cy", "cs", "cq", "cf",
     "f",  "cl", "br", "i",
-    "p2", "p3", "pc", "pe", "pb", "px", "p4", "p5", "py",
+    "p2", "p3", "pc", "pe", "pb", "px", "p4", "p5", "py", "pd", "pf",
     "n",  "n1", "n2", "n3", "n4", "na", "nb", "nc", "nd", "ne", "nh", "no",
+        "nf", "ns", "nt", "nx", "ny", "nz", "n+", "nu", "nv", "n7", "n8", "n9",
     "o",  "os", "oh", "ow", 
     "s",  "ss", "s2", "sh", "s4", "sx", "sy", "s6", 
     "He", "Li", "Be", "B",  "Ne", "Na", "Mg", "Al", "Si", "Ar",
@@ -41,6 +46,33 @@ const char* const gaff_unmask[]{
     "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu",
           "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn",
     "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr",
+};
+
+#define AMINO_ACID_CORE {"OXT","o"},{"CA","c3"},{"C","c"},{"O","o"},{"N","n"},{"HA","h4"}
+
+const std::map<std::string, std::map<std::string,std::string>> standard_residues {
+    {"ALA",{AMINO_ACID_CORE,{"CB","c3"}}},
+    {"ARG",{AMINO_ACID_CORE,{"CB","c3"},{"CD","c3"},{"CG","c3"},{"CZ","cz"},{"NE","nh"},{"NH1","nh"},{"NH2","nh"}}},
+    {"ASN",{AMINO_ACID_CORE,{"CB","c3"},{"CG","c"},{"ND2","n"},{"OD1","o"}}},
+    {"ASP",{AMINO_ACID_CORE,{"CB","c3"},{"CG","c"},{"OD1","o"},{"OD2","o"}}},
+    {"CYS",{AMINO_ACID_CORE,{"CB","c3"},{"SG","s"}}},
+    {"GLN",{AMINO_ACID_CORE,{"CB","c3"},{"CD","c"},{"CG","c3"},{"NE2","n"},{"OE1","o"}}},
+    {"GLU",{AMINO_ACID_CORE,{"CB","c3"},{"CD","c"},{"CG","c3"},{"OE1","o"},{"OE2","o"}}},
+    {"GLY",{AMINO_ACID_CORE}},
+    {"HIS",{AMINO_ACID_CORE,{"CB","c3"},{"CD2","cc"},{"CE1","cc"},{"CG","cc"},{"ND1","nc"},{"NE2","nc"}}},
+    {"ILE",{AMINO_ACID_CORE,{"CB","c3"},{"CD1","c3"},{"CG1","c3"},{"CG2","c3"},}},
+    {"LEU",{AMINO_ACID_CORE,{"CB","c3"},{"CD1","c3"},{"CD2","c3"},{"CG","c3"},}},
+    {"LYS",{AMINO_ACID_CORE,{"CB","c3"},{"CD","c3"},{"CE","c3"},{"CG","c3"},{"NZ","n3"},}},
+    {"MET",{AMINO_ACID_CORE,{"CB","c3"},{"CE","c3"},{"CG","c3"},{"SD","s"}}},
+    {"MSE",{AMINO_ACID_CORE,{"CB","c3"},{"CE","c3"},{"CG","c3"},{"SE","DU"}}},
+    {"PHE",{AMINO_ACID_CORE,{"CB","c3"},{"CD1","ca"},{"CD2","ca"},{"CE1","ca"},{"CE2","ca"},{"CG","ca"},{"CZ","ca"}}},
+    {"PRO",{AMINO_ACID_CORE,{"CB","c3"},{"CD","c3"},{"CG","c3"}}},
+    {"SER",{AMINO_ACID_CORE,{"CB","c3"},{"OG","oh"}}},
+    {"THR",{AMINO_ACID_CORE,{"CB","c3"},{"CG2","c3"},{"OG1","oh"}}},
+    {"TRP",{AMINO_ACID_CORE,{"CB","c3"},{"CD1","ca"},{"CD2","ca"},{"CE2","ca"},{"CE3","ca"},{"CG","ca"},{"CH2","ca"},{"CZ2","ca"},{"CZ3","ca"},{"NE1","na"}}},
+    {"TYR",{AMINO_ACID_CORE,{"CB","c3"},{"CD1","ca"},{"CD2","ca"},{"CE1","ca"},{"CE2","ca"},{"CG","ca"},{"CZ","ca"},{"OH","oh"}}},
+    {"VAL",{AMINO_ACID_CORE,{"CB","c3"},{"CG1","c3"},{"CG2","c3"}}},
+    {"HOH",{{"O","ow"}}},
 };
 
 GAFF::GAFF(const Molecule& mol) : mol_(mol) {
@@ -100,6 +132,8 @@ static size_t type_hydrogen(const AtomVertex& av) {
     auto neighbor = av[0]; // The only neighbor
     switch (neighbor.atomic_number()) {
     case Element::O:
+        if (neighbor.explicit_hydrogens() >= 2)
+            return gaff::hw;
         return gaff::ho;
     case Element::N:
         return gaff::hn;
@@ -452,6 +486,56 @@ static size_t type_sulfur(const AtomVertex& av) {
     }
 }
 
+static size_t type_atom(const AtomVertex& av) {
+
+    auto res = av.br().topology().residue_for_atom(av);
+    if (res) {
+        auto std_res = standard_residues.find(res->name());
+        if (std_res != standard_residues.end()) {
+            auto std_res_atom = std_res->second.find(av.name());
+            if (std_res_atom != std_res->second.end()) {
+                return atomtype_id_for_name<GAFF>(std_res_atom->second);
+            }
+        }
+    }
+
+    switch(av.atomic_number()) {
+    case Element::H:
+        return type_hydrogen(av);
+        break;
+    case Element::C:
+        return type_carbon(av);
+        break;
+    case Element::N:
+        return type_nitrogen(av);
+        break;
+    case Element::O:
+        return type_oxygen(av);
+        break;
+    case Element::P:
+        return type_phosphorus(av);
+        break;
+    case Element::S:
+        return type_sulfur(av);
+        break;
+    case Element::F:
+        return gaff::f;
+        break;
+    case Element::Cl:
+        return gaff::cl;
+        break;
+    case Element::Br:
+        return gaff::br;
+        break;
+    case Element::I:
+        return gaff::i;
+        break;
+    default:
+        return gaff::X;
+        break;
+    }
+}
+
 size_t GAFF::add_atom(size_t new_idx) {
     return add_atom_(new_idx);
 }
@@ -463,53 +547,27 @@ size_t GAFF::add_atom_(size_t new_idx) {
         atom_types_.resize(new_idx + 1);
     }
 
-    switch(av.atomic_number()) {
-    case Element::H:
-        atom_types_[new_idx] = type_hydrogen(mol_[new_idx]);
-        break;
-    case Element::C:
-        atom_types_[new_idx] = type_carbon(mol_[new_idx]);
-        break;
-    case Element::N:
-        atom_types_[new_idx] = type_nitrogen(mol_[new_idx]);
-        break;
-    case Element::O:
-        atom_types_[new_idx] = type_oxygen(mol_[new_idx]);
-        break;
-    case Element::P:
-        atom_types_[new_idx] = type_phosphorus(mol_[new_idx]);
-        break;
-    case Element::S:
-        atom_types_[new_idx] = type_sulfur(mol_[new_idx]);
-        break;
-    case Element::F:
-        atom_types_[new_idx] = gaff::f;
-        break;
-    case Element::Cl:
-        atom_types_[new_idx] = gaff::cl;
-        break;
-    case Element::Br:
-        atom_types_[new_idx] = gaff::br;
-        break;
-    case Element::I:
-        atom_types_[new_idx] = gaff::i;
-        break;
-    default:
-        atom_types_[new_idx] = gaff::X;
-        break;
-    }
+    atom_types_[new_idx] = type_atom(av);
 
     return atom_types_[new_idx];
 }
 
-void GAFF::add_bond(size_t /*idx1*/, size_t /*idx2*/, Bond::Order /*bo*/) {
+void GAFF::add_bond(size_t idx1, size_t idx2, Bond::Order /*bo*/) {
+    atom_types_[idx1] = type_atom(mol_[idx1]);
+    atom_types_[idx2] = type_atom(mol_[idx2]);
 }
 
 template<> std::string Spear::atomtype_name_for_id<GAFF>(size_t id) {
     return gaff_unmask[id];
 }
 
-template<> size_t Spear::atomtype_id_for_name<GAFF>(const std::string& /*name*/) {
+template<> size_t Spear::atomtype_id_for_name<GAFF>(const std::string& name) {
+    // I am lazy
+    for (size_t i = 0; i < atomtype_id_count<GAFF>(); ++i) {
+        if (atomtype_name_for_id<GAFF>(i) == name) {
+            return i;
+        }
+    }
 	return 0;
 }
 
@@ -520,4 +578,3 @@ template<> size_t Spear::atomtype_id_count<GAFF>() {
 template<> double Spear::van_der_waals<GAFF>(size_t /*id*/) {
 	return 0.0;
 }
-
