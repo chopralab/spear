@@ -19,13 +19,13 @@ static void update_chfl_frame(chemfiles::Frame& frame,
 }
 
 TEST_CASE("Read old AMBER file") {
-    std::ifstream amber_dat("share/amber10.xml");
+    std::ifstream amber_dat("share/ff10.xml");
     std::ifstream tip3p_dat("share/tip3p.xml");
     AMBER ff(amber_dat);
     ff.add_xml_file(tip3p_dat);
 
-    SECTION("3qox") {
-        auto traj = chemfiles::Trajectory("data/smd_ini.pdb");
+    SECTION("Deca-Alanine") {
+        auto traj = chemfiles::Trajectory("data/deca_alanine.pdb");
         auto frame = traj.read();
 
         auto& first_res = *frame.topology().residues().begin();
@@ -35,31 +35,24 @@ TEST_CASE("Read old AMBER file") {
         const_cast<chemfiles::Residue&>(last_res).set("is_c_terminal", true);
 
         auto pocket = Spear::Molecule(frame);
-
-        std::cout << pocket.topology().residues()[0].get<chemfiles::Property::BOOL>("is_n_terminal").value_or(false) << std::endl;
+        pocket.add_bond(0,2);
 
         Spear::Simulation sim;
         sim.add_molecule(pocket, ff);
 
-        chemfiles::Trajectory otraj("pocker.pdb.gz", 'w');
+        chemfiles::Trajectory otraj("deca_alanine.pdb.gz", 'w');
         chemfiles::Frame start;
         start.resize(pocket.size());
         start.set_topology(pocket.topology());
         update_chfl_frame(start, pocket.positions());
-        otraj.write(start);
 
-        sim.minimize(1e-3, 100);
+        sim.minimize(1e-3, 10);
         auto pos = sim.positions();
         update_chfl_frame(start, pos);
         otraj.write(start);
 
-        auto forces = sim.forces();
-        for (auto f : forces) {
-            std::cout << f[0] << " " << f[1] << " " << f[2] << std::endl;
-        }
-return;
-        while (sim.time() <= 0.10) {
-            sim.dynamic_steps(10);
+        while (sim.time() <= 0.5) {
+            sim.dynamic_steps(1);
             pos = sim.positions();
             update_chfl_frame(start, pos);
             otraj.write(start);

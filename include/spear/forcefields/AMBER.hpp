@@ -23,7 +23,7 @@ class SPEAR_EXPORT AMBER : public Forcefield {
 public:
 
     struct AtomType {
-        size_t atom_class;
+        size_t atom_class, atom_template;
         double mass, charge, sigma, epsilon;
     };
 
@@ -67,7 +67,7 @@ private:
 
     template<size_t N, typename T>
     bool get_residue_pair(const Molecule& mol,
-                          const T& atoms,
+                          const T& atoms, bool use_class,
                           std::array<size_t, N>& out) const;
 
     template<typename Func>
@@ -75,8 +75,13 @@ private:
 
     const AtomType& find_atom_type(const AtomVertex& atom, const chemfiles::Residue& res) const;
 
-    size_t get_class_(const std::string& s);
-    size_t get_type_(const std::string& s);
+    size_t get_class_(const std::string& s) const;
+    size_t get_type_(const std::string& s) const;
+
+    template<size_t N>
+    bool read_classes_(pugi::xml_node& node, const std::string& prefix,
+                       std::array<size_t, N>& ids, size_t offset = 0) const;
+
     std::unordered_map<std::string, size_t> class_map_;
     std::unordered_map<std::string, size_t> type_map_;
     std::vector<std::string> class_names_;
@@ -109,8 +114,11 @@ private:
     mutable int torsion_force_ = -1;
     mutable int improper_force_ = -1;
 
-    size_t class_ids = 1;
+    size_t class_ids = 1000001;
     size_t type_ids = 1;
+
+    double coulombic14scale_;
+    double lj14scale_;
 
     bool res_charge_ = false;
     bool res_sigma_ = false;

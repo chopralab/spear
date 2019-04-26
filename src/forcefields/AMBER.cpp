@@ -59,7 +59,7 @@ void AMBER::apply_function_to_atoms_in_residue(const Molecule& mol, Func&& func)
 
 template<size_t N, typename T>
 bool AMBER::get_residue_pair(const Molecule& mol,
-                             const T& atoms,
+                             const T& atoms, bool use_class,
                              std::array<size_t, N>& out) const {
 
     for (size_t i = 0; i < N; ++i) {
@@ -67,7 +67,8 @@ bool AMBER::get_residue_pair(const Molecule& mol,
         if (!res) {
             return false;
         }
-        out[i] = find_atom_type(mol[atoms[i]], *res).atom_class;
+        out[i] = use_class ? find_atom_type(mol[atoms[i]], *res).atom_class
+                           : find_atom_type(mol[atoms[i]], *res).atom_template;
     }
 
     return true;
@@ -123,7 +124,7 @@ void AMBER::add_forces(const Molecule& mol, OpenMM::System& system) const {
 
     auto& topo = mol.topology();
 
-    auto hbond = get_force<OpenMM::HarmonicBondForce>(system, bond_force_);
+    auto& hbond = get_force<OpenMM::HarmonicBondForce>(system, bond_force_);
     std::vector<std::pair<int,int>> bonds;
     for (auto bond : topo.bonds()) {
         bonds.emplace_back(static_cast<int>(bond[0] + added),
@@ -131,11 +132,16 @@ void AMBER::add_forces(const Molecule& mol, OpenMM::System& system) const {
         );
 
         std::array<size_t,2> class_;
-        if (!get_residue_pair(mol, bond, class_)) {
+        if (!get_residue_pair(mol, bond, false, class_)) {
             continue;
         }
 
         auto lookup = type_to_bond_.find(class_);
+        if (lookup == type_to_bond_.end()) {
+            get_residue_pair(mol, bond, true, class_);
+            lookup = type_to_bond_.find(class_);
+        }
+
         if (lookup == type_to_bond_.end()) {
             std::cerr << "Warning: bond '"
                       << mol[bond[0]].name() << " to "
@@ -144,46 +150,32 @@ void AMBER::add_forces(const Molecule& mol, OpenMM::System& system) const {
             continue;
         }
 
-        std::cout << "Adding bond: "
-                  << topo.residue_for_atom(bond[0])->name() << " "
-                  << mol[bond[0]].name() << "(" << static_cast<int>(bond[0] + added) << ") "
-                  << mol[bond[1]].name() << "(" << static_cast<int>(bond[1] + added) << ") "
-                  << lookup->second.length << " "
-                  << lookup->second.k << std::endl;
-
         hbond.addBond(static_cast<int>(bond[0] + added),
                       static_cast<int>(bond[1] + added),
             lookup->second.length, lookup->second.k
         );
     }
 
-    for (auto excl : bonds) {
-        std::cout << mol[excl.first].name() << " " << mol[excl.second].name() << std::endl;
-    }
-
-    nonbond.createExceptionsFromBonds(bonds, 0.833333333, 0.5);
+    nonbond.createExceptionsFromBonds(bonds, coulombic14scale_, lj14scale_);
 
     auto& hangle = get_force<OpenMM::HarmonicAngleForce>(system, angle_force_);
-
     for (auto angle : mol.topology().angles()) {
         std::array<size_t, 3> class_;
-        if (!get_residue_pair(mol, angle, class_)) {
+        if (!get_residue_pair(mol, angle, false, class_)) {
             continue;
         }
 
         auto lookup = type_to_angle_.find(class_);
         if (lookup == type_to_angle_.end()) {
+            get_residue_pair(mol, angle, true, class_);
+            lookup = type_to_angle_.find(class_);
+        }
+
+        if (lookup == type_to_angle_.end()) {
             std::cerr << "Warning: angle '"
                       << " not found.\n";
             continue;
         }
-
-        std::cout << "Adding angle: "
-                  << mol[angle[0]].name() << "(" << static_cast<int>(angle[0] + added) << ") "
-                  << mol[angle[1]].name() << "(" << static_cast<int>(angle[1] + added) << ") "
-                  << mol[angle[2]].name() << "(" << static_cast<int>(angle[2] + added) << ") "
-                  << lookup->second.theta << " "
-                  << lookup->second.k << std::endl;
 
         hangle.addAngle(static_cast<int>(angle[0] + added),
                         static_cast<int>(angle[1] + added),
@@ -193,10 +185,9 @@ void AMBER::add_forces(const Molecule& mol, OpenMM::System& system) const {
     }
 
     auto& torsion = get_force<OpenMM::PeriodicTorsionForce>(system, torsion_force_);
-
     for (auto dihedral : mol.topology().dihedrals()) {
         std::array<size_t,4> class_;
-        if (!get_residue_pair(mol, dihedral, class_)) {
+        if (!get_residue_pair(mol, dihedral, false, class_)) {
             continue;
         }
 
@@ -204,6 +195,15 @@ void AMBER::add_forces(const Molecule& mol, OpenMM::System& system) const {
         if (lookup == type_to_torsion_.end()) {
             lookup = type_to_torsion_.find({0, class_[1], class_[2], 0});
         }
+
+        if (lookup == type_to_torsion_.end()) {
+            get_residue_pair(mol, dihedral, true, class_);
+            lookup = type_to_torsion_.find(class_);
+        }
+        if (lookup == type_to_torsion_.end()) {
+            lookup = type_to_torsion_.find({0, class_[1], class_[2], 0});
+        }
+
         if (lookup == type_to_torsion_.end()) {
             std::cerr << "Warning: torison '"
                       << " not found.\n";
@@ -211,13 +211,6 @@ void AMBER::add_forces(const Molecule& mol, OpenMM::System& system) const {
         }
 
         for (auto force : lookup->second) {
-
-            std::cout << "Adding dihedral: "
-                      << mol[dihedral[0]].name() << "(" << static_cast<int>(dihedral[0] + added) << ") "
-                      << mol[dihedral[1]].name() << "(" << static_cast<int>(dihedral[1] + added) << ") "
-                      << mol[dihedral[2]].name() << "(" << static_cast<int>(dihedral[2] + added) << ") "
-                      << mol[dihedral[3]].name() << "(" << static_cast<int>(dihedral[3] + added) << ") "
-                      << force.phase << " " << force.k << " " << force.periodicity << std::endl;
 
             torsion.addTorsion(static_cast<int>(dihedral[0] + added),
                                static_cast<int>(dihedral[1] + added),
@@ -233,24 +226,51 @@ void AMBER::add_forces(const Molecule& mol, OpenMM::System& system) const {
     for (auto improper : mol.topology().impropers()) {
 
         std::array<size_t,4> class_;
-        if (!get_residue_pair(mol, improper, class_)) {
+        if (!get_residue_pair(mol, improper, false, class_)) {
             continue;
         }
 
         auto lookup = type_to_improper_.find(class_);
-
-        if (lookup == type_to_torsion_.end()) {
-            lookup = type_to_torsion_.find({0, class_[1], class_[0], 0});
+        if (lookup == type_to_improper_.end()) {
+            lookup = type_to_improper_.find({0, class_[1], class_[0], class_[2]});
         }
 
-        if (lookup == type_to_torsion_.end()) {
-            lookup = type_to_torsion_.find({0, class_[1], class_[2], 0});
+        if (lookup == type_to_improper_.end()) {
+            lookup = type_to_improper_.find({0, class_[1], class_[0], class_[3]});
         }
 
-        if (lookup == type_to_torsion_.end()) {
-            lookup = type_to_torsion_.find({0, class_[1], class_[2], 0});
+        if (lookup == type_to_improper_.end()) {
+            lookup = type_to_improper_.find({0, class_[1], class_[2], class_[3]});
         }
 
+        if (lookup == type_to_improper_.end()) {
+            lookup = type_to_improper_.find({0, class_[1], class_[0], 0});
+        }
+
+        if (lookup == type_to_improper_.end()) {
+            lookup = type_to_improper_.find({0, class_[1], class_[2], 0});
+        }
+
+        if (lookup == type_to_improper_.end()) {
+            lookup = type_to_improper_.find({0, class_[1], class_[3], 0});
+        }
+
+
+        if (lookup == type_to_improper_.end()) {
+            get_residue_pair(mol, improper, true, class_);
+            lookup = type_to_torsion_.find(class_);
+        }
+        if (lookup == type_to_improper_.end()) {
+            lookup = type_to_improper_.find({0, class_[1], class_[0], 0});
+        }
+
+        if (lookup == type_to_improper_.end()) {
+            lookup = type_to_improper_.find({0, class_[1], class_[2], 0});
+        }
+
+        if (lookup == type_to_improper_.end()) {
+            lookup = type_to_improper_.find({0, class_[1], class_[3], 0});
+        }
         // No warning, these are rare
         if (lookup == type_to_improper_.end()) {
             continue;
@@ -258,13 +278,6 @@ void AMBER::add_forces(const Molecule& mol, OpenMM::System& system) const {
 
         // Note the switch!
         for (auto force : lookup->second) {
-            std::cout << "Adding improper: "
-                  << mol[improper[0]].name() << "(" << static_cast<int>(improper[0] + added) << ") "
-                  << mol[improper[1]].name() << "(" << static_cast<int>(improper[1] + added) << ") "
-                  << mol[improper[2]].name() << "(" << static_cast<int>(improper[2] + added) << ") "
-                  << mol[improper[3]].name() << "(" << static_cast<int>(improper[3] + added) << ") "
-                  << force.phase << " " << force.k << " " << force.periodicity << std::endl;
-
             torsion.addTorsion(static_cast<int>(improper[1] + added), // <------- OpenMM swap
                                static_cast<int>(improper[0] + added),
                                static_cast<int>(improper[2] + added),
@@ -288,7 +301,7 @@ std::vector<double> AMBER::masses(const Molecule& mol) const {
     return result;
 }
 
-size_t AMBER::get_class_(const std::string& s) {
+size_t AMBER::get_class_(const std::string& s) const {
     if (s == "") {
         return 0; // wild card
     }
@@ -301,17 +314,36 @@ size_t AMBER::get_class_(const std::string& s) {
     return iter->second;
 }
 
-size_t AMBER::get_type_(const std::string& s) {
+size_t AMBER::get_type_(const std::string& s) const {
     if (s == "") {
         return 0; // wild card
     }
 
     auto iter = type_map_.find(s);
     if (iter == type_map_.end()) {
-        // Throw error
+        throw std::runtime_error("Atom class " + s + " not found!");
     }
 
     return iter->second;
+}
+
+template<size_t N>
+bool AMBER::read_classes_(pugi::xml_node& node, const std::string& prefix,
+                   std::array<size_t, N>& ids, size_t offset) const {
+    for (size_t i = 0; i < N; ++i) {
+        auto name = prefix + std::to_string(i + 1);
+        auto attr = node.attribute(name.c_str());
+        if (!attr) {
+            return false;
+        }
+        if (prefix == "type") {
+            ids[i] = get_type_(attr.as_string()) + offset;
+        } else {
+            ids[i] = get_class_(attr.as_string()) + offset;
+        }
+    }
+
+    return true;
 }
 
 void AMBER::read_dat_file_(std::istream& input) {
@@ -357,11 +389,14 @@ void AMBER::read_atom_types_(pugi::xml_node& input) {
 
         class_to_type_.insert({class_iter->second, type_ids});
         type_to_class_.insert({type_ids, class_iter->second});
-        type_templates_.push_back({class_iter->second, mass, 0, 0, 0});
+        type_templates_.push_back({class_iter->second, type_ids, mass, 0, 0, 0});
         type_ids++;
     }
 
     at_node = input.child("NonbondedForce");
+
+    coulombic14scale_ = at_node.attribute("coulombic14scale").as_double(0.8333333333333334);
+    lj14scale_ = at_node.attribute("coulombic14scale").as_double(0.5);
 
     for (auto use_attribute : at_node.children("UseAttributeFromResidue")) {
         std::string name = use_attribute.attribute("name").as_string();
@@ -409,6 +444,8 @@ void AMBER::read_residues_(pugi::xml_node& input) {
 
             auto new_type = new_res.insert({name, type_templates_[type]});
 
+            new_type.first->second.atom_template = type;
+
             if (res_charge_) {
                 new_type.first->second.charge = atom.attribute("charge").as_double();
             }
@@ -431,13 +468,17 @@ void AMBER::read_bonds_(pugi::xml_node& input) {
 
     for (auto bond : at_node.children("Bond")) {
         try {
-            auto class1 = get_class_(bond.attribute("class1").as_string());
-            auto class2 = get_class_(bond.attribute("class2").as_string());
             auto length = bond.attribute("length").as_double();
             auto k = bond.attribute("k").as_double();
 
-            type_to_bond_.insert({{class1, class2},
-                                  {length, k}});
+            std::array<size_t, 2> bond_class;
+            if (read_classes_(bond, "type", bond_class)) {
+                type_to_bond_.insert({bond_class, {length, k}});
+            }
+
+            if (read_classes_(bond, "class", bond_class)) {
+                type_to_bond_.insert({bond_class, {length, k}});
+            }            
         } catch (const std::exception& e) {
             std::cerr << "Warning: " << e.what() << std::endl;
         } catch (...) {
@@ -454,16 +495,19 @@ void AMBER::read_angles_(pugi::xml_node& input) {
 
     for (auto angle : at_node.children("Angle")) {
         try {
-            auto class1 = get_class_(angle.attribute("class1").as_string());
-            auto class2 = get_class_(angle.attribute("class2").as_string());
-            auto class3 = get_class_(angle.attribute("class3").as_string());
             auto theta = angle.attribute("angle").as_double();
             auto k = angle.attribute("k").as_double();
 
-            type_to_angle_.insert({{class1, class2, class3},
-                                   {theta, k}});
+            std::array<size_t, 3> angle_class;
+            if (read_classes_(angle, "type", angle_class)) {
+                type_to_angle_.insert({angle_class, {theta, k}});
+            }
+
+            if (read_classes_(angle, "class", angle_class)) {
+                type_to_angle_.insert({angle_class, {theta, k}});
+            }
         } catch(const std::exception& e) {
-            //std::cerr << "Warning: " << e.what() << std::endl;
+            std::cerr << "Warning: " << e.what() << std::endl;
         }
     }
 }
@@ -507,33 +551,39 @@ void AMBER::read_torsions_(pugi::xml_node& input) {
 
     for (auto proper : at_node.children("Proper")) {
         try {
-            auto class1 = get_class_(proper.attribute("class1").as_string());
-            auto class2 = get_class_(proper.attribute("class2").as_string());
-            auto class3 = get_class_(proper.attribute("class3").as_string());
-            auto class4 = get_class_(proper.attribute("class4").as_string());
-
             auto forces = read_periodic_force(proper);
 
-            type_to_torsion_.insert({{class1, class2, class3, class4},
-                                     std::move(forces)});
+            std::array<size_t, 4> torsion_class;
+            if (read_classes_(proper, "type", torsion_class)) {
+                type_to_torsion_.insert({torsion_class, std::move(forces)});
+                continue;
+            }
+
+            if (read_classes_(proper, "class", torsion_class)) {
+                type_to_torsion_.insert({torsion_class, std::move(forces)});
+            }
         } catch (const std::exception& e) {
-            //std::cerr << "Warning: " << e.what() << std::endl;
+            std::cerr << "Warning: " << e.what() << std::endl;
         }
     }
 
     for (auto improper : at_node.children("Improper")) {
         try {
-            auto class1 = get_class_(improper.attribute("class1").as_string());
-            auto class2 = get_class_(improper.attribute("class2").as_string());
-            auto class3 = get_class_(improper.attribute("class3").as_string());
-            auto class4 = get_class_(improper.attribute("class4").as_string());
-
             auto forces = read_periodic_force(improper);
 
-            type_to_improper_.insert({{class2, class1, class3, class4},
-                                       std::move(forces)});
+            std::array<size_t, 4> torsion_class;
+            if (read_classes_(improper, "type", torsion_class)) {
+                std::swap(torsion_class[0], torsion_class[1]);
+                type_to_improper_.insert({torsion_class, std::move(forces)});
+                continue;
+            }
+
+            if (read_classes_(improper, "class", torsion_class)) {
+                std::swap(torsion_class[0], torsion_class[1]);
+                type_to_improper_.insert({torsion_class, std::move(forces)});
+            }
         } catch (const std::exception& e) {
-            //std::cerr << "Warning: " << e.what() << std::endl;
+            std::cerr << "Warning: " << e.what() << std::endl;
         }
     }
 }

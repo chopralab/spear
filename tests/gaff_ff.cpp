@@ -28,7 +28,7 @@ TEST_CASE("Read gaff.dat file") {
     CHECK(ff.num_atom_types() == 83);
     CHECK(ff.num_bonds() == 840);
     CHECK(ff.num_angles() == 4614);
-    CHECK(ff.num_torsions() == 1037);
+    CHECK(ff.num_torsions() == 980);
     CHECK(ff.num_impropers() == 35);
 
     SECTION("Tibolone") {

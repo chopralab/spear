@@ -80,7 +80,7 @@ public:
                 boost::hash_combine(seed, std::get<1>(k));
                 boost::hash_combine(seed, std::get<2>(k));
                 boost::hash_combine(seed, std::get<3>(k));
-            } else if (std::get<3>(k) < std::get<0>(k)) {
+            } else if (std::get<0>(k) > std::get<3>(k)) {
                 boost::hash_combine(seed, std::get<3>(k));
                 boost::hash_combine(seed, std::get<2>(k));
                 boost::hash_combine(seed, std::get<1>(k));
@@ -104,21 +104,23 @@ public:
 
     struct torsion_type_equal : public std::binary_function<torsion_type, torsion_type, bool> {
         std::size_t operator()(const torsion_type& j, const torsion_type& k) const {
-            if (k[0] < k[3]) {
-                return k[0] == std::min(j[0], j[3]) && k[3] == std::max(j[0], j[3]) &&
-                       k[1] == std::min(j[1], j[2]) && k[2] == std::max(j[1], j[2]);
-            } else if (k[0] > k[3]) {
-                return k[0] == std::max(j[0], j[3]) && k[3] == std::min(j[0], j[3]) &&
-                       k[1] == std::max(j[1], j[2]) && k[2] == std::min(j[1], j[2]);
-            } else {
-                if (k[1] < k[2]) {
-                    return k[0] == j[0] && k[0] == j[3] &&
-                           k[1] == std::min(j[1], j[2]) && k[2] == std::max(j[1], j[2]);
-                } else {
-                    return k[0] == j[0] && k[0] == j[3] &&
-                           k[1] == std::max(j[1], j[2]) && k[2] == std::min(j[1], j[2]);
-                }
+            if ( (j[0] < j[3] && k[0] < k[3]) || (j[0] > j[3] && k[0] > k[3])) {
+                return j == k; // Simple comparison as they are the same order
             }
+            if ( (j[0] > j[3] && k[0] < k[3]) || (j[0] < j[3] && k[0] > k[3])) {
+                // Reverse order!!!
+                return j[0] == k[3] && j[1] == k[2] && j[2] == k[1] && j[3] == k[0];
+            }
+            if ( j[0] == k[0] && (j[1] < j[2])) {
+                // Proper order with ends equal
+                return j[1] == std::min(k[1], k[2]) && j[2] == std::max(k[1], k[2]);
+            }
+            if ( j[0] == k[0] && (j[1] > j[2])) {
+                // Reverse order with ends equal
+                return j[1] == std::max(k[1], k[2]) && j[2] == std::min(k[1], k[2]);
+            }
+            // must be all the same
+            return j == k;
         }
     };
 
