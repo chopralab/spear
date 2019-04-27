@@ -269,9 +269,12 @@ static size_t assignBondOrderType(Element::Symbol atomic_number,
 }
 
 IDATM::IDATM(const Molecule& mol, TypingMode mode) :
-    mol_(mol), atom_types_(mol.size(), idatm::unk), heavys_(mol.size(), 0),
+    mol_(mol),
+    atom_types_(const_cast<vector<size_t>&>(as_vec())),
+    heavys_(mol.size(), 0),
     mapped_(mol.size(), false)
 {
+    resize(mol.size(), idatm::unk);
     switch (mode) {
     case GEOMETRY:
         name_ = "IDATM_geometry";

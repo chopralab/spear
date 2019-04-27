@@ -20,20 +20,12 @@ public:
         return name_;
     }
 
-    const std::vector<size_t>& all_types() const override {
-        return atom_types_;
-    }
-
     size_t add_atom(size_t new_idx) override;
 
     void add_bond(size_t idx1, size_t idx2, Bond::Order bo) override;
 
     void remove_atom(size_t idx) override {
-        atom_types_.erase(atom_types_.begin() + static_cast<std::ptrdiff_t>(idx));
-    }
-
-    size_t operator[](size_t atom_id) const override {
-        return atom_types_[atom_id];
+        erase(begin() + static_cast<std::ptrdiff_t>(idx));
     }
 
     bool is_aromatic(size_t atom_id) const override;
@@ -44,20 +36,11 @@ public:
 		return Hybridization::FORCED;
     }
 
-    std::vector<size_t>::const_iterator cbegin() const override {
-        return atom_types_.cbegin();
-    }
-
-    std::vector<size_t>::const_iterator cend() const override {
-        return atom_types_.cend();
-    }
-
 private:
 
     size_t add_atom_(size_t new_idx);
 
     const Molecule& mol_;
-    std::vector<size_t> atom_types_;
 
     const std::string name_ = "gaff";
 };

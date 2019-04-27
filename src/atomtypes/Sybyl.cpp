@@ -104,7 +104,9 @@ static bool is_decloc(const Spear::AtomVertex& atom) {
 }
 
 Sybyl::Sybyl(const Molecule& mol, TypingMode mode) :
-    atom_types_(mol.size(), sybyl::Du), mol_(mol) {
+    mol_(mol) {
+
+    super::resize(mol.size(), sybyl::Du);
     switch (mode) {
     case GEOMETRY:
         name_ = "Sybyl_geometry";
@@ -125,10 +127,10 @@ void Sybyl::type_atoms_3d_() {
     for (auto atom : mol_) {
         switch (atom.atomic_number()) {
         case Element::C:
-            atom_types_[atom] = assign_carbon_3d_(atom);
+            set(atom, assign_carbon_3d_(atom));
             break;
         case Element::N:
-            atom_types_[atom] = assign_nitrogen_3d_(atom);
+            set(atom, assign_nitrogen_3d_(atom));
             break;
         default:
             break;
@@ -139,39 +141,39 @@ void Sybyl::type_atoms_3d_() {
 void Sybyl::type_atoms_topo_(const AtomVertex& atom) {
     switch (atom.atomic_number()) {
     case Element::H:
-        atom_types_[atom] = sybyl::H;
+        set(atom, sybyl::H);
         break;
     case Element::C:
-        atom_types_[atom] = assign_carbon_topo_(atom);
+        set(atom, assign_carbon_topo_(atom));
         break;
     case Element::N:
-        atom_types_[atom] = assign_nitrogen_topo_(atom);
+        set(atom, assign_nitrogen_topo_(atom));
         break;
     case Element::O:
-        atom_types_[atom] = assign_oxygen_(atom);
+        set(atom, assign_oxygen_(atom));
         break;
     case Element::S:
-        atom_types_[atom] = assign_sulfur_(atom);
+        set(atom, assign_sulfur_(atom));
         break;
     case Element::P:
-        atom_types_[atom] = sybyl::P_3;
+        set(atom, sybyl::P_3);
         break;
     case Element::Co:
-        atom_types_[atom] = sybyl::Co_oh;
+        set(atom, sybyl::Co_oh);
         break;
     case Element::Ru:
-        atom_types_[atom] = sybyl::Ru_oh;
+        set(atom, sybyl::Ru_oh);
         break;
     case Element::Ti:
-        atom_types_[atom] = atom.degree() <= 4 ? Ti_th
-                                               : Ti_oh;
+        set(atom, atom.degree() <= 4 ? Ti_th
+                                     : Ti_oh);
         break;
     case Element::Cr:
-        atom_types_[atom] = atom.degree() <= 4 ? Cr_th
-                                               : Cr_oh;
+        set(atom, atom.degree() <= 4 ? Cr_th
+                                     : Cr_oh);
         break;
     default:
-        atom_types_[atom] = sybyl_mask.at(Element::Name[atom.atomic_number()]);
+        set(atom, sybyl_mask.at(Element::Name[atom.atomic_number()]));
         break;
     }
 }
@@ -426,7 +428,7 @@ size_t Sybyl::assign_sulfur_(const AtomVertex& atom) {
 }
 
 bool Sybyl::is_aromatic(size_t atom_id) const {
-    switch (atom_types_[atom_id]) {
+    switch (get(atom_id)) {
     case sybyl::C_ar:
     case sybyl::N_ar:
         return true;
@@ -435,7 +437,7 @@ bool Sybyl::is_aromatic(size_t atom_id) const {
 }
 
 bool Sybyl::is_planar(size_t atom_id) const {
-    switch (atom_types_[atom_id]) {
+    switch (get(atom_id)) {
     // Carbon
     case sybyl::C_ar: case sybyl::C_2: case sybyl::C_1: case sybyl::C_cat:
     // Nitrogen
@@ -453,7 +455,7 @@ bool Sybyl::is_planar(size_t atom_id) const {
 }
 
 Hybridization Sybyl::hybridization(size_t atom_id) const {
-    switch (atom_types_[atom_id]) {
+    switch (get(atom_id)) {
     case sybyl::C_1: case sybyl::N_1:
         return Hybridization::SP;
 
@@ -475,28 +477,28 @@ Hybridization Sybyl::hybridization(size_t atom_id) const {
 size_t Sybyl::add_atom(size_t idx) {
     switch(mol_[idx].atomic_number()) {
     case Element::H:
-        atom_types_.push_back(sybyl::H);
+        push_back(sybyl::H);
     case Element::C:
-        atom_types_.push_back(sybyl::C_3);
+        push_back(sybyl::C_3);
         break;
     case Element::N:
-        atom_types_.push_back(sybyl::N_3);
+        push_back(sybyl::N_3);
         break;
     case Element::O:
-        atom_types_.push_back(sybyl::O_3);
+        push_back(sybyl::O_3);
         break;
     case Element::S:
-        atom_types_.push_back(sybyl::S_3);
+        push_back(sybyl::S_3);
         break;
     case Element::P:
-        atom_types_.push_back(sybyl::P_3);
+        push_back(sybyl::P_3);
         break;
     default:
-        atom_types_.push_back(sybyl_mask.at(Element::Name[mol_[idx].atomic_number()]));
+        push_back(sybyl_mask.at(Element::Name[mol_[idx].atomic_number()]));
         break;
     }
 
-    return mol_[idx].atomic_number();
+    return back();
 
 }
 

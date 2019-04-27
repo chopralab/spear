@@ -76,7 +76,7 @@ const std::map<std::string, std::map<std::string,std::string>> standard_residues
 };
 
 GAFF::GAFF(const Molecule& mol) : mol_(mol) {
-    atom_types_.reserve(mol.size());
+    reserve(mol.size());
 
     for (auto av : mol) {
         add_atom_(av);
@@ -543,18 +543,18 @@ size_t GAFF::add_atom(size_t new_idx) {
 size_t GAFF::add_atom_(size_t new_idx) {
     auto av = mol_[new_idx];
 
-    if (new_idx >= atom_types_.size()) {
-        atom_types_.resize(new_idx + 1);
+    if (new_idx >= this->size()) {
+        this->resize(new_idx + 1);
     }
 
-    atom_types_[new_idx] = type_atom(av);
+    set(new_idx, type_atom(av));
 
-    return atom_types_[new_idx];
+    return get(new_idx);
 }
 
 void GAFF::add_bond(size_t idx1, size_t idx2, Bond::Order /*bo*/) {
-    atom_types_[idx1] = type_atom(mol_[idx1]);
-    atom_types_[idx2] = type_atom(mol_[idx2]);
+    set(idx1, type_atom(mol_[idx1]));
+    set(idx2, type_atom(mol_[idx2]));
 }
 
 template<> std::string Spear::atomtype_name_for_id<GAFF>(size_t id) {

@@ -22,7 +22,15 @@ enum Hybridization : uint64_t {
     SP3D2   = 6,
 };
 
-class SPEAR_EXPORT AtomType {
+class SPEAR_EXPORT AtomType : protected std::vector<size_t> {
+protected:
+    using super = std::vector<size_t>;
+    void set(size_t idx, size_t val) {
+        super::operator[](idx) = val;
+    }
+    const size_t& get(size_t idx) const {
+        return super::operator[](idx);
+    }
 public:
 
     enum TypingMode {
@@ -36,9 +44,6 @@ public:
     /// Get the name of atom type. This maybe dependant on how the type was
     /// initialized or how it is going to be used.
     virtual const std::string& name() const = 0;    
-
-    /// Return a vector of all the atom type ids represented by the atom type
-    virtual const std::vector<size_t>& all_types() const = 0;
 
     /// Is the given atom aromatic in the typing scheme?
     virtual bool is_aromatic(size_t atom_id) const = 0;
@@ -58,14 +63,31 @@ public:
     /// Remove an atom from the atom type vector
     virtual void remove_atom(size_t idx) = 0;
 
-    /// Retreive the type of a given typed atom
-    virtual size_t operator[](size_t atom_id) const = 0;
+    /// Return a vector of all the atom type ids represented by the atom type
+    const vector<size_t>& as_vec() const{
+        return *this;
+    }
+
+    using super::size;
 
     /// Beginning of all atomtypes
-    virtual std::vector<size_t>::const_iterator cbegin() const = 0;
+    using super::cbegin;
+    using super::cend;
 
-    /// Ending of all atomtypes
-    virtual std::vector<size_t>::const_iterator cend() const = 0;
+    /// Retreive the type of a given typed atom
+    using super::operator[];
+
+    super::const_iterator begin() const {
+        return cbegin();
+    }
+
+    super::const_iterator end() const {
+        return cend();
+    }
+
+    friend bool operator==(const AtomType& at1, const AtomType& at2) {
+        return at1.as_vec() == at2.as_vec();
+    }
 };
 
 class FormatFeatureUnimplemented : public std::logic_error {

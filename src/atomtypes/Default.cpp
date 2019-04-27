@@ -17,13 +17,13 @@ static void dec_hybridization(Hybridization& h) {
 }
 
 Default::Default(const Molecule& mol) : mol_(mol) {
-    atom_types_.reserve(mol.size());
+    reserve(mol.size());
     hybridizations_.reserve(mol.size());
 
     for (auto av : mol) {
         auto atomic_number = av.atomic_number();
 
-        atom_types_.push_back(atomic_number);
+        push_back(atomic_number);
         switch(atomic_number) {
         case Element::C:
         case Element::Si:
@@ -155,7 +155,7 @@ bool Default::is_planar(size_t atom_id) const {
 size_t Default::add_atom(size_t new_idx) {
     auto av = mol_[new_idx];
     auto atomic_number = av.atomic_number();
-    atom_types_.push_back(atomic_number);
+    push_back(atomic_number);
     if (atomic_number == 1 || atomic_number == 2) {
         hybridizations_.push_back(Hybridization::FORCED);
         return atomic_number;
@@ -184,9 +184,9 @@ void Default::add_bond(size_t idx1, size_t idx2, Bond::Order bo) {
         dec_hybridization(hybridizations_[idx2]);
         break;
     case Bond::AROMATIC: // Benzyne?
-        if (atom_types_[idx1] == Element::C)
+        if ((*this)[idx1] == Element::C)
             hybridizations_[idx1] = Hybridization::SP2;
-        if (atom_types_[idx2] == Element::C)
+        if ((*this)[idx2] == Element::C)
             hybridizations_[idx2] = Hybridization::SP2;
         break;
     default:

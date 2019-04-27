@@ -47,7 +47,7 @@ void GAFF_FF::add_forces(const Molecule& mol, OpenMM::System& system) const {
 
     auto& nonbond = get_force<OpenMM::NonbondedForce>(system, non_bond_force_);
 
-    auto& all_types = gaff_types->all_types();
+    auto& all_types = gaff_types->as_vec();
 
     for (auto av : mol) {
         auto lookup = type_to_atom_.find(all_types[av]);
@@ -191,7 +191,7 @@ std::vector<double> GAFF_FF::masses(const Molecule& mol) const {
     std::vector<double> result;
     result.reserve(mol.size());
 
-    for (auto at : gaff_types->all_types()) {
+    for (auto at : *gaff_types) {
         result.push_back(type_to_atom_.at(at).mass);
     }
 

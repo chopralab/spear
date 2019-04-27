@@ -24,24 +24,22 @@ TEST_CASE("IDATM") {
         auto mol = Molecule(traj.read());
 
         IDATM idatm(mol, AtomType::GEOMETRY);
-        auto& alltypes = idatm.all_types();
-        CHECK(alltypes.size() == mol.size());
+        CHECK(idatm.size() == mol.size());
 
-        auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
+        auto unique_types = std::unordered_set<size_t>(idatm.cbegin(), idatm.cend());
         CHECK(unique_types.size() == 3);
 
-        CHECK(idatm_name(alltypes[16]) == "O2-");
-        CHECK(idatm_name(alltypes[17]) == "O2-");
-        CHECK(atomtype_name_for_id<IDATM>(alltypes[15]) == "Cac");
+        CHECK(idatm_name(idatm[16]) == "O2-");
+        CHECK(idatm_name(idatm[17]) == "O2-");
+        CHECK(atomtype_name_for_id<IDATM>(idatm[15]) == "Cac");
 
         // Check all but the last 3
-        for (size_t i = 0; i < alltypes.size() - 3; ++i) {
-            CHECK(atomtype_name_for_id<IDATM>(alltypes[i]) == "C3");
+        for (size_t i = 0; i < idatm.size() - 3; ++i) {
+            CHECK(atomtype_name_for_id<IDATM>(idatm[i]) == "C3");
         }
 
         IDATM idatm2(mol, AtomType::TOPOLOGY);
-        auto& alltypes_2 = idatm2.all_types();
-        CHECK(alltypes == alltypes_2);
+        CHECK(idatm == idatm2);
     }
 
     SECTION("Tibolone") {
@@ -49,10 +47,9 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         IDATM idatm(mol, AtomType::GEOMETRY);
-        auto& alltypes = idatm.all_types();
-        CHECK(alltypes.size() == mol.size());
+        CHECK(idatm.size() == mol.size());
 
-        auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
+        auto unique_types = std::unordered_set<size_t>(idatm.cbegin(), idatm.cend());
         CHECK(unique_types.size() == 5);
         CHECK(unique_types.count(idatm_type("C3")) != 0);
         CHECK(unique_types.count(idatm_type("C2")) != 0);
@@ -61,8 +58,7 @@ TEST_CASE("IDATM") {
         CHECK(unique_types.count(idatm_type("O3")) != 0);
 
         IDATM idatm2(mol, AtomType::TOPOLOGY);
-        auto& alltypes_2 = idatm2.all_types();
-        CHECK(alltypes == alltypes_2);
+        CHECK(idatm == idatm2);
     }
 
     SECTION("Pazopanib") {
@@ -70,10 +66,9 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         IDATM idatm(mol, AtomType::GEOMETRY);
-        auto& alltypes = idatm.all_types();
-        CHECK(alltypes.size() == mol.size());
+        CHECK(idatm.size() == mol.size());
 
-        auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
+        auto unique_types = std::unordered_set<size_t>(idatm.cbegin(), idatm.cend());
         CHECK(unique_types.size() == 6);
         CHECK(unique_types.count(idatm_type("C3")) != 0);
         CHECK(unique_types.count(idatm_type("Car")) != 0);
@@ -90,20 +85,20 @@ TEST_CASE("IDATM") {
                 if (ring.size() == 6) {
                     CHECK(idatm.hybridization(atom) == Hybridization::SP2);
                     if (mol[atom].atomic_number() == 6) {
-                        CHECK(idatm_name(alltypes[atom]) == "Car");
+                        CHECK(idatm_name(idatm[atom]) == "Car");
                         CHECK(idatm.is_aromatic(atom));
                     } else if (mol[atom].atomic_number() == 7) {
-                        CHECK(idatm_name(alltypes[atom]) == "N2");
+                        CHECK(idatm_name(idatm[atom]) == "N2");
                         CHECK(idatm.is_aromatic(atom));
                     }
                 } else if (ring.size() == 5) {
                     if (mol[atom].atomic_number() != 7) continue;
                     if (mol[atom].degree() == 3) {
-                        CHECK(idatm_name(alltypes[atom]) == "Npl");
+                        CHECK(idatm_name(idatm[atom]) == "Npl");
                         CHECK(idatm.is_aromatic(atom));
                         CHECK(idatm.hybridization(atom) == Hybridization::SP3);
                     } else {
-                        CHECK(idatm_name(alltypes[atom]) == "N2");
+                        CHECK(idatm_name(idatm[atom]) == "N2");
                         CHECK(idatm.is_aromatic(atom));
                         CHECK(idatm.hybridization(atom) == Hybridization::SP2);
                     }
@@ -114,13 +109,12 @@ TEST_CASE("IDATM") {
         for (size_t i = 0; i < mol.size(); ++i) {
             if (in_a_ring.find(i) != in_a_ring.end()) continue;
             if (mol[i].atomic_number() == 7) {
-                CHECK(idatm_name(alltypes[i]) == "Npl");
+                CHECK(idatm_name(idatm[i]) == "Npl");
             }
         }
 
         IDATM idatm2(mol, AtomType::TOPOLOGY);
-        auto& alltypes_2 = idatm2.all_types();
-        CHECK(alltypes == alltypes_2);
+        CHECK(idatm == idatm2);
     }
 
     SECTION("Aromatics") {
@@ -128,10 +122,9 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         IDATM idatm(mol, AtomType::GEOMETRY);
-        auto& alltypes = idatm.all_types();
-        CHECK(alltypes.size() == mol.size());
+        CHECK(idatm.size() == mol.size());
 
-        auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
+        auto unique_types = std::unordered_set<size_t>(idatm.cbegin(), idatm.cend());
         CHECK(unique_types.size() == 9);
         CHECK(unique_types.count(idatm_type("Car")) != 0);
         CHECK(unique_types.count(idatm_type("Oar")) != 0);
@@ -155,8 +148,7 @@ TEST_CASE("IDATM") {
         }
 
         IDATM idatm2(mol, AtomType::TOPOLOGY);
-        auto& alltypes_2 = idatm2.all_types();
-        CHECK(alltypes == alltypes_2);
+        CHECK(idatm == idatm2);
 	}
 
     SECTION("Oxides") {
@@ -164,10 +156,9 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         IDATM idatm(mol, AtomType::GEOMETRY);
-        auto& alltypes = idatm.all_types();
-        CHECK(alltypes.size() == mol.size());
+        CHECK(idatm.size() == mol.size());
 
-		auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
+		auto unique_types = std::unordered_set<size_t>(idatm.cbegin(), idatm.cend());
 		CHECK(unique_types.size() == 10);
         CHECK(unique_types.count(idatm_type("C3")) != 0);
         CHECK(unique_types.count(idatm_type("C2")) != 0);
@@ -181,8 +172,7 @@ TEST_CASE("IDATM") {
         CHECK(unique_types.count(idatm_type("Sxd")) != 0);
 
         IDATM idatm2(mol, AtomType::TOPOLOGY);
-        auto& alltypes_2 = idatm2.all_types();
-        CHECK(alltypes == alltypes_2);
+        CHECK(idatm == idatm2);
 	}
 
     SECTION("POB Problem case") {
@@ -190,10 +180,9 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         IDATM idatm(mol, AtomType::GEOMETRY);
-        auto& alltypes = idatm.all_types();
-        CHECK(alltypes.size() == mol.size());
+        CHECK(idatm.size() == mol.size());
 
-		auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
+		auto unique_types = std::unordered_set<size_t>(idatm.cbegin(), idatm.cend());
 		CHECK(unique_types.size() == 8);
         CHECK(unique_types.count(idatm_type("O3")) != 0);
         CHECK(unique_types.count(idatm_type("O3-")) != 0);
@@ -213,10 +202,9 @@ TEST_CASE("IDATM") {
         auto mol = Spear::Molecule(traj.read());
 
         IDATM idatm(mol, AtomType::GEOMETRY);
-        auto& alltypes = idatm.all_types();
-        CHECK(alltypes.size() == mol.size());
+        CHECK(idatm.size() == mol.size());
 
-		auto unique_types = std::unordered_set<size_t>(alltypes.cbegin(), alltypes.cend());
+		auto unique_types = std::unordered_set<size_t>(idatm.cbegin(), idatm.cend());
 		CHECK(unique_types.size() == 6);
         CHECK(unique_types.count(idatm_type("O2")) != 0);
         CHECK(unique_types.count(idatm_type("C2")) != 0);
@@ -229,7 +217,7 @@ TEST_CASE("IDATM") {
         for (auto ring : rings) {
             for (auto atom : ring) {
                 if (ring.size() == 5) {
-                    CHECK(idatm_name(alltypes[atom]) != "Car");
+                    CHECK(idatm_name(idatm[atom]) != "Car");
                 }
             }
         }

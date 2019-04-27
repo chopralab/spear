@@ -132,8 +132,8 @@ double Bernard12::score(const Grid& grid, const Molecule& mol1, const Molecule& 
         throw std::invalid_argument("Correct atom types not present in molecule");
     }
 
-    auto& types1 = opt_types1->all_types();
-    auto& types2 = opt_types2->all_types();
+    auto& types1 = *opt_types1;
+    auto& types2 = *opt_types2;
 
     auto energy_sum = 0.0;
     for (auto atom2 : mol2) {
@@ -162,7 +162,7 @@ double Bernard12::score(const Grid& grid, const Molecule& mol1, const Molecule& 
 
 double Bernard12::score( const Grid& grid, const Molecule& mol, size_t residue_id) const {
     auto opt_types1 = mol.get_atomtype(atomtype_);
-    auto& types1 = opt_types1->all_types();
+    auto& types1 = *opt_types1;
 
     const auto& residue = mol.topology().residues()[residue_id];
 
