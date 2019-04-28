@@ -10,6 +10,7 @@
 namespace Spear {
 
 class Molecule;
+class AtomVertex;
 
 /// algorithm based on E.C. Meng / R.A. Lewis paper
 /// "Determination of Molecular Topology and Atomic Hybridization
@@ -92,7 +93,7 @@ private:
     ///	C may be sp3 (C3), sp2 (C2), or sp (C1)
     ///	N may be sp3 (N3), sp2 or planar (Npl), or sp (N1)
     ///	O and S are sp3 (O3 and S3, respectively)
-    std::vector<size_t> valence_();
+    size_t valence_(const AtomVertex& av);
 
     /// valence pass: elements d valences > 1
     /// also fills the 'redo' array for hard to determine types
@@ -105,17 +106,17 @@ private:
     ///    or a quaternary phosphine (P3+)
     ///  S must be part of a sulfate, sulfonate or sulfamate
     ///    (Sac), or sulfone (Son)
-    void valence_topo_();
+    size_t valence_topo_(const AtomVertex& atom);
 
     /// terminal pass: determine types of valence 1 atoms.  These were typed by
     /// element only in previous pass, but can be typed more accurately
     /// now that the atoms they are bonded to have been typed.
     /// Bond lengths are used in this pass to perform this assignment.
-    void terminal_(std::vector<size_t>& redo);
+    size_t terminal_(const AtomVertex& atom);
 
     /// Re-examine all atoms with non-zero 'redo' values and
     ///   retype them if necessary
-    void redo_(const std::vector<size_t>& redo);
+    size_t redo_(const AtomVertex& atom);
 
     /// change isolated sp2 carbons to sp3 since it is
     /// impossible for an atom to be sp2 hybrizided if all its
@@ -157,15 +158,14 @@ private:
 
     /// "pass 10": change O2- to O3- for sulfates, phosphates, N-oxide, S3- for
     /// thiophosphate and other terminal atoms now that we have more types.
-    void fix_tetrahedrals_();
+    size_t fix_tetrahedrals_(const AtomVertex& atom);
 
     /// "pass 11": Additional Special groups
-    void fix_special_();
+    size_t fix_special_(const AtomVertex& atom);
 
     /// Original molecule to be typed
     const Molecule& mol_;
 
-    std::vector<size_t>& atom_types_;
     std::multimap<size_t, size_t> aromatic_ring_sizes_;
     
     /// number of heavy atoms bonded
@@ -176,6 +176,11 @@ private:
 
     /// Generated name based on initialization
     std::string name_;
+
+    std::vector<size_t> redo;
+
+    template<typename func>
+    void apply_function_to_all_atoms(func&& f);
 };
 
 template<> std::string SPEAR_EXPORT atomtype_name_for_id<IDATM>(size_t id);
