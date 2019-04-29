@@ -36,7 +36,7 @@ T& get_force(OpenMM::System& system, int& force_id) {
 void GAFF_FF::add_forces(const Molecule& mol, OpenMM::System& system) const {
     auto gaff_types = mol.get_atomtype("gaff");
 
-    if (mol.size() > system.getNumParticles()) {
+    if (static_cast<int>(mol.size()) > system.getNumParticles()) {
         throw std::runtime_error("You must add all particles to the system first.");
     }
     auto added = static_cast<size_t>(system.getNumParticles()) - mol.size();

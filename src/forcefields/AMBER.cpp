@@ -112,7 +112,7 @@ void AMBER::add_forces(const Molecule& mol, OpenMM::System& system) const {
 
     auto& nonbond = get_force<OpenMM::NonbondedForce>(system, non_bond_force_);
 
-    for (auto junk : mol) {
+    for (size_t i = 0; i < mol.size(); ++i) {
         nonbond.addParticle(0, 0, 0);
     }
 

@@ -292,7 +292,7 @@ void Molecule::remove_hydrogens() {
                 boost::clear_vertex(*v, graph_);
                 boost::remove_vertex(*v, graph_);
                 topology_.remove(index);
-                positions_.erase(positions_.begin() + index);
+                positions_.erase(positions_.begin() + static_cast<std::ptrdiff_t>(index));
                 for (const auto& at : atom_types_) {
                     at.second->remove_atom(index);
                 }

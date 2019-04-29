@@ -7,6 +7,7 @@
 namespace Spear {
 
 using Vector3d = Eigen::Vector3d;
+using Conformation = std::vector<Vector3d>;
 
 inline double distance(const Vector3d& u, const Vector3d& v) {
     Vector3d dist = u - v;
@@ -44,7 +45,11 @@ inline double nonplanar(const Vector3d& i, const Vector3d& j,
     return rji.dot(n) / n.norm();
 }
 
-size_t SPEAR_EXPORT dimensionality(const std::vector<Vector3d>& positions, double eps = 0.00001);
+size_t SPEAR_EXPORT dimensionality(const Conformation& positions, double eps = 0.00001);
+
+double SPEAR_EXPORT rmsd(const Conformation& conform1, const Conformation& conform2);
+
+Eigen::Affine3d SPEAR_EXPORT kabsch(const Conformation& conform1, const Conformation& conform2);
 
 }
 

@@ -80,3 +80,82 @@ size_t Spear::dimensionality(const std::vector<Vector3d>& positions, double eps)
         return 2;
     }
 }
+
+double Spear::rmsd(const Conformation& conform1,
+                   const Conformation& conform2) {
+
+    if (conform1.size() != conform2.size()) {
+        throw std::runtime_error("rmsd(): input data mis-match");
+    }
+
+    double distance = 0;
+    for (size_t i = 0; i < conform1.size(); ++i) {
+        distance += (conform1[i] - conform2[i]).squaredNorm();
+    }
+
+    return std::sqrt(distance / static_cast<double>(conform1.size()));
+}
+
+Eigen::Affine3d Spear::kabsch(const Conformation& conform1,
+                              const Conformation& conform2) {
+
+    // Default output
+    Eigen::Affine3d A;
+    A.linear() = Eigen::Matrix3d::Identity(3, 3);
+    A.translation() = Eigen::Vector3d::Zero();
+
+    if (conform1.size() != conform2.size()) {
+        throw std::runtime_error("kabsch(): input data mis-match");
+    }
+
+    // First find the scale, by finding the ratio of sums of some distances,
+    // then bring the datasets to the same scale.
+    double dist1 = 0, dist2 = 0;
+    for (size_t i = 0; i < conform1.size()-1; i++) {
+        dist1 += (conform1[i+1] - conform1[i]).norm();
+        dist2 += (conform2[i+1] - conform2[i]).norm();
+    }
+    if (dist1 <= 0 || dist2 <= 0) {
+        return A;
+    }
+    double scale = dist2/dist1;
+
+    // Find the centroids then shift to the origin
+    Eigen::Vector3d ctr1 = Eigen::Vector3d::Zero();
+    Eigen::Vector3d ctr2 = Eigen::Vector3d::Zero();
+    for (size_t i = 0; i < conform1.size(); i++) {
+        ctr1 += conform1[i];
+        ctr2 += conform2[i];
+    }
+    ctr1 /= static_cast<double>(conform1.size());
+    ctr2 /= static_cast<double>(conform2.size());
+
+    Eigen::Matrix3Xd matrix1(3, conform1.size());
+    Eigen::Matrix3Xd matrix2(3, conform2.size());
+    for (size_t col = 0; col < conform1.size(); col++) {
+        matrix1.col(static_cast<int>(col)) = conform1[col] - ctr1;
+        matrix2.col(static_cast<int>(col)) = conform2[col] - ctr2;
+    }
+    matrix2 /= scale;
+
+    // SVD
+    Eigen::MatrixXd Cov = matrix1 * matrix2.transpose();
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(Cov, Eigen::ComputeThinU | Eigen::ComputeThinV);
+
+    // Find the rotation
+    double d = (svd.matrixV() * svd.matrixU().transpose()).determinant();
+    if (d > 0) {
+        d = 1.0;
+    } else {
+        d = -1.0;
+    }
+    Eigen::Matrix3d I = Eigen::Matrix3d::Identity(3, 3);
+    I(2, 2) = d;
+    Eigen::Matrix3d R = svd.matrixV() * I * svd.matrixU().transpose();
+
+    // The final transform
+    A.linear() = scale * R;
+    A.translation() = ctr2 - scale*R*ctr1;
+
+    return A;
+}
