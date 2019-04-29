@@ -5,8 +5,6 @@
 #include "chemfiles/Frame.hpp"
 
 #include "spear/Molecule.hpp"
-#include "spear/Molecule_impl.hpp"
-#include "spear/Graph_impl.hpp"
 #include "spear/Grid.hpp"
 
 std::map<std::string, char> residue_codes({

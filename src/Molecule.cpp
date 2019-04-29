@@ -1,5 +1,4 @@
 #include "spear/Molecule.hpp"
-#include "spear/Molecule_impl.hpp"
 
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/hawick_circuits.hpp>
@@ -247,69 +246,6 @@ void Molecule::smallest_set_of_smallest_rings_() {
                              std::to_string(sssr_count));
 }
 
-static double cos_diff(const Eigen::Vector3d& u, const Eigen::Vector3d& v) {
-    return 1.0 - std::abs(u.dot(v) / (u.norm() * v.norm()));
-}
-
-size_t Molecule::dimensionality(double eps) const {
-    using Eigen::Vector3d;
-
-    if (size() == 0 || size() == 1) {
-        return 0;
-    }
-
-    // Any two points are on the same line
-    if (size() == 2) {
-        return 1;
-    }
-
-    if (size() == 3) {
-        Vector3d lin_vec = positions_[1] - positions_[0];
-        Vector3d plane_vec = positions_[2] - positions_[0];
-        if (cos_diff(lin_vec, plane_vec) < eps) {
-            return 1; // It's still linear!
-        } else {
-            return 2; // Any three points makes a plane
-        }
-    }
-
-    // These two points, along with the first point, must be nonlinear
-    // this allows one to calculate the 
-    const Vector3d* nonlin1;
-    const Vector3d* nonlin2;
-
-    bool is_linear = true;
-    for (size_t i = 3; i < size(); ++i) {
-        Vector3d curr_vec = positions_[i] - positions_[0];
-        if (is_linear) {
-            // Check all previous points for non-linearity
-            // If we find something non-linear, we store this point
-            // and the other non-linear point to check for non-planarity
-            for (size_t j = 0; j < i; ++j) {
-                if (cos_diff(positions_[j] - positions_[0], curr_vec) > eps) {
-                    nonlin1 = &positions_[j];
-                    nonlin2 = &positions_[i];
-                    is_linear = false;
-                    break;
-                }
-            }
-
-            continue;
-        }
-
-        auto nplane = nonplanar(positions_[0], positions_[i], *nonlin1, *nonlin2);
-        if (std::abs(nplane) > eps) {
-            return 3;
-        }
-    }
-
-    if (is_linear) {
-        return 1;
-    } else {
-        return 2;
-    }
-}
-
 std::vector<Spear::BondEdge> Molecule::get_bonds_in(const std::set<size_t>& atoms) const {
     auto all_bonds = bonds();
 
@@ -432,7 +368,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
     Vector3d perpVect, rotnAxis, nbrPerp;
     Vector3d nbr1Vect, nbr2Vect, nbr3Vect;
 
-    auto dimensional = dimensionality();
+    auto dimensional = dimensionality(positions_);
 
     // All the coordinates are the same, let's ignore this case
     if (dimensional == 0 && av.degree() >= 1) {

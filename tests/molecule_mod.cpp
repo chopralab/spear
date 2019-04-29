@@ -1,6 +1,4 @@
 #include "spear/Molecule.hpp"
-#include "spear/Molecule_impl.hpp"
-#include "spear/Graph_impl.hpp"
 #include "spear/Geometry.hpp"
 
 #ifndef M_PI
@@ -30,7 +28,7 @@ TEST_CASE("Add Atoms and Bonds") {
         auto traj = chemfiles::Trajectory("data/palmitic_2d.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        CHECK(mol.dimensionality() == 2);
+        CHECK(Spear::dimensionality(mol.positions()) == 2);
 
         auto n_atom = mol.add_atom_to(Spear::Element::N, 0);
         CHECK(mol[0].degree() == 2);
@@ -48,7 +46,7 @@ TEST_CASE("Add Atoms and Bonds") {
         auto traj = chemfiles::Trajectory("data/tibolone.sdf");
         auto mol = Spear::Molecule(traj.read());
 
-        CHECK(mol.dimensionality() == 3);
+        CHECK(Spear::dimensionality(mol.positions()) == 3);
 
         // A methyl group
         auto h1 = mol.add_atom_to(Spear::Element::H, 0);

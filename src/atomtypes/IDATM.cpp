@@ -348,7 +348,7 @@ void IDATM::type_atoms_topo_() {
     fix_C2_();
     charges_();
 
-    if (aromatic_count < 5 && mol_.dimensionality() == 3) {
+    if (aromatic_count < 5 && dimensionality(mol_.positions()) == 3) {
         aromatic_ring_sizes_.clear();
         aromatic_();
     }
@@ -605,6 +605,8 @@ size_t IDATM::valence_topo_(const AtomVertex& atom) {
     default:
         break;
     }
+
+    return get(atom);
 }
 
 size_t IDATM::terminal_(const AtomVertex& atom) {

@@ -1,6 +1,7 @@
 #ifndef SPEAR_GRAPH_IMPL_HPP
 #define SPEAR_GRAPH_IMPL_HPP
 
+#include "spear/Graph.hpp"
 #include "spear/Molecule.hpp"
 
 namespace Spear {

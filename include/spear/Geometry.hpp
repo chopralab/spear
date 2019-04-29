@@ -1,6 +1,7 @@
 #ifndef SPEAR_GEOMETRY_HPP
 #define SPEAR_GEOMETRY_HPP
 
+#include "spear/exports.hpp"
 #include "Eigen/Geometry"
 
 namespace Spear {
@@ -42,6 +43,8 @@ inline double nonplanar(const Vector3d& i, const Vector3d& j,
     Vector3d n = rik.cross(rim);
     return rji.dot(n) / n.norm();
 }
+
+size_t SPEAR_EXPORT dimensionality(const std::vector<Vector3d>& positions, double eps = 0.00001);
 
 }
 

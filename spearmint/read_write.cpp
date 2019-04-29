@@ -7,8 +7,6 @@
 #include "chemfiles/Frame.hpp"
 
 #include "spear/Molecule.hpp"
-#include "spear/Molecule_impl.hpp"
-#include "spear/Graph_impl.hpp"
 #include "spear/Grid.hpp"
 
 /******************************************************************************

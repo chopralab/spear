@@ -11,11 +11,15 @@
 
 #include "Eigen/Geometry"
 
-#include "spear/Graph.hpp"
+#include "spear/Typedefs.hpp"
 #include "spear/Rings.hpp"
 #include "spear/AtomType.hpp"
 
 namespace Spear {
+
+class BondEdge;
+class AllBonds;
+class AtomVertex;
 
 class SPEAR_EXPORT Molecule {
 public:
@@ -131,8 +135,6 @@ public:
         return sssr_;
     }
 
-    size_t dimensionality(double eps = 0.00001) const;
-
     BondEdge bond(size_t idx1, size_t idx2);
 
     std::vector<BondEdge> get_bonds_in(const std::set<size_t>& atoms) const;
@@ -209,5 +211,7 @@ private:
 };
 
 }
+
+#include "spear/Molecule_impl.hpp"
 
 #endif

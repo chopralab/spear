@@ -5,8 +5,6 @@
 #include "chemfiles/Trajectory.hpp"
 
 #include "spear/Molecule.hpp"
-#include "spear/Molecule_impl.hpp"
-#include "spear/Graph_impl.hpp"
 #include "spear/Grid.hpp"
 #include "spear/ScoringFunction.hpp"
 
