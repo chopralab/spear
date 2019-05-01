@@ -19,7 +19,7 @@ static void update_chfl_frame(chemfiles::Frame& frame,
 }
 
 TEST_CASE("Read old AMBER file") {
-    std::ifstream amber_dat("share/ff10.xml");
+    std::ifstream amber_dat("share/amber10.xml");
     std::ifstream tip3p_dat("share/tip3p.xml");
     AMBER ff(amber_dat);
     ff.add_xml_file(tip3p_dat);
@@ -40,7 +40,7 @@ TEST_CASE("Read old AMBER file") {
         Spear::Simulation sim;
         sim.add_molecule(pocket, ff);
 
-        chemfiles::Trajectory otraj("deca_alanine.pdb.gz", 'w');
+        chemfiles::Trajectory otraj("deca_alanine.mmtf", 'w');
         chemfiles::Frame start;
         start.resize(pocket.size());
         start.set_topology(pocket.topology());
@@ -51,7 +51,7 @@ TEST_CASE("Read old AMBER file") {
         update_chfl_frame(start, pos);
         otraj.write(start);
 
-        while (sim.time() <= 0.5) {
+        while (sim.time() <= 5) {
             sim.dynamic_steps(1);
             pos = sim.positions();
             update_chfl_frame(start, pos);

@@ -47,6 +47,14 @@ void AMBER::apply_function_to_atoms_in_residue(const Molecule& mol, Func&& func)
         for (auto& atom : res) {
             const auto& atom_class = mol[atom];
             auto atom_iter = res_iter->second.find(atom_class.name());
+            if (atom_iter == res_iter->second.end() &&
+                atom_class.name().size() >= 3 && atom_class.name()[2] == '1') {
+
+                auto atom_name_2 = atom_class.name();
+                atom_name_2[2] = '3';
+
+                atom_iter = res_iter->second.find(atom_name_2);
+            }
             if (atom_iter == res_iter->second.end()) {
                 std::cerr << "Atom not found: " << atom_class.name()
                           << " in " << res.name() << std::endl;
@@ -91,16 +99,58 @@ const AMBER::AtomType& AMBER::find_atom_type(const AtomVertex& atom,
     }
 
     auto atom_iter = res_iter->second.find(atom.name());
+    if (atom_iter == res_iter->second.end() &&
+        atom.name().size() >= 3 && atom.name()[2] == '1') {
+
+        auto atom_name_2 = atom.name();
+        atom_name_2[2] = '3';
+
+        atom_iter = res_iter->second.find(atom_name_2);
+    }
     if (atom_iter == res_iter->second.end()) {
-        throw std::runtime_error("Atom not found: " + atom.name());
+        throw std::runtime_error("Atom not found: " + atom.name() + " in " + name);
     }
 
     return atom_iter->second;
 }
 
 
-AMBER::AMBER(std::istream& input) {
+AMBER::AMBER(std::istream& input):
+    cutoff_(0.0), method_(NoCutoff) {
     read_dat_file_(input);
+}
+
+void AMBER::add_forces(const std::vector<const Molecule*>& mols,
+                       OpenMM::System& system) const {
+
+    auto& nonbond = get_force<OpenMM::NonbondedForce>(system, non_bond_force_);
+    nonbond.setCutoffDistance(cutoff_);
+    nonbond.setNonbondedMethod(static_cast<OpenMM::NonbondedForce::NonbondedMethod>(method_));
+
+    auto add_particle = [this, &nonbond](size_t atom, const AtomType& type){
+        nonbond.setParticleParameters(static_cast<int>(atom), type.charge,
+                                      type.sigma, type.epsilon
+        );
+    };
+
+    size_t added = 0;
+    std::vector<std::pair<int,int>> bonds;
+    for (auto mol : mols) {
+        for (size_t i = 0; i < mol->size(); ++i) {
+            nonbond.addParticle(0, 0, 0);
+        }
+        apply_function_to_atoms_in_residue(*mol, add_particle);
+
+        auto& topo = mol->topology();
+        for (auto bond : topo.bonds()) {
+            bonds.emplace_back(static_cast<int>(bond[0] + added),
+                               static_cast<int>(bond[1] + added)
+            );
+        }
+        added += mol->size();
+    }
+
+    nonbond.createExceptionsFromBonds(bonds, coulombic14scale_, lj14scale_);
 }
 
 void AMBER::add_forces(const Molecule& mol, OpenMM::System& system) const {
@@ -109,28 +159,10 @@ void AMBER::add_forces(const Molecule& mol, OpenMM::System& system) const {
     }
 
     auto added = static_cast<size_t>(system.getNumParticles()) - mol.size();
-
-    auto& nonbond = get_force<OpenMM::NonbondedForce>(system, non_bond_force_);
-
-    for (size_t i = 0; i < mol.size(); ++i) {
-        nonbond.addParticle(0, 0, 0);
-    }
-
-    apply_function_to_atoms_in_residue(mol,
-        [this, &nonbond](size_t atom, const AtomType& type){
-            nonbond.setParticleParameters(static_cast<int>(atom), type.charge, type.sigma, type.epsilon);
-        }
-    );
-
     auto& topo = mol.topology();
 
     auto& hbond = get_force<OpenMM::HarmonicBondForce>(system, bond_force_);
-    std::vector<std::pair<int,int>> bonds;
     for (auto bond : topo.bonds()) {
-        bonds.emplace_back(static_cast<int>(bond[0] + added),
-                           static_cast<int>(bond[1] + added)
-        );
-
         std::array<size_t,2> class_;
         if (!get_residue_pair(mol, bond, false, class_)) {
             continue;
@@ -155,8 +187,6 @@ void AMBER::add_forces(const Molecule& mol, OpenMM::System& system) const {
             lookup->second.length, lookup->second.k
         );
     }
-
-    nonbond.createExceptionsFromBonds(bonds, coulombic14scale_, lj14scale_);
 
     auto& hangle = get_force<OpenMM::HarmonicAngleForce>(system, angle_force_);
     for (auto angle : mol.topology().angles()) {
@@ -299,6 +329,10 @@ std::vector<double> AMBER::masses(const Molecule& mol) const {
     });
 
     return result;
+}
+
+void AMBER::set_cutoff(double cutoff) {
+    cutoff_ = cutoff * OpenMM::NmPerAngstrom;
 }
 
 size_t AMBER::get_class_(const std::string& s) const {

@@ -10,15 +10,19 @@
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
-class ArLJFluid : public Spear::Forcefield {
+class ArLJFluid : public Spear::BondedForcefield, public Spear::NonBondedForcefield {
 public:
-    void add_forces(const Spear::Molecule& mol, OpenMM::System& system) const override {
+    void add_forces(const std::vector<const Spear::Molecule*>& mols,
+                    OpenMM::System& system) const override {
         auto nonbond = new OpenMM::NonbondedForce();
         system.addForce(nonbond);
 
-        for (size_t i = 0; i < mol.size(); ++i) {
+        for (size_t i = 0; i < mols[0]->size(); ++i) {
             nonbond->addParticle(0.0, 0.3350, 0.996);
         }
+    }
+
+    void add_forces(const Spear::Molecule& /*mol*/, OpenMM::System& /*system*/) const override {
     }
 
     std::vector<double> masses(const Spear::Molecule& mol) const override {
@@ -45,6 +49,7 @@ TEST_CASE("Argon") {
     Spear::Simulation sim;
     ArLJFluid arlj;
     sim.add_molecule(mol, arlj);
+    sim.add_non_bonded_force(arlj);
     CHECK(std::abs(sim.time()) < 1e-3); // No time has passed yet
 
     CHECK(std::abs(-0.6611955602 - sim.potential_energy()) < 1e-3);
@@ -83,9 +88,11 @@ TEST_CASE("Argon") {
     CHECK(std::abs(-2.0229996338 - sim.potential_energy()) < 1e-3);
 }
 
-class NaClSystem : public Spear::Forcefield {
+class NaClSystem : public Spear::BondedForcefield, public Spear::NonBondedForcefield {
 public:
-    void add_forces(const Spear::Molecule& mol, OpenMM::System& system) const override {
+    void add_forces(const std::vector<const Spear::Molecule*>& mols,
+                    OpenMM::System& system) const override {
+
         auto gbsa = new OpenMM::GBSAOBCForce();
         gbsa->setSolventDielectric(80.);
         gbsa->setSoluteDielectric(2.);
@@ -102,7 +109,7 @@ public:
         const double epsilon_cl = 0.1000 * OpenMM::KJPerKcal;
         const double gbsa_cl = 1.735 * OpenMM::NmPerAngstrom;
 
-        for (auto av : mol) {
+        for (auto av : *mols[0]) {
             if (av.atomic_number() == Spear::Element::Na) {
                 nonbond->addParticle(1.0, sigma_na, epsilon_na);
                 gbsa->addParticle(1.0, gbsa_na, 0.8);
@@ -113,6 +120,9 @@ public:
                 gbsa->addParticle(-1.0, gbsa_cl, 0.8);
             }
         }
+    }
+
+    void add_forces(const Spear::Molecule& /*mol*/, OpenMM::System& /*system*/) const override {
     }
 
     std::vector<double> masses(const Spear::Molecule& mol) const override {
@@ -161,9 +171,9 @@ TEST_CASE("NaCl") {
     }
 }
 
-class EthaneSystem : public Spear::Forcefield {
+class EthaneSystem : public Spear::BondedForcefield, public Spear::NonBondedForcefield {
 public:
-    void add_forces(const Spear::Molecule& mol,
+    void add_forces(const std::vector<const Spear::Molecule*>& mols,
                     OpenMM::System& system) const override {
 
         auto nonbond = new OpenMM::NonbondedForce();
@@ -175,7 +185,7 @@ public:
         const double sigma_c   = 1.9080 * OpenMM::NmPerAngstrom * OpenMM::SigmaPerVdwRadius;
         const double epsilon_c = 0.1094 * OpenMM::KJPerKcal;
 
-        for (auto av : mol) {
+        for (auto av : *mols[0]) {
             if (av.atomic_number() == Spear::Element::H) {
                 nonbond->addParticle(0.0605, sigma_h, epsilon_h);
             }
@@ -185,15 +195,22 @@ public:
             }
         }
 
-        auto hbond = new OpenMM::HarmonicBondForce();
-        system.addForce(hbond);
-
         std::vector<std::pair<int,int>> bonds;
-
-        for (auto bond : mol.topology().bonds()) {
+        for (auto bond : mols[0]->topology().bonds()) {
             bonds.emplace_back(static_cast<size_t>(bond[0]),
                                static_cast<size_t>(bond[1])
             );
+        }
+        nonbond->createExceptionsFromBonds(bonds, 0.5, 0.5);
+    }
+
+    void add_forces(const Spear::Molecule& mol,
+                    OpenMM::System& system) const override {
+
+        auto hbond = new OpenMM::HarmonicBondForce();
+        system.addForce(hbond);
+
+        for (auto bond : mol.topology().bonds()) {
             if (mol[bond[0]].atomic_number() == Spear::Element::C &&
                 mol[bond[1]].atomic_number() == Spear::Element::C) {
                 hbond->addBond(static_cast<int>(bond[0]), static_cast<int>(bond[1]),
@@ -212,8 +229,6 @@ public:
                 );
             }
         }
-
-        nonbond->createExceptionsFromBonds(bonds, 0.5, 0.5);
 
         auto hangle = new OpenMM::HarmonicAngleForce();
         system.addForce(hangle);

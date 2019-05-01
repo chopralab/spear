@@ -7,6 +7,8 @@
 #include <memory>
 #include <vector>
 
+#include "chemfiles.hpp"
+
 #include "Eigen/Geometry"
 
 // Forward declare OpenMM classes to avoid header dependancies
@@ -19,12 +21,15 @@ class Integrator;
 
 namespace Spear {
 
-class Forcefield;
+class NonBondedForcefield;
+class BondedForcefield;
 class Molecule;
 
 class SPEAR_EXPORT Simulation final {
 
 public:
+
+    static void initialize_plugins();
 
     Simulation();
 
@@ -33,14 +38,18 @@ public:
     /// Adds a molecule to the system with a given forcefield.
     /// The molecule must stay valid during all operations performed by this
     /// class.
-    bool add_molecule(const Molecule& mol, const Forcefield& ff);
+    bool add_molecule(const Molecule& mol, const BondedForcefield& ff);
+
+    void add_non_bonded_force(const NonBondedForcefield& ff);
+
+    void set_periodic_vectors(const chemfiles::UnitCell& cell);
 
     /// Adds a Langevin integrator to the context instead of verlet
     void add_langevin(double temperature, double friction, double stepsize);
 
     /// Initializes the context of the simulation and prepares it for further
     /// operations.
-    void initialize_context();
+    void initialize_context(const std::string& platform = "Reference");
 
     /// Run minimization
     void minimize(double tolerance, std::size_t max_iterations);
@@ -75,6 +84,9 @@ private:
     std::unique_ptr<OpenMM::Context> context_;
     std::unique_ptr<OpenMM::Platform> platform_;
     std::unique_ptr<OpenMM::Integrator> integrator_;
+
+    bool uses_periodic_ = false;
+    Eigen::Vector3d periodic1_, periodic2_, periodic3_;
 };
 
 }

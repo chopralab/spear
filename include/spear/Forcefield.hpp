@@ -19,13 +19,31 @@ namespace Spear {
 
 class Molecule;
 
-class SPEAR_EXPORT Forcefield {
+class SPEAR_EXPORT NonBondedForcefield {
 
 public:
 
-    virtual ~Forcefield(){}
+    enum NonbondedMethod {
+        NoCutoff = 0,
+        CutoffNonPeriodic = 1,
+        CutoffPeriodic = 2,
+        Ewald = 3,
+        PME = 4
+    };
 
-    /// Add force to system. `Simulation` will take ownership of the force.
+    virtual ~NonBondedForcefield(){}
+
+    virtual void add_forces(const std::vector<const Molecule*>& mols, OpenMM::System& system) const = 0;
+
+};
+
+class SPEAR_EXPORT BondedForcefield {
+
+public:
+
+    virtual ~BondedForcefield(){}
+
+    /// Add forces to system. `Simulation` will take ownership of the forces.
     /// This function must be called after all the particles have been added
     /// to the system.
     virtual void add_forces(const Molecule& mol, OpenMM::System& system) const = 0;

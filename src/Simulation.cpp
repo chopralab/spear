@@ -8,13 +8,19 @@
 
 using namespace Spear;
 
+void Simulation::initialize_plugins() {
+    OpenMM::Platform::loadPluginsFromDirectory(
+        OpenMM::Platform::getDefaultPluginsDirectory()
+    );
+}
+
 Simulation::Simulation() : system_(new OpenMM::System) {
 }
 
 Simulation::~Simulation() {
 }
 
-bool Simulation::add_molecule(const Molecule& mol, const Forcefield& ff) {
+bool Simulation::add_molecule(const Molecule& mol, const BondedForcefield& ff) {
 
     auto masses = ff.masses(mol);
 
@@ -36,11 +42,28 @@ bool Simulation::add_molecule(const Molecule& mol, const Forcefield& ff) {
     return true;
 }
 
+void Simulation::add_non_bonded_force(const NonBondedForcefield& ff) {
+    ff.add_forces(molecules_, *system_);
+}
+
+void Simulation::set_periodic_vectors(const chemfiles::UnitCell& cell) {
+    const auto& matrix = cell.matrix();
+    periodic1_ = {matrix[0][0], 0, 0};
+    periodic2_ = {matrix[1][0], matrix[1][1], 0};
+    periodic3_ = {matrix[2][0], matrix[2][1], matrix[2][2]};
+
+    periodic1_ *= OpenMM::NmPerAngstrom;
+    periodic2_ *= OpenMM::NmPerAngstrom;
+    periodic3_ *= OpenMM::NmPerAngstrom;
+
+    uses_periodic_ = true;
+}
+
 void Simulation::add_langevin(double temperature, double friction, double stepsize) {
     integrator_ = std::make_unique<OpenMM::LangevinIntegrator>(temperature, friction, stepsize);
 }
 
-void Simulation::initialize_context() {
+void Simulation::initialize_context(const std::string& platform) {
 
     // Do nothing if everything is already initialized
     if (context_) {
@@ -51,7 +74,17 @@ void Simulation::initialize_context() {
         integrator_ = std::make_unique<OpenMM::VerletIntegrator>(0.002);
     }
 
-    context_ = std::make_unique<OpenMM::Context>(*system_, *integrator_);
+    if (uses_periodic_) {
+        system_->setDefaultPeriodicBoxVectors(
+            {periodic1_[0], periodic1_[1], periodic1_[2]},
+            {periodic2_[0], periodic2_[1], periodic2_[2]},
+            {periodic3_[0], periodic3_[1], periodic3_[2]}
+        );
+    }
+
+    context_ = std::make_unique<OpenMM::Context>(*system_, *integrator_,
+        OpenMM::Platform::getPlatformByName(platform)
+    );
 
     size_t position_count = 0;
     for (auto& mol : molecules_) {

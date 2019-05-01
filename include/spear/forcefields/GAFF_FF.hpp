@@ -9,7 +9,7 @@
 
 namespace Spear {
 
-class SPEAR_EXPORT GAFF_FF : public Forcefield {
+class SPEAR_EXPORT GAFF_FF : public BondedForcefield {
 public:
 
     struct Atom {

@@ -19,7 +19,7 @@ namespace Spear {
 
 class AtomVertex;
 
-class SPEAR_EXPORT AMBER : public Forcefield {
+class SPEAR_EXPORT AMBER : public BondedForcefield, public NonBondedForcefield {
 public:
 
     struct AtomType {
@@ -51,9 +51,17 @@ public:
         read_dat_file_(input);
     }
 
+    void add_forces(const std::vector<const Molecule*>& mols, OpenMM::System& system) const override;
+
     void add_forces(const Molecule& mol, OpenMM::System& system) const override;
 
     std::vector<double> masses(const Molecule& mol) const override;
+
+    void set_cutoff(double cutoff);
+
+    void set_method(NonbondedMethod method) {
+        method_ = method;
+    }
 
     void reset() {
         non_bond_force_ = -1;
@@ -123,6 +131,9 @@ private:
     bool res_charge_ = false;
     bool res_sigma_ = false;
     bool res_epsilon_ = false;
+
+    double cutoff_;
+    NonbondedMethod method_;
 };
 
 }
