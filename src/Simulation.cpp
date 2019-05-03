@@ -25,9 +25,10 @@ bool Simulation::add_molecule(const Molecule& mol, const BondedForcefield& ff) {
     auto masses = ff.masses(mol);
 
     // See if its already been added, and bail if it has
-    auto old_mol = std::find(molecules_.begin(), molecules_.end(), &mol);
-    if (old_mol != molecules_.end()) {
-        return false;
+    for (auto& old_mol : molecules_) {
+        if (&old_mol.get() == &mol) {
+            return false;
+        }
     }
 
     for (auto mass : masses) {
@@ -37,7 +38,7 @@ bool Simulation::add_molecule(const Molecule& mol, const BondedForcefield& ff) {
     ff.add_forces(mol, *system_);
 
     // Prevent adding molecules multiple times
-    molecules_.push_back(&mol);
+    molecules_.push_back(mol);
 
     return true;
 }
@@ -88,13 +89,13 @@ void Simulation::initialize_context(const std::string& platform) {
 
     size_t position_count = 0;
     for (auto& mol : molecules_) {
-        position_count += mol->size();
+        position_count += mol.get().size();
     }
 
     std::vector<OpenMM::Vec3> positions;
     positions.reserve(position_count);
     for (auto& mol : molecules_) {
-        auto& mol_positions = mol->positions();
+        auto& mol_positions = mol.get().positions();
         for (auto& pos : mol_positions) {
             positions.emplace_back(pos[0] * OpenMM::NmPerAngstrom,
                                    pos[1] * OpenMM::NmPerAngstrom,

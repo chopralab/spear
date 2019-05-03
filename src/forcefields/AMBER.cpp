@@ -120,7 +120,7 @@ AMBER::AMBER(std::istream& input):
     read_dat_file_(input);
 }
 
-void AMBER::add_forces(const std::vector<const Molecule*>& mols,
+void AMBER::add_forces(const std::vector<std::reference_wrapper<const Molecule>>& mols,
                        OpenMM::System& system) const {
 
     auto& nonbond = get_force<OpenMM::NonbondedForce>(system, non_bond_force_);
@@ -135,19 +135,19 @@ void AMBER::add_forces(const std::vector<const Molecule*>& mols,
 
     size_t added = 0;
     std::vector<std::pair<int,int>> bonds;
-    for (auto mol : mols) {
-        for (size_t i = 0; i < mol->size(); ++i) {
+    for (auto& mol : mols) {
+        for (size_t i = 0; i < mol.get().size(); ++i) {
             nonbond.addParticle(0, 0, 0);
         }
-        apply_function_to_atoms_in_residue(*mol, add_particle);
+        apply_function_to_atoms_in_residue(mol, add_particle);
 
-        auto& topo = mol->topology();
+        auto& topo = mol.get().topology();
         for (auto bond : topo.bonds()) {
             bonds.emplace_back(static_cast<int>(bond[0] + added),
                                static_cast<int>(bond[1] + added)
             );
         }
-        added += mol->size();
+        added += mol.get().size();
     }
 
     nonbond.createExceptionsFromBonds(bonds, coulombic14scale_, lj14scale_);

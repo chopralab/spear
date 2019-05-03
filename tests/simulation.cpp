@@ -12,12 +12,12 @@
 
 class ArLJFluid : public Spear::BondedForcefield, public Spear::NonBondedForcefield {
 public:
-    void add_forces(const std::vector<const Spear::Molecule*>& mols,
+    void add_forces(const std::vector<std::reference_wrapper<const Spear::Molecule>>& mols,
                     OpenMM::System& system) const override {
         auto nonbond = new OpenMM::NonbondedForce();
         system.addForce(nonbond);
 
-        for (size_t i = 0; i < mols[0]->size(); ++i) {
+        for (size_t i = 0; i < mols[0].get().size(); ++i) {
             nonbond->addParticle(0.0, 0.3350, 0.996);
         }
     }
@@ -90,7 +90,7 @@ TEST_CASE("Argon") {
 
 class NaClSystem : public Spear::BondedForcefield, public Spear::NonBondedForcefield {
 public:
-    void add_forces(const std::vector<const Spear::Molecule*>& mols,
+    void add_forces(const std::vector<std::reference_wrapper<const Spear::Molecule>>& mols,
                     OpenMM::System& system) const override {
 
         auto gbsa = new OpenMM::GBSAOBCForce();
@@ -109,7 +109,7 @@ public:
         const double epsilon_cl = 0.1000 * OpenMM::KJPerKcal;
         const double gbsa_cl = 1.735 * OpenMM::NmPerAngstrom;
 
-        for (auto av : *mols[0]) {
+        for (auto av : mols[0].get()) {
             if (av.atomic_number() == Spear::Element::Na) {
                 nonbond->addParticle(1.0, sigma_na, epsilon_na);
                 gbsa->addParticle(1.0, gbsa_na, 0.8);
@@ -173,7 +173,7 @@ TEST_CASE("NaCl") {
 
 class EthaneSystem : public Spear::BondedForcefield, public Spear::NonBondedForcefield {
 public:
-    void add_forces(const std::vector<const Spear::Molecule*>& mols,
+    void add_forces(const std::vector<std::reference_wrapper<const Spear::Molecule>>& mols,
                     OpenMM::System& system) const override {
 
         auto nonbond = new OpenMM::NonbondedForce();
@@ -185,7 +185,7 @@ public:
         const double sigma_c   = 1.9080 * OpenMM::NmPerAngstrom * OpenMM::SigmaPerVdwRadius;
         const double epsilon_c = 0.1094 * OpenMM::KJPerKcal;
 
-        for (auto av : *mols[0]) {
+        for (auto av : mols[0].get()) {
             if (av.atomic_number() == Spear::Element::H) {
                 nonbond->addParticle(0.0605, sigma_h, epsilon_h);
             }
@@ -196,7 +196,7 @@ public:
         }
 
         std::vector<std::pair<int,int>> bonds;
-        for (auto bond : mols[0]->topology().bonds()) {
+        for (auto bond : mols[0].get().topology().bonds()) {
             bonds.emplace_back(static_cast<size_t>(bond[0]),
                                static_cast<size_t>(bond[1])
             );

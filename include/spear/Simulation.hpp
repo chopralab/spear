@@ -78,7 +78,7 @@ public:
 private:
     /// We want to store pointers as we want to compare if it is the EXACT SAME
     /// molecule being added twice.
-    std::vector<const Molecule*> molecules_;
+    std::vector<std::reference_wrapper<const Molecule>> molecules_;
 
     std::unique_ptr<OpenMM::System> system_;
     std::unique_ptr<OpenMM::Context> context_;

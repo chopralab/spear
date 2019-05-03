@@ -33,7 +33,7 @@ public:
 
     virtual ~NonBondedForcefield(){}
 
-    virtual void add_forces(const std::vector<const Molecule*>& mols, OpenMM::System& system) const = 0;
+    virtual void add_forces(const std::vector<std::reference_wrapper<const Molecule>>& mols, OpenMM::System& system) const = 0;
 
 };
 

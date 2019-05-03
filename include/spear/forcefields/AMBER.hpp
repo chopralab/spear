@@ -51,7 +51,7 @@ public:
         read_dat_file_(input);
     }
 
-    void add_forces(const std::vector<const Molecule*>& mols, OpenMM::System& system) const override;
+    void add_forces(const std::vector<std::reference_wrapper<const Molecule>>& mols, OpenMM::System& system) const override;
 
     void add_forces(const Molecule& mol, OpenMM::System& system) const override;
 
