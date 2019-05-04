@@ -5,8 +5,9 @@
 #include <boost/graph/undirected_graph.hpp>
 #include <boost/graph/connected_components.hpp>
 
-#include "spear/AtomType.hpp"
 #include "spear/atomtypes/Default.hpp"
+
+#include "spear/partialcharges/DefaultPartialCharge.hpp"
 
 #include "spear/Geometry.hpp"
 
@@ -110,6 +111,8 @@ struct cycle_saver {
 };
 
 void Molecule::init_(const chemfiles::Frame& frame) {
+    std::vector<double> charges;
+    charges.reserve(frame.size());
     for (const auto& atom : frame) {
         auto atomic_number = atom.atomic_number();
         if (atomic_number) {
@@ -118,6 +121,7 @@ void Molecule::init_(const chemfiles::Frame& frame) {
         } else {
             boost::add_vertex(Element::Symbol(0), graph_);
         }
+        charges.push_back(atom.charge());
     }
 
     for (size_t i = 0; i < frame.size(); ++i) {
@@ -134,6 +138,7 @@ void Molecule::init_(const chemfiles::Frame& frame) {
     }
 
     add_atomtype<Default>();
+    add_partial_charge<DefaultPartialCharge>(std::move(charges));
 }
 
 void Molecule::rings_() {

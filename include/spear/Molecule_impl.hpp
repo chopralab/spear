@@ -171,6 +171,36 @@ inline void Molecule::set_default_atomtype(const std::string& name) {
     default_atomtype_ = name;
 }
 
+template<typename partialcharge, typename... args>
+inline std::string Molecule::add_partial_charge(args... additional) {
+    auto typed_atoms = new partialcharge(*this, additional...);
+    auto name = typed_atoms->name();
+    partial_charges_[name] = std::unique_ptr<partialcharge>(typed_atoms);
+
+    if (default_partial_charge_.empty()) {
+        default_partial_charge_ = name;
+    }
+
+    return name;
+}
+
+inline const PartialCharge* Molecule::partial_charge(const std::string& name) const {
+    auto types = name.empty() ? partial_charges_.find(default_partial_charge_)
+                              : partial_charges_.find(name);
+    if (types == partial_charges_.end()) {
+        return nullptr;
+    }
+    return types->second.get();
+}
+
+inline void Molecule::set_default_partial_charge(const std::string& name) {
+    auto types = partial_charges_.find(name);
+    if (types == partial_charges_.end()) {
+        throw std::runtime_error("Atom type " + name + " is not availible.");
+    }
+    default_partial_charge_ = name;
+}
+
 inline size_t Molecule::size() const {
     return topology_.size();
 }

@@ -221,3 +221,10 @@ TEST_CASE("Default AtomType") {
     CHECK(default_atom_type->hybridization(20) == Spear::Hybridization::SP);
     CHECK(default_atom_type->hybridization(21) == Spear::Hybridization::SP);
 }
+
+TEST_CASE("Default PartialCharge") {
+    auto mol = Spear::Molecule(chemfiles::Trajectory("data/sybyl_test.mol2").read());
+
+    CHECK(mol[0].partial_charge() == 0.0000);
+    CHECK(mol[8].partial_charge() == 0.3300);
+}

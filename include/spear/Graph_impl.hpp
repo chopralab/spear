@@ -157,6 +157,15 @@ inline AtomRingMapIteratorPair AtomVertex::sssrs() const {
     return br_->atom_to_sssr_.equal_range(index_);
 }
 
+inline double AtomVertex::partial_charge() const {
+    return (*br().partial_charge())[index_];
+}
+
+inline int8_t AtomVertex::formal_charge() const {
+    //TODO: Implement
+    return 0;
+}
+
 inline bool AtomVertex::operator==(const AtomVertex& rhs) const {
     return (br_ == rhs.br_ && index_ == rhs.index_);
 }

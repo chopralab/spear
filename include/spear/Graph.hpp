@@ -154,6 +154,10 @@ public:
 
     AtomRingMapIteratorPair sssrs() const;
 
+    double partial_charge() const;
+
+    int8_t formal_charge() const; 
+
     bool operator==(const AtomVertex& rhs) const;
 
     AtomVertex operator[](size_t) const;

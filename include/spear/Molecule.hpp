@@ -14,6 +14,7 @@
 #include "spear/Typedefs.hpp"
 #include "spear/Rings.hpp"
 #include "spear/AtomType.hpp"
+#include "spear/PartialCharge.hpp"
 
 namespace Spear {
 
@@ -170,6 +171,29 @@ public:
     /// \params name The name of the `AtomType` to be used as the default.
     void set_default_atomtype(const std::string& name);
 
+    /// Assign a `PartialCharge` to the `Molecule`.
+    ///
+    /// \params additional The arguments to constructor of `partialcharge`.
+    /// \returns The name of the new `PartialCharge`.
+    template<class partialcharge, typename... args>
+    std::string add_partial_charge(args... additional);
+
+    /// Retreive a `PartialCharge` for the `Molecule`
+    ///
+    /// \params name The name of the `PartialCharge` to retrieve.
+    /// \returns A pointer to the `PartialCharge` or nullptr if the name is not found
+    const PartialCharge* partial_charge(const std::string& name = "") const;
+
+    /// Set the default `PartialCharge`
+    ///
+    /// The definitions of aromaticity, hyridization, and charge are dependant
+    /// on the current `PartialCharge` beging used. While molecules can have
+    /// multiple `PartialCharge` assignments, they can only have one default
+    /// assignment. This default is used for graph based searches where these
+    /// properties are used. This function changes this default atom type.
+    /// \params name The name of the `PartialCharge` to be used as the default.
+    void set_default_partial_charge(const std::string& name);
+
     AtomVertex add_atom(Element::Symbol n_atom, const Eigen::Vector3d& pos);
 
     BondEdge add_bond(size_t idx1, size_t idx2, Bond::Order order = Bond::SINGLE);
@@ -228,12 +252,19 @@ private:
     /// Store just the topology
     chemfiles::Topology topology_;
 
-    /// Storage of all AtomTypes added to the molecule
+    /// Storage of all `AtomType` assigned for the molecule
     typedef std::unique_ptr<AtomType> unqiue_AtomType;
     std::unordered_map<std::string, unqiue_AtomType> atom_types_;
 
     /// The current default `AtomType` 
     std::string default_atomtype_;
+
+    /// Storage of all PartialCharge assigned for the molecule
+    typedef std::unique_ptr<PartialCharge> unique_PartialCharge;
+    std::unordered_map<std::string, unique_PartialCharge> partial_charges_;
+
+    /// The current default `PartialCharge`
+    std::string default_partial_charge_;
 
     friend class AtomVertex;
 };
