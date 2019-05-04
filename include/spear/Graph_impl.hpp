@@ -113,8 +113,7 @@ inline Bonds AtomVertex::bonds() const {
 }
 
 inline bool AtomVertex::is_aromatic() const {
-    auto types = br_->get_default_atomtype();
-    return types->is_aromatic(index_);
+    return br_->atomtype()->is_aromatic(index_);
 }
 
 inline bool AtomVertex::is_non_metal() const {

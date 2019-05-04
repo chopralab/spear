@@ -38,7 +38,7 @@ size_t AtomVertex::expected_bonds() const {
         default: break;
     }
 
-    auto hybridization_state = br_->get_default_atomtype()->hybridization(index_);
+    auto hybridization_state = br_->atomtype()->hybridization(index_);
 
     if(atomic_num == Element::C) {
         switch (hybridization_state) {
@@ -377,7 +377,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
         return h_atom;
     }
 
-    auto hybrid = get_default_atomtype()->hybridization(index);
+    auto hybrid = atomtype()->hybridization(index);
 
     if (hybrid == Hybridization::UNKNOWN || hybrid == Hybridization::FORCED) {
         throw std::runtime_error("Cannot add atom to UNKNOWN or FORCED hybridizations");
@@ -386,7 +386,7 @@ AtomVertex Molecule::add_atom_to(Element::Symbol n_atom, size_t index) {
     // Spoof SP2 for planar nitrogens so that atoms are added in the same plane
     // and we can prevent the loss of conjugation
     if (av.atomic_number() == Element::N && hybrid == Hybridization::SP3 &&
-        get_default_atomtype()->is_planar(index)) {
+        atomtype()->is_planar(index)) {
         hybrid = Hybridization::SP2;
     }
 

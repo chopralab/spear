@@ -154,8 +154,9 @@ inline std::string Molecule::add_atomtype(args... additional) {
     return name;
 }
 
-inline const AtomType* Molecule::get_atomtype(const std::string& name) const {
-    auto types = atom_types_.find(name);
+inline const AtomType* Molecule::atomtype(const std::string& name) const {
+    auto types = name.empty() ? atom_types_.find(default_atomtype_)
+                              : atom_types_.find(name);
     if (types == atom_types_.end()) {
         return nullptr;
     }
@@ -168,11 +169,6 @@ inline void Molecule::set_default_atomtype(const std::string& name) {
         throw std::runtime_error("Atom type " + name + " is not availible.");
     }
     default_atomtype_ = name;
-}
-
-inline const AtomType* Molecule::get_default_atomtype() const {
-    auto types = atom_types_.find(default_atomtype_);
-    return types->second.get();
 }
 
 inline size_t Molecule::size() const {

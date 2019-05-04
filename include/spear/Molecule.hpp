@@ -135,18 +135,40 @@ public:
         return sssr_;
     }
 
+    /// Retreive a bond in the molecule given the two indicies.
+    ///
+    /// \param idx1 first atom index
+    /// \param idx2 second atom index
     BondEdge bond(size_t idx1, size_t idx2);
 
+    /// Retrieve all the bonds within all the atoms.
+    ///
+    /// \param atoms A set of atom indicies
+    /// \returns A vector of `BondEdge` which are always between the `atoms`.
     std::vector<BondEdge> get_bonds_in(const std::set<size_t>& atoms) const;
 
+    /// Add an `AtomType` to the `Molecule`.
+    ///
+    /// \params additional The arguments to constructor of `atomtype`.
+    /// \returns The name of the new `AtomType`.
     template<class atomtype, typename... args>
     std::string add_atomtype(args... additional);
 
-    const AtomType* get_atomtype(const std::string& name) const;
+    /// Retreive an `AtomType` for the `Molecule`
+    ///
+    /// \params name The name of the `AtomType` to retrieve.
+    /// \returns A pointer to the `AtomType` or nullptr if the name is not found
+    const AtomType* atomtype(const std::string& name = "") const;
 
+    /// Set the default `AtomType` 
+    ///
+    /// The definitions of aromaticity, hyridization, and charge are dependant
+    /// on the current `AtomType` beging used. While molecules can have
+    /// multiple `AtomType` assignments, they can only have one default
+    /// assignment. This default is used for graph based searches where these
+    /// properties are used. This function changes this default atom type.
+    /// \params name The name of the `AtomType` to be used as the default.
     void set_default_atomtype(const std::string& name);
-
-    const AtomType* get_default_atomtype() const;
 
     AtomVertex add_atom(Element::Symbol n_atom, const Eigen::Vector3d& pos);
 
@@ -160,6 +182,7 @@ public:
 
     size_t add_hydrogens();
 
+    /// The number of atoms(nodes) in the `Molecule`
     size_t size() const;
 
     AtomVertex operator[](size_t index) const;
@@ -175,10 +198,13 @@ public:
     AllBonds bonds() const;
 
 private:
+    /// Initialize a `Molecule` from a chemfiles frame
     void init_(const chemfiles::Frame& frame);
 
+    /// Calculate the rings of a molecule
     void rings_();
 
+    /// Calculate the smallest set of smallest rings
     void smallest_set_of_smallest_rings_();
 
     /// Coordinates of the molecule
@@ -202,9 +228,11 @@ private:
     /// Store just the topology
     chemfiles::Topology topology_;
 
+    /// Storage of all AtomTypes added to the molecule
     typedef std::unique_ptr<AtomType> unqiue_AtomType;
     std::unordered_map<std::string, unqiue_AtomType> atom_types_;
 
+    /// The current default `AtomType` 
     std::string default_atomtype_;
 
     friend class AtomVertex;

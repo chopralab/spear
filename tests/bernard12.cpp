@@ -24,8 +24,8 @@ TEST_CASE("Protein-Ligand Score") {
 
     CHECK(atomtype_name == atomtype_name2);
 
-    auto ptypes = protein.get_atomtype(atomtype_name);
-    auto ltypes = ligand.get_atomtype(atomtype_name);
+    auto ptypes = protein.atomtype(atomtype_name);
+    auto ltypes = ligand.atomtype(atomtype_name);
 
     std::unordered_set<size_t> all_types;
     std::copy(ptypes->cbegin(), ptypes->cend(), std::inserter(all_types, all_types.begin()));

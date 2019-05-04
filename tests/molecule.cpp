@@ -212,7 +212,7 @@ TEST_CASE("Default AtomType") {
     auto traj2 = chemfiles::Trajectory("data/tibolone.sdf");
     auto mol2 = Spear::Molecule(traj2.read());
 
-    auto default_atom_type = mol2.get_default_atomtype();
+    auto default_atom_type = mol2.atomtype();
     CHECK(default_atom_type->hybridization(0) == Spear::Hybridization::SP3);
     CHECK(default_atom_type->hybridization(3) == Spear::Hybridization::SP2);
     CHECK(default_atom_type->hybridization(4) == Spear::Hybridization::SP2);

@@ -91,8 +91,8 @@ size_t spear_initialize_scoring(const char* data_dir) {
         auto atomtype_name  = receptor->add_atomtype<Spear::IDATM>(Spear::AtomType::GEOMETRY);
         auto atomtype_name2 = ligand->add_atomtype<Spear::IDATM>(Spear::AtomType::GEOMETRY);
 
-        auto ptypes = receptor->get_atomtype(atomtype_name);
-        auto ltypes = ligand->get_atomtype(atomtype_name);
+        auto ptypes = receptor->atomtype(atomtype_name);
+        auto ltypes = ligand->atomtype(atomtype_name);
 
         std::unordered_set<size_t> all_types;
         std::copy(ptypes->cbegin(), ptypes->cend(), std::inserter(all_types, all_types.begin()));

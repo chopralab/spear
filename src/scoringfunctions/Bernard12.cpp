@@ -125,8 +125,8 @@ void Bernard12::compile_scoring_function_(const AtomicDistributions& distributio
 }
 
 double Bernard12::score(const Grid& grid, const Molecule& mol1, const Molecule& mol2) const {
-    auto opt_types1 = mol1.get_atomtype(atomtype_);
-    auto opt_types2 = mol2.get_atomtype(atomtype_);
+    auto opt_types1 = mol1.atomtype(atomtype_);
+    auto opt_types2 = mol2.atomtype(atomtype_);
 
     if (opt_types1 == nullptr || opt_types2 == nullptr) {
         throw std::invalid_argument("Correct atom types not present in molecule");
@@ -161,7 +161,7 @@ double Bernard12::score(const Grid& grid, const Molecule& mol1, const Molecule& 
 }
 
 double Bernard12::score( const Grid& grid, const Molecule& mol, size_t residue_id) const {
-    auto opt_types1 = mol.get_atomtype(atomtype_);
+    auto opt_types1 = mol.atomtype(atomtype_);
     auto& types1 = *opt_types1;
 
     const auto& residue = mol.topology().residues()[residue_id];

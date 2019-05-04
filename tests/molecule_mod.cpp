@@ -37,7 +37,7 @@ TEST_CASE("Add Atoms and Bonds") {
         mol.add_atom_to(Spear::Element::H, 0);
         CHECK(mol[0].degree() == 4);
 
-        auto& atom_types = *mol.get_default_atomtype();
+        auto& atom_types = *mol.atomtype();
         CHECK(atom_types.hybridization(n_atom) == Spear::Hybridization::SP3);
         CHECK(atom_types.hybridization(mg_atom)== Spear::Hybridization::UNKNOWN);
     }
@@ -58,7 +58,7 @@ TEST_CASE("Add Atoms and Bonds") {
         auto dihedral_ang = std::fabs(Spear::dihedral(h2.position(), mol[0].position(), h1.position(), h3.position()));
         CHECK(std::fabs(dihedral_ang * 180.0 / M_PI - 120.0) < 1e-1);
 
-        auto& atom_types = *mol.get_default_atomtype();
+        auto& atom_types = *mol.atomtype();
         CHECK(atom_types[h1] == Spear::Element::H);
         CHECK(atom_types[h2] == Spear::Element::H);
         CHECK(atom_types[h3] == Spear::Element::H);
@@ -112,7 +112,7 @@ TEST_CASE("Hydrogens") {
         CHECK(explicit_hs == actual_hs);
         CHECK(implicit_hs == 20);
         CHECK(mol.size() == 26);
-        CHECK(mol.get_default_atomtype()->size() == mol.size());
+        CHECK(mol.atomtype()->size() == mol.size());
     }
 
     SECTION("Add") {
