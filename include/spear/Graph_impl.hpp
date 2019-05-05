@@ -116,6 +116,10 @@ inline bool AtomVertex::is_aromatic() const {
     return br_->atomtype()->is_aromatic(index_);
 }
 
+inline bool AtomVertex::is_planar() const {
+    return br_->atomtype()->is_planar(index_);
+}
+
 inline bool AtomVertex::is_non_metal() const {
     auto element = atomic_number();
     if (element <= Element::He ||
@@ -155,6 +159,10 @@ inline AtomRingMapIteratorPair AtomVertex::rings() const {
 
 inline AtomRingMapIteratorPair AtomVertex::sssrs() const {
     return br_->atom_to_sssr_.equal_range(index_);
+}
+
+inline Hybridization AtomVertex::hybridization() const {
+    return br().atomtype()->hybridization(index_);
 }
 
 inline double AtomVertex::partial_charge() const {

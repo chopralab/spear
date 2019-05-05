@@ -25,6 +25,8 @@ protected:
     PartialCharge(super charges) : super(charges) {}
 public:
 
+    PartialCharge() {}
+
     virtual ~PartialCharge() = default;
 
     /// Get the name of partial charge. This maybe dependant on how the charges were

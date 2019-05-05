@@ -105,6 +105,8 @@ public:
         const Molecule* br_;
     };
 
+    Molecule();
+
     explicit Molecule(const chemfiles::Frame& frame) :
         graph_(), topology_(frame.topology()) {
         init_(frame);

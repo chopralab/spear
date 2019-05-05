@@ -2,7 +2,7 @@
 #define SPEAR_RINGS_HPP
 
 #include <set>
-#include <map>
+#include <unordered_map>
 
 namespace Spear {
 

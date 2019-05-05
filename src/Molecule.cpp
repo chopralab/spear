@@ -110,6 +110,12 @@ struct cycle_saver {
     RingSet& found_rings;
 };
 
+Molecule::Molecule() {
+    add_atomtype<Default>();
+    std::vector<double> charges;
+    add_partial_charge<DefaultPartialCharge>(std::move(charges));
+}
+
 void Molecule::init_(const chemfiles::Frame& frame) {
     std::vector<double> charges;
     charges.reserve(frame.size());

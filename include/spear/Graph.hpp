@@ -2,7 +2,9 @@
 #define SPEAR_GRAPH_HPP
 
 #include "spear/Constants.hpp"
+#include "spear/Typedefs.hpp"
 #include "spear/Rings.hpp"
+#include "spear/Geometry.hpp"
 
 namespace Spear {
 
@@ -140,6 +142,8 @@ public:
 
     bool is_aromatic() const;
 
+    bool is_planar() const;
+
     bool is_non_metal() const;
 
     size_t expected_bonds() const;
@@ -153,6 +157,8 @@ public:
     AtomRingMapIteratorPair rings() const;
 
     AtomRingMapIteratorPair sssrs() const;
+
+    Hybridization hybridization() const;
 
     double partial_charge() const;
 
