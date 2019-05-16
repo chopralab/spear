@@ -175,8 +175,7 @@ void Molecule::smallest_set_of_smallest_rings_() {
         return;
     }
 
-    std::vector<int> component(size());
-    auto num = static_cast<size_t>(boost::connected_components(graph_, &component[0]));
+    auto num = connected_components();
     auto sssr_count = boost::num_edges(graph_) + 1 + (num - 1) - size();
 
     if (sssr_count >= all_rings.size()) {
@@ -277,6 +276,11 @@ std::vector<Spear::BondEdge> Molecule::get_bonds_in(const std::set<size_t>& atom
     });
 
     return ret;
+}
+
+size_t Molecule::connected_components() const {
+    std::vector<int> component(size());
+    return static_cast<size_t>(boost::connected_components(graph_, &component[0]));
 }
 
 void Molecule::remove_bond(size_t idx1, size_t idx2) {

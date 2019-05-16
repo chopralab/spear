@@ -150,6 +150,11 @@ public:
     /// \returns A vector of `BondEdge` which are always between the `atoms`.
     std::vector<BondEdge> get_bonds_in(const std::set<size_t>& atoms) const;
 
+    /// Determine the number of connected graphs in the molecule
+    ///
+    /// \returns the number of independant graphs
+    size_t connected_components() const;
+
     /// Add an `AtomType` to the `Molecule`.
     ///
     /// \params additional The arguments to constructor of `atomtype`.
