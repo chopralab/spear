@@ -43,10 +43,16 @@ int main(int argc, char** argv) {
     printf("There's %lu ligand atoms\n", lig_atom_count);
     printf("There's %lu receptor atoms\n", spear_receptor_atom_count());
 
+    float x, y, z;
+
+    spear_ligand_add_atom_to(12, 6, &x, &y, &z);
+    score = spear_calculate_score();
+    printf("After methyl addition at (%f,%f,%f), score is %f\n", score, x, y, z);
+
     float* pos = (float*)malloc(sizeof(float)*spear_ligand_atom_count()*3);
     spear_ligand_atoms(pos);
 
-    for (size_t i = 0; i < lig_atom_count; ++i) {
+    for (size_t i = 0; i < spear_ligand_atom_count(); ++i) {
         // Change the X position of atom 'i' by 5 angstroms
         pos[ i * 3 + 0 ] = pos[ i * 3 + 0 ] + 5.0f;
                         
@@ -61,8 +67,12 @@ int main(int argc, char** argv) {
         printf("%s\n", spear_get_error());
     }
 
+    score = spear_calculate_score();
     // Nothing else needs to be done to recalculate the score.
-    printf("score is %f\n", score);
+    printf("After moving, score is %f\n", score);
+
+    free(pos);
+    spear_write_complex("out.pdb");
 
     return 0;
 }

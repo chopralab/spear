@@ -43,7 +43,8 @@ SPEAR_EXPORT size_t spear_ligand_is_adjacent(size_t atom1, size_t atom2);
 SPEAR_EXPORT size_t spear_ligand_add_bond(size_t atom1, size_t atom2);
 SPEAR_EXPORT size_t spear_ligand_remove_bond(size_t atom1, size_t atom2);
 SPEAR_EXPORT size_t spear_ligand_remove_hydrogens();
-SPEAR_EXPORT size_t spear_ligand_add_atom_to(size_t atom, size_t element);
+SPEAR_EXPORT size_t spear_ligand_add_atom(size_t element, float x, float y, float z);
+SPEAR_EXPORT size_t spear_ligand_add_atom_to(size_t atom, size_t element, float* x, float* y, float* z);
 
 SPEAR_EXPORT size_t spear_initialize_scoring(const char* data_dir);
 

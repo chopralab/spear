@@ -15,7 +15,7 @@
 
 const std::set<std::string> common_residues{
     {"CSD"}, {"PCA"}, {"DLE"}, {"KCX"}, {"CAS"}, {"CSO"}, {"PTR"},
-    {"CME"}, {"SAH"}, {"TPO"}, {"SEP"}, {"MLY"}, {"HYP"}, {"MSE"},
+    {"CME"}, {"TPO"}, {"SEP"}, {"MLY"}, {"HYP"}, {"MSE"},
     {"CYS"}, {"TRP"}, {"MET"}, {"HIS"}, {"TYR"}, {"GLN"}, {"PHE"},
     {"ASN"}, {"PRO"}, {"ARG"}, {"THR"}, {"ASP"}, {"ILE"}, {"LYS"},
     {"SER"}, {"GLU"}, {"VAL"}, {"GLY"}, {"ALA"}, {"LEU"}, {"EDO"},
@@ -102,6 +102,7 @@ size_t spear_initialize_complex(const char* filename) {
 
         auto frame = traj.read();
         size_t current = 0;
+        bool found = false;
         for (auto res : frame.topology().residues()) {
             if (res.size() < 10) {
                 current++;
@@ -113,8 +114,13 @@ size_t spear_initialize_complex(const char* filename) {
                 current++;
                 continue;
             }
-
+            found = true;
             break;
+        }
+
+        if (!found) {
+            set_error("Error in loading complex: everything is protein.");
+            return 0;
         }
 
         chemfiles::Frame protein, ligand_frame;
