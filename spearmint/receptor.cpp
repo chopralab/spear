@@ -15,20 +15,19 @@ std::map<std::string, char> residue_codes({
 });
 
 size_t spear_receptor_atom_count() {
-    CHECK_MOLECULE(ligand, "You must run initialize_receptor first");
+    CHECK_MOLECULE(receptor, "You must run initialize_receptor first");
     return receptor->size();
 }
 
 size_t spear_receptor_atoms(float* pos) {
-    CHECK_MOLECULE(ligand, "You must run initialize_receptor first");
+    CHECK_MOLECULE(receptor, "You must run initialize_receptor first");
     return get_atom_positions(*receptor, pos);
 }
 
 size_t spear_receptor_atom_details(char* cids, size_t* resi,
                                    char* resn, size_t* elements) {
-    CHECK_MOLECULE(ligand, "You must run initialize_receptor first");
+    CHECK_MOLECULE(receptor, "You must run initialize_receptor first");
     try {
-
         for (auto residue : receptor->topology().residues()) {
             auto cid = residue.get<chemfiles::Property::STRING>("chainid").value_or(" ")[0];
             auto resn_iter = residue_codes.find(residue.name());
@@ -50,17 +49,17 @@ size_t spear_receptor_atom_details(char* cids, size_t* resi,
 }
 
 size_t spear_receptor_bond_count() {
-    CHECK_MOLECULE(ligand, "You must run initialize_receptor first");
+    CHECK_MOLECULE(receptor, "You must run initialize_receptor first");
     return receptor->topology().bonds().size();
 }
 
 size_t spear_receptor_bonds(size_t* bonds) {
-    CHECK_MOLECULE(ligand, "You must run initialize_receptor first");
+    CHECK_MOLECULE(receptor, "You must run initialize_receptor first");
     return get_bonds(*receptor, bonds);
 }
 
 size_t spear_receptor_set_positions(const float* positions) {
-    CHECK_MOLECULE(ligand, "You must run initialize_receptor first");
+    CHECK_MOLECULE(receptor, "You must run initialize_receptor first");
     auto result = set_positions(*receptor, positions);
     gridrec = std::make_unique<Spear::Grid>(receptor->positions());
     return result;

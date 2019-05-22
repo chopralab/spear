@@ -124,6 +124,17 @@ size_t spear_ligand_remove_hydrogens() {
     return 1;
 }
 
+size_t spear_ligand_add_atom(size_t element, float x, float y, float z) {
+    CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
+
+    try {
+        return ligand->add_atom(static_cast<Spear::Element::Symbol>(element), {x, y, z});
+    } catch (...) {
+        set_error("An unknown error occured in spear_ligand_add_atom");
+        return 0;
+    }
+}
+
 size_t spear_ligand_add_atom_to(size_t atom, size_t element, float* x, float* y, float* z) {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
 
@@ -136,7 +147,7 @@ size_t spear_ligand_add_atom_to(size_t atom, size_t element, float* x, float* y,
         set_error("Atom greater than molecule size.");
         return 0;
     }
-    ligand->remove_hydrogens();
+
     auto av1 = (*ligand)[atom];
     if (av1.degree() >= av1.expected_bonds()) {
         set_error("Atom is saturated!");
@@ -152,7 +163,7 @@ size_t spear_ligand_add_atom_to(size_t atom, size_t element, float* x, float* y,
         *z = pos[new_idx][2];
         return new_idx;
     } catch(...) {
-        set_error("An unknown error occured");
+        set_error("An unknown error occured in spear_ligand_add_atom_to");
         return 0;
     }
 }

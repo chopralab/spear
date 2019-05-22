@@ -8,6 +8,7 @@
 
 #include "spear/Molecule.hpp"
 #include "spear/Grid.hpp"
+#include "spear/atomtypes/IDATM.hpp"
 
 /******************************************************************************
  * Stolen from Lemon :)
@@ -88,11 +89,14 @@ inline void protein_and_ligand(const chemfiles::Frame& input, size_t ligand_id,
 }
 
 size_t spear_initialize_complex(const char* filename) {
+    bool recall_sf = false;
     if (receptor != nullptr) {
+        recall_sf = true;
         receptor.reset();
     }
 
     if (ligand != nullptr) {
+        recall_sf = true;
         ligand.reset();
     }
 
@@ -120,14 +124,27 @@ size_t spear_initialize_complex(const char* filename) {
 
         if (!found) {
             set_error("Error in loading complex: everything is protein.");
+            receptor = std::make_unique<Spear::Molecule>(frame);
+            gridrec  = std::make_unique<Spear::Grid>(receptor->positions());
+            ligand   = nullptr;
             return 0;
+        } else {
+            chemfiles::Frame protein, ligand_frame;
+            protein_and_ligand(frame, current, protein, ligand_frame);
+            receptor = std::make_unique<Spear::Molecule>(protein);
+            gridrec = std::make_unique<Spear::Grid>(receptor->positions());
+            ligand = std::make_unique<Spear::Molecule>(ligand_frame);
         }
 
-        chemfiles::Frame protein, ligand_frame;
-        protein_and_ligand(frame, current, protein, ligand_frame);
-        receptor = std::make_unique<Spear::Molecule>(protein);
-        gridrec = std::make_unique<Spear::Grid>(receptor->positions());
-        ligand = std::make_unique<Spear::Molecule>(ligand_frame);
+        if (recall_sf && receptor) {
+            auto atomtype_name = receptor->add_atomtype<Spear::IDATM>(Spear::AtomType::GEOMETRY);
+            receptor->atomtype(atomtype_name);
+        }
+
+        if (recall_sf && ligand) {
+            auto atomtype_name = ligand->add_atomtype<Spear::IDATM>(Spear::AtomType::GEOMETRY);
+            ligand->atomtype(atomtype_name);
+        }
 
         return 1;
     } catch (std::exception& e) {

@@ -91,16 +91,8 @@ size_t spear_initialize_scoring(const char* data_dir) {
         auto atomtype_name  = receptor->add_atomtype<Spear::IDATM>(Spear::AtomType::GEOMETRY);
         auto atomtype_name2 = ligand->add_atomtype<Spear::IDATM>(Spear::AtomType::GEOMETRY);
 
-        auto ptypes = receptor->atomtype(atomtype_name);
-        auto ltypes = ligand->atomtype(atomtype_name);
-
-        std::unordered_set<size_t> all_types;
-        std::copy(ptypes->cbegin(), ptypes->cend(), std::inserter(all_types, all_types.begin()));
-        std::copy(ltypes->cbegin(), ltypes->cend(), std::inserter(all_types, all_types.begin()));
-
-        // Remove hydrogen types
-        all_types.erase(47);
-        all_types.erase(48);
+        receptor->atomtype(atomtype_name);
+        ligand->atomtype(atomtype_name);
 
         std::ifstream csd_distrib((std::string(data_dir) + "/csd_distributions.dat").c_str());
         if (!csd_distrib) {
@@ -111,8 +103,8 @@ size_t spear_initialize_scoring(const char* data_dir) {
         Spear::AtomicDistributions atomic_distrib = Spear::read_atomic_distributions<Spear::IDATM>(csd_distrib);
 
         using Spear::Bernard12;
-        auto options = Bernard12::Options(Bernard12::RADIAL | Bernard12::MEAN | Bernard12::REDUCED);
-        score = std::make_unique<Bernard12>(options, 6.0, atomic_distrib, atomtype_name, all_types);
+        auto options = Bernard12::Options(Bernard12::RADIAL | Bernard12::MEAN | Bernard12::COMPLETE);
+        score = std::make_unique<Bernard12>(options, 15.0, atomic_distrib, atomtype_name);
     } catch (const std::exception& e) {
         set_error(std::string("Error in loading ligand ") + e.what());
         return 0;
@@ -121,6 +113,11 @@ size_t spear_initialize_scoring(const char* data_dir) {
 }
 
 float spear_calculate_score() {
+    if (ligand == nullptr || receptor == nullptr) {
+        set_error("You must initialize ligand and receptor first");
+        return 0.000;
+    }
+
     if (score == nullptr) {
         set_error("You must run initialize_score first.");
         return 0.000;
