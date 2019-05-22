@@ -24,6 +24,48 @@ size_t spear_receptor_atoms(float* pos) {
     return get_atom_positions(*receptor, pos);
 }
 
+#define GET_RESIDUE(res, atom, receptor)					\
+	if (atom >= receptor->size()) {							\
+		set_error("Atom index out of bonds.");				\
+		return 0;											\
+	}														\
+	auto res = receptor->topology().residue_for_atom(atom); \
+	if (!res) {												\
+		set_error("Atom not in a residue.");				\
+		return 0;											\
+	}
+
+char spear_receptor_atom_chain(size_t atom) {
+	CHECK_MOLECULE(receptor, "You must run initialize_receptor first");
+	GET_RESIDUE(res, atom, receptor);
+
+	return res->get<chemfiles::Property::STRING>("chainid").value_or(" ")[0];
+}
+
+size_t spear_receptor_atom_resi(size_t atom) {
+	CHECK_MOLECULE(receptor, "You must run initialize_receptor first");
+	GET_RESIDUE(res, atom, receptor);
+
+	return static_cast<bool>(res->id())? (*res->id()): 0;
+}
+
+char spear_receptor_atom_resn(size_t atom) {
+	CHECK_MOLECULE(receptor, "You must run initialize_receptor first");
+	GET_RESIDUE(res, atom, receptor);
+
+	auto resn_iter = residue_codes.find(res->name());
+	return resn_iter == residue_codes.end() ? ' ' : resn_iter->second;
+}
+
+size_t spear_receptor_atom_element(size_t atom) {
+	CHECK_MOLECULE(receptor, "You must run initialize_receptor first");
+	if (atom >= receptor->size()) {
+		set_error("Atom index out of bonds.");
+		return 0;
+	}
+	return static_cast<size_t>((*receptor)[atom].atomic_number());
+}
+
 size_t spear_receptor_atom_details(char* cids, size_t* resi,
                                    char* resn, size_t* elements) {
     CHECK_MOLECULE(receptor, "You must run initialize_receptor first");

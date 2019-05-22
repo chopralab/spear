@@ -147,9 +147,9 @@ public:
         std::size_t operator()(const improper_type& k) const {
             size_t seed = 0;
 
-            std::array<size_t, 3> others({std::get<0>(k),
-                                          std::get<2>(k),
-                                          std::get<3>(k)});
+            std::array<size_t, 3> others{std::get<0>(k),
+                                         std::get<2>(k),
+                                         std::get<3>(k)};
             std::sort(others.begin(), others.end());
 
 		    boost::hash_combine(seed, others[0]);
@@ -167,14 +167,14 @@ public:
                 return false;
             }
 
-            std::array<size_t, 3> jother({std::get<0>(j),
-                                          std::get<2>(j),
-                                          std::get<3>(j)});
+            std::array<size_t, 3> jother{std::get<0>(j),
+                                         std::get<2>(j),
+                                         std::get<3>(j)};
             std::sort(jother.begin(), jother.end());
 
-            std::array<size_t, 3> kother({std::get<0>(k),
-                                          std::get<2>(k),
-                                          std::get<3>(k)});
+            std::array<size_t, 3> kother{std::get<0>(k),
+                                         std::get<2>(k),
+                                         std::get<3>(k)};
             std::sort(kother.begin(), kother.end());
 
             return jother[0] == kother[0] &&

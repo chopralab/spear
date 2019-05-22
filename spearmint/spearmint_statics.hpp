@@ -1,6 +1,7 @@
 #ifndef SPEARMINT_STATICS_HPP
 #define SPEARMINT_STATICS_HPP
 
+#include <string>
 #include <memory>
 
 namespace Spear {

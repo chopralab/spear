@@ -18,13 +18,24 @@ public static class SpearMintInterface
     [DllImport("spearmint")]
     public static extern ulong spear_write_complex(string filename);
 
-
     // --------------------- RECEPTOR FUNCTIONS ---------------------------
     [DllImport("spearmint")]
     public static extern ulong spear_initialize_receptor(string filename);
 
     [DllImport("spearmint")]
     public static extern ulong spear_receptor_atom_count();
+
+    [DllImport("spearmint")]
+    public static extern char spear_receptor_atom_chain(ulong atom);
+
+    [DllImport("spearmint")]
+    public static extern ulong spear_receptor_atom_resi(ulong atom);
+
+    [DllImport("spearmint")]
+    public static extern char spear_receptor_atom_resn(ulong atom);
+
+    [DllImport("spearmint")]
+    public static extern size_t spear_receptor_atom_element(ulong atom);
 
     [DllImport("spearmint")]
     public static extern ulong spear_receptor_atoms([Out] float[] pos);
