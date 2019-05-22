@@ -288,6 +288,16 @@ void Molecule::remove_bond(size_t idx1, size_t idx2) {
     topology_.remove_bond(idx1, idx2);
 }
 
+void Molecule::remove_atom(size_t index) {
+    boost::clear_vertex(index, graph_);
+    boost::remove_vertex(index, graph_);
+    topology_.remove(index);
+    positions_.erase(positions_.begin() + static_cast<std::ptrdiff_t>(index));
+    for (const auto& at : atom_types_) {
+         at.second->remove_atom(index);
+    }
+}
+
 void Molecule::remove_hydrogens() {
     auto& mol = *this;
 

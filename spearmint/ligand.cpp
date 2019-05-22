@@ -167,3 +167,19 @@ size_t spear_ligand_add_atom_to(size_t atom, size_t element, float* x, float* y,
         return 0;
     }
 }
+
+size_t spear_ligand_remove_atom(size_t atom) {
+    CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
+
+    if (atom >= ligand->size()) {
+        set_error("Atom not in range for removal.");
+    }
+
+    try {
+        ligand->remove_atom(atom);
+        return 1;
+    } catch(...) {
+        set_error("Unknown error in atom removal.");
+        return 0;
+    }
+}
