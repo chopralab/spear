@@ -3,7 +3,6 @@
 #include <fstream>
 
 #include "spear/Grid.hpp"
-#include "spear/Molecule_impl.hpp"
 
 #ifndef M_PI
 static const auto M_PI = std::acos(0.0) * 2.0;
@@ -144,17 +143,7 @@ double Bernard12::score(const Grid& grid, const Molecule& mol1, const Molecule& 
             if (ignore_hydro && atom1.atomic_number() == 1) continue;
             auto dist = (atom1.position() - atom2.position()).norm();
 
-            auto atom_pair = std::minmax(types1[atom1], types2[atom2]);
-            auto idx = static_cast<size_t>(dist / step_in_file_);
-            auto distrution = energies_scoring_.find(atom_pair);
-
-            if (distrution == energies_scoring_.end()) {
-                continue;
-            }
-
-            if (idx < distrution->second.size()) {
-                energy_sum += distrution->second[idx];
-            }
+            energy_sum += score(types1[atom1], types2[atom2], dist);
         }
     }
     return energy_sum;
@@ -170,6 +159,7 @@ double Bernard12::score( const Grid& grid, const Molecule& mol, size_t residue_i
     for (auto atom2_id : residue) {
         auto atom2 = mol[atom2_id];
         if (ignore_hydro && atom2.atomic_number() == 1) continue;
+        if (atom2.name() == "C" || atom2.name() == "N" || atom2.name() == "O" || atom2.name() =="CA") continue;
         auto neighbors = grid.neighbors(atom2.position(), dist_cutoff_);
         for (auto neighbor : neighbors) {
             auto atom1 = mol[neighbor];
@@ -177,18 +167,24 @@ double Bernard12::score( const Grid& grid, const Molecule& mol, size_t residue_i
             if (residue.contains(neighbor)) continue;
             auto dist = (atom1.position() - atom2.position()).norm();
 
-            auto atom_pair = std::minmax(types1[atom1], types1[atom2]);
-            auto idx = static_cast<size_t>(dist / step_in_file_);
-            auto distrution = energies_scoring_.find(atom_pair);
-
-            if (distrution == energies_scoring_.end()) {
-                continue;
-            }
-
-            if (idx < distrution->second.size()) {
-                energy_sum += distrution->second[idx];
-            }
+            energy_sum += score(types1[atom1], types1[atom2], dist);
         }
     }
     return energy_sum;
+}
+
+double Bernard12::score( size_t atomtype1, size_t atomtype2, double r) const {
+    auto atom_pair = std::minmax(atomtype1, atomtype2);
+    auto idx = static_cast<size_t>(r / step_in_file_ + 0.0000001);
+    auto distrution = energies_scoring_.find(atom_pair);
+
+    if (distrution == energies_scoring_.end()) {
+        return 0;
+    }
+
+    if (idx >= distrution->second.size()) {
+        return 0;
+    }
+
+    return distrution->second[idx];
 }

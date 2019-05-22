@@ -209,6 +209,8 @@ public:
 
     void remove_bond(size_t idx1, size_t idx2);
 
+    void remove_atom(size_t index);
+
     void remove_hydrogens();
 
     size_t add_hydrogens();

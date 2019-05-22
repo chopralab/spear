@@ -12,7 +12,7 @@ static const auto M_PI = std::acos(0.0) * 2;
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
-TEST_CASE("Add Atoms and Bonds") {
+TEST_CASE("Atoms and Bonds") {
     SECTION("Given Point") {
         auto traj = chemfiles::Trajectory("data/palmitic.sdf");
         auto mol = Spear::Molecule(traj.read());
@@ -22,6 +22,14 @@ TEST_CASE("Add Atoms and Bonds") {
         CHECK(desc.atomic_number() == Spear::Element::Cl);
         CHECK(desc == mol[18]);
         CHECK(desc.position() == Eigen::Vector3d{0.7011, -5.3628, 8.4904});
+
+        CHECK(mol[15].atomic_number() == Spear::Element::C);
+        mol.remove_atom(18);
+        CHECK(mol.size() == 18);
+        mol.remove_atom(0);
+        CHECK(mol[15].atomic_number() == Spear::Element::O);
+        mol.remove_atom(0);
+        CHECK(mol[14].atomic_number() == Spear::Element::O);
     }
 
     SECTION("Given Atom in 2D") {
