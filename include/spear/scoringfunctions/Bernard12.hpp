@@ -29,8 +29,9 @@ public:
 
     double score(const Grid& grid, const Molecule& mol1, const Molecule& mol2) const override;
     double score(const Grid& grid, const Molecule& mol, size_t residue_id) const override;
+    double score( size_t atomtype1, size_t atomtype2, double r) const override;
 
-    bool ignore_hydro = false;
+    bool ignore_hydro = true;
 private:
 
     PairVectorDouble energies_scoring_;  // scoring function
