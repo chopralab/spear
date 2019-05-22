@@ -1,5 +1,4 @@
 #include "spear/Molecule.hpp"
-#include "spear/Molecule_impl.hpp"
 
 #include "spear/scoringfunctions/Bernard12.hpp"
 #include "spear/atomtypes/IDATM.hpp"
@@ -36,6 +35,7 @@ TEST_CASE("Protein-Ligand Score") {
     all_types.erase(48);
 
     std::ifstream csd_distrib("share/csd_distributions.dat");
+    CHECK(csd_distrib.is_open());
 
     AtomicDistributions atomic_distrib = read_atomic_distributions<IDATM>(csd_distrib);
     auto options = Bernard12::Options(Bernard12::RADIAL | Bernard12::MEAN | Bernard12::REDUCED);

@@ -1,6 +1,7 @@
 #ifndef SPEAR_GEOMETRY_HPP
 #define SPEAR_GEOMETRY_HPP
 
+#include <vector>
 #include "spear/exports.hpp"
 #include "Eigen/Geometry"
 

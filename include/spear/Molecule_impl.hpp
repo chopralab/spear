@@ -202,7 +202,7 @@ inline void Molecule::set_default_partial_charge(const std::string& name) {
 }
 
 inline size_t Molecule::size() const {
-    return topology_.size();
+    return boost::num_vertices(graph_);
 }
 
 inline AtomVertex Molecule::operator[](size_t index) const {

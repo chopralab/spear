@@ -478,6 +478,7 @@ size_t Sybyl::add_atom(size_t idx) {
     switch(mol_[idx].atomic_number()) {
     case Element::H:
         push_back(sybyl::H);
+        break;
     case Element::C:
         push_back(sybyl::C_3);
         break;
