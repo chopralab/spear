@@ -100,6 +100,20 @@ size_t spear_receptor_bonds(size_t* bonds) {
     return get_bonds(*receptor, bonds);
 }
 
+size_t spear_receptor_bonds_in(size_t* atoms, size_t atoms_size, size_t* atoms_out) {
+	CHECK_MOLECULE(receptor, "You must run initialize_receptor first");
+	std::set<size_t> atoms_to_check(atoms, atoms + atoms_size);
+
+	auto res = receptor->get_bonds_in(atoms_to_check);
+
+	for (size_t i = 0; i < res.size(); ++i) {
+		atoms_out[2 * i + 0] = res[i].source();
+		atoms_out[2 * i + 1] = res[i].target();
+	}
+
+	return res.size();
+}
+
 size_t spear_receptor_set_positions(const float* positions) {
     CHECK_MOLECULE(receptor, "You must run initialize_receptor first");
     auto result = set_positions(*receptor, positions);

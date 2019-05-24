@@ -35,7 +35,7 @@ public static class SpearMintInterface
     public static extern char spear_receptor_atom_resn(ulong atom);
 
     [DllImport("spearmint")]
-    public static extern size_t spear_receptor_atom_element(ulong atom);
+    public static extern ulong spear_receptor_atom_element(ulong atom);
 
     [DllImport("spearmint")]
     public static extern ulong spear_receptor_atoms([Out] float[] pos);
@@ -55,8 +55,11 @@ public static class SpearMintInterface
     [DllImport("spearmint")]
     public static extern ulong spear_receptor_bonds([In] ulong[] bonds);
 
-    // --------------------- LIGAND FUNCTIONS -----------------------------
-    [DllImport("spearmint")]
+	[DllImport("spearmint")]
+	public static extern ulong spear_receptor_bonds_in([In] ulong[] atoms, ulong atoms_size, [In, Out] ulong[] bonds);
+
+	// --------------------- LIGAND FUNCTIONS -----------------------------
+	[DllImport("spearmint")]
     public static extern ulong spear_initialize_ligand(string filename);
 
     [DllImport("spearmint")]
@@ -89,7 +92,10 @@ public static class SpearMintInterface
     [DllImport("spearmint")]
     public static extern ulong spear_ligand_remove_bond(ulong atom1, ulong atom2);
 
-    [DllImport("spearmint")]
+	[DllImport("spearmint")]
+	public static extern ulong spear_ligand_bonds_in([In] ulong[] atoms, ulong atoms_size, [In, Out] ulong[] bonds);
+
+	[DllImport("spearmint")]
     public static extern ulong spear_ligand_remove_hydrogens();
 
     [DllImport("spearmint")]
@@ -250,13 +256,26 @@ public static class SpearMintInterface
             }
             Console.WriteLine();
 
-            /**************************************************************
+			ulong[] receptor_atoms_for_bond = new ulong[5];
+			receptor_atoms_for_bond[0] = 0;
+			receptor_atoms_for_bond[1] = 1;
+			receptor_atoms_for_bond[2] = 2;
+			receptor_atoms_for_bond[3] = 3;
+			receptor_atoms_for_bond[4] = 4;
+			ulong[] receptor_bonds_found = new ulong[5 * 4 / 2 * 2];
+			ulong num_found = spear_receptor_bonds_in(receptor_atoms_for_bond, 5, receptor_bonds_found);
+			for (ulong i = 0; i < num_found; ++i)
+			{
+				Console.WriteLine("Bond: " + receptor_bonds_found[i * 2 + 0] + "-" + receptor_bonds_found[i * 2 + 1]);
+			}
+
+			/**************************************************************
              * Modification time!!!!!!!!!!
              **************************************************************/
 
-            // Attempt (and fail to) add an atom to the ligand because the atom
-            // is saturated with hydrogens (see ligand file)!
-            float x = 0.0f, y = 0.0f, z = 0.0f;
+			// Attempt (and fail to) add an atom to the ligand because the atom
+			// is saturated with hydrogens (see ligand file)!
+			float x = 0.0f, y = 0.0f, z = 0.0f;
             if (spear_ligand_add_atom_to(0, 6, ref x, ref y, ref z) == 0)
             {
                 Console.WriteLine("Expected error: (" + spear_get_error() + ")");
@@ -327,30 +346,6 @@ public static class SpearMintInterface
 
             spear_initialize_complex("1aaq.pdb");
             Console.WriteLine("Score after loading non-ligand protein: " + spear_calculate_score());
-
-            receptor_atom_count = spear_receptor_atom_count();
-            cids = new char[receptor_atom_count];
-            resi = new ulong[receptor_atom_count];
-            resn = new char[receptor_atom_count];
-            relements = new ulong[receptor_atom_count];
-            spear_receptor_atom_details(cids, resi, resn, relements);
-
-            current_res = 0;
-            Console.WriteLine("Residues are ");
-            for (ulong i = 0; i < receptor_atom_count; ++i)
-            {
-                if (cids[i] == '\0') {
-                    Console.WriteLine("ERROR");
-                }
-                if (resi[i] != current_res)
-                {
-                    Console.WriteLine();
-                    Console.Write(" " + cids[i] + " " + resn[i] + " " + resi[i] + " ");
-                    current_res = resi[i];
-                }
-                Console.Write(relements[i] + " ");
-            }
-            Console.WriteLine();
 
             if (spear_initialize_complex("5tz6.pdb") == 0)
             {

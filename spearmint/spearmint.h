@@ -32,6 +32,9 @@ SPEARMINT_EXPORT size_t spear_receptor_atom_details(
 
 SPEARMINT_EXPORT size_t spear_receptor_bond_count();
 SPEARMINT_EXPORT size_t spear_receptor_bonds(size_t* bonds);
+SPEARMINT_EXPORT size_t spear_receptor_bonds_in(
+	size_t* atoms, size_t atoms_size, size_t* atoms_out
+);
 
 SPEARMINT_EXPORT size_t spear_initialize_ligand(const char* filename);
 
@@ -42,6 +45,9 @@ SPEARMINT_EXPORT size_t spear_ligand_atom_details(size_t* elements);
 
 SPEARMINT_EXPORT size_t spear_ligand_bond_count();
 SPEARMINT_EXPORT size_t spear_ligand_bonds(size_t* bonds);
+SPEARMINT_EXPORT size_t spear_ligand_bonds_in(
+	size_t* atoms, size_t atoms_size, size_t* atoms_out
+);
 SPEARMINT_EXPORT size_t spear_ligand_neighbors(size_t atom_idx, size_t* neighbors);
 
 SPEARMINT_EXPORT size_t spear_ligand_is_adjacent(size_t atom1, size_t atom2);

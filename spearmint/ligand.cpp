@@ -42,6 +42,20 @@ size_t spear_ligand_bonds(size_t* bonds) {
     return get_bonds(*ligand, bonds);
 }
 
+size_t spear_ligand_bonds_in(size_t* atoms, size_t atoms_size, size_t* atoms_out) {
+	CHECK_MOLECULE(ligand, "You must run initialize_receptor first");
+	std::set<size_t> atoms_to_check(atoms, atoms + atoms_size);
+
+	auto res = ligand->get_bonds_in(atoms_to_check);
+
+	for (size_t i = 0; i < res.size(); ++i) {
+		atoms_out[2 * i + 0] = res[i].source();
+		atoms_out[2 * i + 1] = res[i].target();
+	}
+
+	return res.size();
+}
+
 size_t spear_ligand_neighbors(size_t atom_idx, size_t* neighbors) {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
     try {
