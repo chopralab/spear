@@ -63,6 +63,34 @@ inline bool operator==(const GridPoint& a, const GridPoint& b) {
 	return a[0] == b[0] && a[1] == b[1] && a[2] == b[2];
 }
 
+inline bool operator<(const GridPoint& a, const GridPoint& b) {
+    if (a[0] < b[0]) {
+        return true;
+    }
+
+    if (a[0] > b[0]) {
+        return false;
+    }
+
+    if (a[1] < b[1]) {
+        return true;
+    }
+
+    if (a[1] > b[1]) {
+        return false;
+    }
+
+    if (a[2] < b[2]) {
+        return true;
+    }
+
+    if (a[2] > b[2]) {
+        return false;
+    }
+
+    return false;
+}
+
 class SPEAR_EXPORT Grid {
     constexpr static auto eps = std::numeric_limits<double>::epsilon();
     constexpr static auto max = std::numeric_limits<double>::max();
@@ -105,24 +133,20 @@ public:
         return ret;
     }
 
-    std::unordered_set<size_t> neighbors(const Vector3d& point,
+    std::vector<size_t> neighbors(const Vector3d& point,
                                          double dist,
                                          double lower_tol = 0.0,
                                          double upper_tol = 0.0) const {
         auto cmin = GridPoint(point, min_, max_, step_, -(dist + lower_tol));
         auto cmax = GridPoint(point, min_, max_, step_,   dist + upper_tol);
-        std::unordered_set<size_t> ret;
+        std::vector<size_t> ret;
 
-        for (auto i = cmin[0]; i <= cmax[0]; ++i) {
-            for (auto j = cmin[1]; j <= cmax[1]; ++j) {
-                for (auto k = cmin[2]; k <= cmax[2]; ++k) {
-                    auto range = grid_.equal_range(GridPoint(i, j, k));
-                    for (auto gp = range.first; gp != range.second; ++gp) {
-                        ret.insert(gp->second);
-                    }
-                }
-            }
-        }
+        auto lb = grid_.lower_bound(cmin);
+        auto ub = grid_.upper_bound(cmax);
+
+        std::for_each(lb, ub, [&](const std::pair<GridPoint, size_t>& i){
+            ret.push_back(i.second);
+        });
 
         return ret;
     }
@@ -146,7 +170,7 @@ private:
     Vector3d max_;
     Vector3d step_;
 
-    std::unordered_multimap<GridPoint, size_t, boost::hash<GridPoint>> grid_;
+    std::multimap<GridPoint, size_t> grid_;
 };
 
 }
