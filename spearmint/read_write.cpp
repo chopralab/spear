@@ -88,7 +88,7 @@ inline void protein_and_ligand(const chemfiles::Frame& input, size_t ligand_id,
     separate_residues(input, std::list<size_t>({ligand_id}), ligand);
 }
 
-size_t spear_initialize_complex(const char* filename) {
+uint64_t spear_initialize_complex(const char* filename) {
     bool recall_sf = false;
     if (receptor != nullptr) {
         recall_sf = true;
@@ -153,7 +153,7 @@ size_t spear_initialize_complex(const char* filename) {
     }
 }
 
-size_t spear_write_complex(const char* filename) {
+uint64_t spear_write_complex(const char* filename) {
     if (ligand == nullptr || receptor == nullptr) {
         set_error(
             "You must run initialize_ligand and initialize_receptor before writing a complex"
@@ -207,7 +207,7 @@ size_t spear_write_complex(const char* filename) {
     }
 }
 
-size_t spear_initialize_receptor(const char* filename) {
+uint64_t spear_initialize_receptor(const char* filename) {
     if (receptor != nullptr) {
         receptor.reset();
     }
@@ -225,7 +225,7 @@ size_t spear_initialize_receptor(const char* filename) {
     }
 }
 
-size_t spear_initialize_ligand(const char* filename) {
+uint64_t spear_initialize_ligand(const char* filename) {
     if (ligand != nullptr) {
         ligand.reset();
     }

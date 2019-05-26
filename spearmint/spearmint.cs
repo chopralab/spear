@@ -26,13 +26,13 @@ public static class SpearMintInterface
     public static extern ulong spear_receptor_atom_count();
 
     [DllImport("spearmint")]
-    public static extern char spear_receptor_atom_chain(ulong atom);
+    public static extern byte spear_receptor_atom_chain(ulong atom);
 
     [DllImport("spearmint")]
     public static extern ulong spear_receptor_atom_resi(ulong atom);
 
     [DllImport("spearmint")]
-    public static extern char spear_receptor_atom_resn(ulong atom);
+    public static extern byte spear_receptor_atom_resn(ulong atom);
 
     [DllImport("spearmint")]
     public static extern ulong spear_receptor_atom_element(ulong atom);
@@ -41,10 +41,12 @@ public static class SpearMintInterface
     public static extern ulong spear_receptor_atoms([Out] float[] pos);
 
     [DllImport("spearmint")]
-    public static extern ulong spear_receptor_atom_details([Out] char[] cids,
-                                                           [Out] ulong[] resi,
-                                                           [Out] char[] resn,
-                                                           [Out] ulong[] elements);
+    public static extern ulong spear_receptor_atom_details(
+		[Out] byte[] cids,
+        [Out] ulong[] resi,
+        [Out] byte[] resn,
+        [Out] ulong[] elements
+	);
 
     [DllImport("spearmint")]
     public static extern ulong spear_receptor_set_positions([In] float[] positions);
@@ -53,10 +55,14 @@ public static class SpearMintInterface
     public static extern ulong spear_receptor_bond_count();
 
     [DllImport("spearmint")]
-    public static extern ulong spear_receptor_bonds([In] ulong[] bonds);
+    public static extern ulong spear_receptor_bonds([Out] ulong[] bonds);
 
 	[DllImport("spearmint")]
-	public static extern ulong spear_receptor_bonds_in([In] ulong[] atoms, ulong atoms_size, [In, Out] ulong[] bonds);
+	public static extern ulong spear_receptor_bonds_in(
+		[In] ulong[] atoms,
+		ulong atoms_size,
+		[In, Out] ulong[] bonds
+	);
 
 	// --------------------- LIGAND FUNCTIONS -----------------------------
 	[DllImport("spearmint")]
@@ -78,7 +84,7 @@ public static class SpearMintInterface
     public static extern ulong spear_ligand_bond_count();
 
     [DllImport("spearmint")]
-    public static extern ulong spear_ligand_bonds([In] ulong[] bonds);
+    public static extern ulong spear_ligand_bonds([Out] ulong[] bonds);
 
     [DllImport("spearmint")]
     public static extern ulong spear_ligand_neighbors(ulong atom_idx, [Out] ulong[] neighbors);
@@ -236,10 +242,10 @@ public static class SpearMintInterface
             );
 
             ulong receptor_atom_count = spear_receptor_atom_count();
-            char[] cids = new char[receptor_atom_count];
-            ulong[] resi = new ulong[receptor_atom_count];
-            char[] resn = new char[receptor_atom_count];
-            ulong[] relements = new ulong[receptor_atom_count];
+            var cids = new byte[receptor_atom_count];
+            var resi = new ulong[receptor_atom_count];
+            var resn = new byte[receptor_atom_count];
+            var relements = new ulong[receptor_atom_count];
             spear_receptor_atom_details(cids, resi, resn, relements);
 
             ulong current_res = 0;
@@ -262,11 +268,14 @@ public static class SpearMintInterface
 			receptor_atoms_for_bond[2] = 2;
 			receptor_atoms_for_bond[3] = 3;
 			receptor_atoms_for_bond[4] = 4;
-			ulong[] receptor_bonds_found = new ulong[5 * 4 / 2 * 2];
+			ulong[] receptor_bonds_found = new ulong[5 * (5 - 1) / 2 * 3];
 			ulong num_found = spear_receptor_bonds_in(receptor_atoms_for_bond, 5, receptor_bonds_found);
 			for (ulong i = 0; i < num_found; ++i)
 			{
-				Console.WriteLine("Bond: " + receptor_bonds_found[i * 2 + 0] + "-" + receptor_bonds_found[i * 2 + 1]);
+				Console.WriteLine("Bond: " + receptor_bonds_found[i * 3 + 0] + "-"
+                                           + receptor_bonds_found[i * 3 + 1] + " is "
+                                           + receptor_bonds_found[i * 3 + 2]
+                );
 			}
 
 			/**************************************************************
@@ -347,12 +356,34 @@ public static class SpearMintInterface
             spear_initialize_complex("1aaq.pdb");
             Console.WriteLine("Score after loading non-ligand protein: " + spear_calculate_score());
 
+            ulong lig_bond_count_2 = spear_ligand_bond_count();
+            ulong[] bond_2 = new ulong[lig_bond_count_2 * 3];
+
+            // Fills the array with bond information.
+            // The first index gives the first atom index of the bond
+            // The next gives the index for the second atom
+            // The third gives bond information
+            //     1 - single bond
+            //     2 - double bond
+            //     4 - triple bond
+            //   255 - Aromatic  bond
+            if (spear_ligand_bonds(bond_2) == 0)
+            {
+                Console.WriteLine(spear_get_error());
+            }
+
+            // Print out all ligand bonds!
+            for (int k = 0; k < bond_2.Length; k += 3)
+            {
+                Console.WriteLine("BOND: " + bond_2[k + 0] +
+                                  " - " + bond_2[k + 1] +
+                                  " : " + bond_2[k + 2]);
+            }
+
             if (spear_initialize_complex("5tz6.pdb") == 0)
             {
                 Console.WriteLine("Expected error: (" + spear_get_error() + ")");
             }
-
-            spear_initialize_complex("5zt6.pdb");
         }
         catch (Exception ex)
         {

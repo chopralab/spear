@@ -7,17 +7,17 @@
 #include "spear/Molecule.hpp"
 #include "spear/Constants.hpp"
 
-size_t spear_ligand_atom_count() {
+uint64_t spear_ligand_atom_count() {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
     return ligand->size();
 }
 
-size_t spear_ligand_atoms(float* pos) {
+uint64_t spear_ligand_atoms(float* pos) {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
     return get_atom_positions(*ligand, pos);
 }
 
-size_t spear_ligand_atom_details(size_t* elements) {
+uint64_t spear_ligand_atom_details(uint64_t* elements) {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
     try {
 
@@ -32,31 +32,32 @@ size_t spear_ligand_atom_details(size_t* elements) {
     }
 }
 
-size_t spear_ligand_bond_count() {
+uint64_t spear_ligand_bond_count() {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
     return ligand->topology().bonds().size();
 }
 
-size_t spear_ligand_bonds(size_t* bonds) {
+uint64_t spear_ligand_bonds(uint64_t* bonds) {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
     return get_bonds(*ligand, bonds);
 }
 
-size_t spear_ligand_bonds_in(size_t* atoms, size_t atoms_size, size_t* atoms_out) {
+uint64_t spear_ligand_bonds_in(uint64_t* atoms, uint64_t atoms_size, uint64_t* atoms_out) {
 	CHECK_MOLECULE(ligand, "You must run initialize_receptor first");
 	std::set<size_t> atoms_to_check(atoms, atoms + atoms_size);
 
 	auto res = ligand->get_bonds_in(atoms_to_check);
 
 	for (size_t i = 0; i < res.size(); ++i) {
-		atoms_out[2 * i + 0] = res[i].source();
-		atoms_out[2 * i + 1] = res[i].target();
+		atoms_out[3 * i + 0] = res[i].source();
+		atoms_out[3 * i + 1] = res[i].target();
+		atoms_out[3 * i + 2] = res[i].order();
 	}
 
 	return res.size();
 }
 
-size_t spear_ligand_neighbors(size_t atom_idx, size_t* neighbors) {
+uint64_t spear_ligand_neighbors(uint64_t atom_idx, uint64_t* neighbors) {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
     try {
         size_t current = 0;
@@ -70,12 +71,12 @@ size_t spear_ligand_neighbors(size_t atom_idx, size_t* neighbors) {
     }
 }
 
-size_t spear_ligand_set_positions(const float* positions) {
+uint64_t spear_ligand_set_positions(const float* positions) {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
     return set_positions(*ligand, positions);
 }
 
-size_t spear_ligand_is_adjacent(size_t atom1, size_t atom2) {
+uint64_t spear_ligand_is_adjacent(uint64_t atom1, uint64_t atom2) {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
     if (atom1 > ligand->size() || atom2 > ligand->size()) {
         return 0;
@@ -85,7 +86,7 @@ size_t spear_ligand_is_adjacent(size_t atom1, size_t atom2) {
     return edge.second;
 }
 
-size_t spear_ligand_add_bond(size_t atom1, size_t atom2) {
+uint64_t spear_ligand_add_bond(uint64_t atom1, uint64_t atom2) {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
     if (atom1 > ligand->size() || atom2 > ligand->size()) {
         return 0;
@@ -112,7 +113,7 @@ size_t spear_ligand_add_bond(size_t atom1, size_t atom2) {
     return 1;
 }
 
-size_t spear_ligand_remove_bond(size_t atom1, size_t atom2) {
+uint64_t spear_ligand_remove_bond(uint64_t atom1, uint64_t atom2) {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
     if (atom1 > ligand->size() || atom2 > ligand->size()) {
         return 0;
@@ -127,7 +128,7 @@ size_t spear_ligand_remove_bond(size_t atom1, size_t atom2) {
     return 1;
 }
 
-size_t spear_ligand_remove_hydrogens() {
+uint64_t spear_ligand_remove_hydrogens() {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
     try {
         ligand->remove_hydrogens();
@@ -138,7 +139,7 @@ size_t spear_ligand_remove_hydrogens() {
     return 1;
 }
 
-size_t spear_ligand_add_atom(size_t element, float x, float y, float z) {
+uint64_t spear_ligand_add_atom(uint64_t element, float x, float y, float z) {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
 
     try {
@@ -149,7 +150,7 @@ size_t spear_ligand_add_atom(size_t element, float x, float y, float z) {
     }
 }
 
-size_t spear_ligand_add_atom_to(size_t atom, size_t element, float* x, float* y, float* z) {
+uint64_t spear_ligand_add_atom_to(uint64_t atom, uint64_t element, float* x, float* y, float* z) {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
 
     if (x == nullptr || y == nullptr || z == nullptr) {
@@ -182,7 +183,7 @@ size_t spear_ligand_add_atom_to(size_t atom, size_t element, float* x, float* y,
     }
 }
 
-size_t spear_ligand_remove_atom(size_t atom) {
+uint64_t spear_ligand_remove_atom(uint64_t atom) {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
 
     if (atom >= ligand->size()) {
