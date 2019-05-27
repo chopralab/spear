@@ -20,6 +20,8 @@ Default::Default(const Molecule& mol) : mol_(mol) {
     reserve(mol.size());
     hybridizations_.reserve(mol.size());
 
+    aromatics_.resize(mol.size(), false);
+
     for (auto av : mol) {
         auto atomic_number = av.atomic_number();
 
@@ -79,16 +81,13 @@ Default::Default(const Molecule& mol) : mol_(mol) {
             }
         }
     }
+
+    assign_aromaticity();
+    assign_aromaticity();
 }
 
 bool Default::is_aromatic(size_t atom_id) const {
-    for (auto bond : mol_[atom_id].bonds()) {
-        if (bond.order() == Bond::AROMATIC) {
-            return true;
-        }
-    }
-
-    return false;
+    return aromatics_[atom_id];
 }
 
 static bool is_delocalized(const AtomVertex& av) {
@@ -150,6 +149,84 @@ bool Default::is_planar(size_t atom_id) const {
     }
 
     return false;
+}
+
+void Default::assign_aromaticity() {
+    auto set_aromatics = [&] (const std::set<size_t>& r) {
+        for (auto atom : r) {
+            aromatics_[atom] = true;
+        }
+    };
+
+    for (auto& sssr : mol_.smallest_set_of_smallest_rings()) {
+        auto bonds_in = mol_.get_bonds_in(sssr);
+        size_t num_explicit_aromatic = 0;
+        size_t num_electrons = 0;
+        for (const auto& b : bonds_in) {
+            if (b.order() == Bond::AROMATIC) {
+                num_explicit_aromatic++;
+                num_electrons += 2;
+            }
+            if (b.order() == Bond::DOUBLE) {
+                num_electrons += 2;
+            }
+        }
+
+        // explicitly aromatic
+        if (num_explicit_aromatic == sssr.size()) {
+            set_aromatics(sssr);
+            continue;
+        }
+
+        // Follow RDKit and don't assign aromaticity unless its a ring of 5/6
+        if (sssr.size() != 5 && sssr.size() != 6) {
+            continue;
+        }
+
+        bool canbe_aromatic = true;
+        for (auto a : sssr) {
+            switch (mol_[a].atomic_number()) {
+            case Element::O:
+            case Element::S:
+            case Element::Te:
+            case Element::Se:
+                if (hybridizations_[a] == Hybridization::SP3 &&
+                    mol_[a].degree() == 2) {
+                    num_electrons += 2;
+                } else {
+                    canbe_aromatic = false;
+                }
+                break;
+            case Element::N:
+            case Element::P:
+                // We've already accounted for double bonds
+                if (hybridizations_[a] == Hybridization::SP3 &&
+                    is_planar(a)) {
+                    num_electrons += 2;
+                }
+                break;
+            case Element::C:
+
+                if (hybridizations_[a] != Hybridization::SP2) {
+                    canbe_aromatic = false;
+                }
+                break;
+            default:
+                canbe_aromatic = false;
+            }
+
+            if (!canbe_aromatic) {
+                break;
+            }
+        }
+
+        // Found an element or condition that is not possibly aromatic
+        if (!canbe_aromatic) {
+            continue;
+        }
+
+        set_aromatics(sssr);
+    }
 }
 
 size_t Default::add_atom(size_t new_idx) {

@@ -37,12 +37,17 @@ public:
         return hybridizations_[atom_id];
     }
 
+    void assign_aromaticity();
+
 private:
 
     const Molecule& mol_;
 
     /// number of heavy atoms bonded
     std::vector<Hybridization> hybridizations_;
+
+    /// Are the atoms aromatic?
+    std::vector<bool> aromatics_;
 
     const std::string name_ = "default";
 };

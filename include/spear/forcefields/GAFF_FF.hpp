@@ -9,7 +9,7 @@
 
 namespace Spear {
 
-class SPEAR_EXPORT GAFF_FF : public BondedForcefield {
+class SPEAR_EXPORT GAFF_FF : public BondedForcefield, public NonBondedForcefield {
 public:
 
     struct Atom {
@@ -35,6 +35,8 @@ public:
     GAFF_FF(std::istream& input);
 
     virtual ~GAFF_FF(){}
+
+    void add_forces(const std::vector<std::reference_wrapper<const Molecule>>& mols, OpenMM::System& system) const override;
 
     void add_forces(const Molecule& mol, OpenMM::System& system) const override;
 

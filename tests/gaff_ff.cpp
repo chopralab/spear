@@ -1,6 +1,5 @@
 #include "spear/forcefields/GAFF_FF.hpp"
 #include "spear/atomtypes/GAFF.hpp"
-#include "spear/atomtypes/IDATM.hpp"
 #include "spear/Simulation.hpp"
 #include "spear/Molecule_impl.hpp"
 
@@ -38,24 +37,27 @@ TEST_CASE("Read gaff.dat file") {
         mol.add_hydrogens();
 
         Spear::Simulation sim;
-
         CHECK_THROWS(sim.add_molecule(mol, ff));
 
         mol.add_atomtype<GAFF>();
         sim.add_molecule(mol, ff);
+        sim.add_non_bonded_force(ff);
+        sim.minimize(1e-3, 1000);
 
-        /*chemfiles::Trajectory otraj("tibolone.sdf.gz", 'w');
+        chemfiles::Trajectory otraj("tibolone.sdf.gz", 'w');
         chemfiles::Frame start;
+
         start.resize(mol.size());
         start.set_topology(mol.topology());
         auto pos = sim.positions();
 
+        sim.randomize_velocities(300);
         while (sim.time() <= 10.0) {
             sim.dynamic_steps(100);
             pos = sim.positions();
             update_chfl_frame(start, pos);
             otraj.write(start);
-        }*/
+        }
 
         sim.dynamic_steps(100);
     }
@@ -65,16 +67,15 @@ TEST_CASE("Read gaff.dat file") {
     SECTION("3qox") {
         auto ltraj = chemfiles::Trajectory("data/3qox_ligand.sdf");
         auto ligand = Spear::Molecule(ltraj.read());
-        auto idatm = ligand.add_atomtype<Spear::IDATM>(Spear::AtomType::GEOMETRY);
-        ligand.set_default_atomtype(idatm);
         ligand.add_atomtype<GAFF>();
 
         Spear::Simulation sim;
         sim.add_molecule(ligand, ff);
+        sim.add_non_bonded_force(ff);
 
-        /*chemfiles::Trajectory otraj("3qox.mol2.gz", 'w');
+        //chemfiles::Trajectory otraj("3qox.mol2.gz", 'w');
 
-        auto topo = protein.topology();
+        /*auto topo = protein.topology();
         chemfiles::Residue ligres("LIG", 9999);
         for (auto liga : ligand.topology()) {
             topo.add_atom(liga);
@@ -96,7 +97,5 @@ TEST_CASE("Read gaff.dat file") {
             update_chfl_frame(start, pos);
             otraj.write(start);
         }*/
-
-        sim.dynamic_steps(100);
     }
 }

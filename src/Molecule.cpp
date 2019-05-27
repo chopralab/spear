@@ -143,7 +143,6 @@ void Molecule::init_(const chemfiles::Frame& frame) {
             static_cast<Bond::Order>(bos[i]), graph_);
     }
 
-    add_atomtype<Default>();
     add_partial_charge<DefaultPartialCharge>(std::move(charges));
 }
 
@@ -254,6 +253,10 @@ void Molecule::smallest_set_of_smallest_rings_() {
     throw std::runtime_error(std::string("Unable to find SSSR: found ") +
                              std::to_string(sssr_.size()) + " rings, but expected " +
                              std::to_string(sssr_count));
+}
+
+void Molecule::add_default_type() {
+    add_atomtype<Default>();
 }
 
 std::vector<Spear::BondEdge> Molecule::get_bonds_in(const std::set<size_t>& atoms) const {

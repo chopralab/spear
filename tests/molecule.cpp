@@ -209,17 +209,27 @@ TEST_CASE("Ring Finding") {
 }
 
 TEST_CASE("Default AtomType") {
-    auto traj2 = chemfiles::Trajectory("data/tibolone.sdf");
-    auto mol2 = Spear::Molecule(traj2.read());
+    SECTION("Simple topology") {
+        auto traj2 = chemfiles::Trajectory("data/tibolone.sdf");
+        auto mol2 = Spear::Molecule(traj2.read());
 
-    auto default_atom_type = mol2.atomtype();
-    CHECK(default_atom_type->hybridization(0) == Spear::Hybridization::SP3);
-    CHECK(default_atom_type->hybridization(3) == Spear::Hybridization::SP2);
-    CHECK(default_atom_type->hybridization(4) == Spear::Hybridization::SP2);
-    CHECK(default_atom_type->hybridization(7) == Spear::Hybridization::SP2);
-    CHECK(default_atom_type->hybridization(8) == Spear::Hybridization::SP2);
-    CHECK(default_atom_type->hybridization(20) == Spear::Hybridization::SP);
-    CHECK(default_atom_type->hybridization(21) == Spear::Hybridization::SP);
+        auto default_atom_type = mol2.atomtype();
+        CHECK(default_atom_type->hybridization(0) == Spear::Hybridization::SP3);
+        CHECK(default_atom_type->hybridization(3) == Spear::Hybridization::SP2);
+        CHECK(default_atom_type->hybridization(4) == Spear::Hybridization::SP2);
+        CHECK(default_atom_type->hybridization(7) == Spear::Hybridization::SP2);
+        CHECK(default_atom_type->hybridization(8) == Spear::Hybridization::SP2);
+        CHECK(default_atom_type->hybridization(20) == Spear::Hybridization::SP);
+        CHECK(default_atom_type->hybridization(21) == Spear::Hybridization::SP);
+    }
+
+    SECTION("Aromatics") {
+        auto traj2 = chemfiles::Trajectory("data/3qox_ligand.sdf");
+        auto mol2 = Spear::Molecule(traj2.read());
+
+        auto default_atom_type = mol2.atomtype();
+        CHECK(default_atom_type->is_aromatic(16));
+    }
 }
 
 TEST_CASE("Default PartialCharge") {

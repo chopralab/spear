@@ -112,6 +112,7 @@ public:
         init_(frame);
         rings_();
         smallest_set_of_smallest_rings_();
+        add_default_type();
     }
 
     const chemfiles::Topology& topology() const {
@@ -239,6 +240,9 @@ private:
 
     /// Calculate the smallest set of smallest rings
     void smallest_set_of_smallest_rings_();
+
+    /// Adds the default type after construction
+    void add_default_type();
 
     /// Coordinates of the molecule
     std::vector<Eigen::Vector3d> positions_;

@@ -33,6 +33,38 @@ T& get_force(OpenMM::System& system, int& force_id) {
     return *force;
 }
 
+void GAFF_FF::add_forces(const std::vector<std::reference_wrapper<const Molecule>>& mols, OpenMM::System& system) const {
+    
+    auto& nonbond = get_force<OpenMM::NonbondedForce>(system, non_bond_force_);
+
+    size_t added = 0;
+    std::vector<std::pair<int,int>> bonds;
+    for (auto& mol : mols) {
+        auto gaff_types = mol.get().atomtype("gaff");
+        auto& all_types = gaff_types->as_vec();
+
+        for (auto av : mol.get()) {
+            auto lookup = type_to_atom_.find(all_types[av]);
+            if (lookup == type_to_atom_.end()) {
+                std::cerr << "Warning: atom '"
+                          << atomtype_name_for_id<GAFF>(all_types[av]) << "'"
+                          << " not found.\n";
+            }
+            nonbond.addParticle(0.0, lookup->second.sigma, lookup->second.epsilon); //FIXME
+        }
+
+        auto& topo = mol.get().topology();
+        for (auto bond : topo.bonds()) {
+            bonds.emplace_back(static_cast<int>(bond[0] + added),
+                               static_cast<int>(bond[1] + added)
+            );
+        }
+        added += mol.get().size();
+    }
+
+    nonbond.createExceptionsFromBonds(bonds, 0.5, 0.833333333);
+}
+
 void GAFF_FF::add_forces(const Molecule& mol, OpenMM::System& system) const {
     auto gaff_types = mol.atomtype("gaff");
 
@@ -45,28 +77,11 @@ void GAFF_FF::add_forces(const Molecule& mol, OpenMM::System& system) const {
         throw std::runtime_error("You must add the 'GAFF' atomtype to the molecule.");
     }
 
-    auto& nonbond = get_force<OpenMM::NonbondedForce>(system, non_bond_force_);
-
     auto& all_types = gaff_types->as_vec();
-
-    for (auto av : mol) {
-        auto lookup = type_to_atom_.find(all_types[av]);
-        if (lookup == type_to_atom_.end()) {
-            std::cerr << "Warning: atom '"
-                      << atomtype_name_for_id<GAFF>(all_types[av]) << "'"
-                      << " not found.\n";
-        }
-        nonbond.addParticle(0.0, lookup->second.sigma, lookup->second.epsilon); //FIXME
-    }
 
     auto& hbond = get_force<OpenMM::HarmonicBondForce>(system, bond_force_);
 
-    std::vector<std::pair<int,int>> bonds;
     for (auto bond : mol.topology().bonds()) {
-        bonds.emplace_back(static_cast<int>(bond[0] + added),
-                           static_cast<int>(bond[1] + added)
-        );
-
         auto lookup = type_to_bond_.find({all_types[bond[0]],
                                           all_types[bond[1]]
         });
@@ -85,8 +100,6 @@ void GAFF_FF::add_forces(const Molecule& mol, OpenMM::System& system) const {
             lookup->second.length, lookup->second.k
         );
     }
-
-    nonbond.createExceptionsFromBonds(bonds, 0.5, 0.833333333);
 
     auto& hangle = get_force<OpenMM::HarmonicAngleForce>(system, angle_force_);
 

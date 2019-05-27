@@ -109,6 +109,10 @@ static size_t num_withdrawing(const AtomVertex& av) {
     for (auto neighbor : av.neighbors()) {
         switch (neighbor.atomic_number()) {
         case Element::N:
+            if (neighbor.degree() > 3) {
+                return 5;
+            }
+        // fall through
         case Element::O:
         case Element::F:
         case Element::S:
@@ -165,6 +169,8 @@ static size_t type_hydrogen(const AtomVertex& av) {
         return gaff::h2;
     case 3:
         return gaff::h3;
+    case 5:
+        return gaff::hx;
     default:
         break;
     }
@@ -311,6 +317,9 @@ static size_t type_nitrogen(const AtomVertex& av) {
             if (follows_rule(av, "[#7](=*)-*#*")) return gaff::ne;
             if (follows_rule(av, "[#7](=*)-*=*")) return gaff::ne;
         } else {
+            if (follows_rule(av, "[nr6]1=a-a=a-a=a-1"))          return gaff::nb;
+            if (follows_rule(av, "[n](=*)-*=*"))                 return gaff::nd;
+
             if (follows_rule(av, "[#7](-[#7X3]-[#6X3])=[#6X3]")) return gaff::nc;
             if (follows_rule(av, "[#7](=*)-*=*"))                return gaff::nc;
             if (follows_rule(av, "[#7](=*)-*#*"))                return gaff::nc;
@@ -337,7 +346,7 @@ static size_t type_nitrogen(const AtomVertex& av) {
             if (follows_rule(av, "[#7](=*)(-*)"))  return gaff::nb;
         }
 
-        if (av.is_aromatic())                             return gaff::nb;
+        if (av.is_aromatic())                           return gaff::nb;
         if (follows_rule(av, "[#7](=[#7X2])-*"))        return gaff::n2;
         if (follows_rule(av, "[#7](#*)-*"))             return gaff::n1;
         if (follows_rule(av, "[#7](=[#7X2])(=[#7X2])")) return gaff::n1;
@@ -374,6 +383,7 @@ static size_t type_nitrogen(const AtomVertex& av) {
         if (follows_rule(av, "[#7r6]([#6])([#6])[#1]"))   return gaff::n3;
         if (follows_rule(av, "[#7r6]([#6])([#6])[#6]"))   return gaff::n3;
 
+        // SP2 Nitrogren w/ 3 bonds
         if (follows_rule(av, "[#7;R](-*)=*-*"))   return gaff::na;
 
         return gaff::n3;
@@ -403,6 +413,9 @@ static size_t type_oxygen(const AtomVertex& av) {
             if (follows_rule(av, "[OX2][NX2A]=[OX1]"))           return gaff::o;
             if (follows_rule(av, "[OX2][CX3A]=[OX1]"))           return gaff::o;
         }
+
+        // force carboxylic acid unless explicitly protonated
+        if (follows_rule(av, "[OH1h1][CX3A]=[OX1]"))      return gaff::o;
 
         if (av.total_hydrogens() == 2) return gaff::ow;
         if (av.total_hydrogens() == 1) return gaff::oh;
