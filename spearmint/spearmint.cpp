@@ -28,7 +28,7 @@ void set_error(const std::string& error) {
     error_string = "[Spearmint] " + error;
 }
 
-size_t get_atom_positions(const Spear::Molecule& mol, float* pos) {
+uint64_t get_atom_positions(const Spear::Molecule& mol, float* pos) {
     try {
         size_t current = 0;
         for (auto& rpos : mol.positions()) {
@@ -45,7 +45,7 @@ size_t get_atom_positions(const Spear::Molecule& mol, float* pos) {
     }
 }
 
-size_t get_bonds(Spear::Molecule& mol, size_t* bonds) {
+uint64_t get_bonds(Spear::Molecule& mol, size_t* bonds) {
     try {
         size_t i = 0;
         auto& bos = mol.topology().bond_orders();
@@ -63,7 +63,7 @@ size_t get_bonds(Spear::Molecule& mol, size_t* bonds) {
     }
 }
 
-size_t set_positions(Spear::Molecule& mol, const float* positions) {
+uint64_t set_positions(Spear::Molecule& mol, const float* positions) {
     auto size = mol.size();
     std::vector<Eigen::Vector3d> posvector;
     posvector.reserve(size / 3);
@@ -81,7 +81,7 @@ size_t set_positions(Spear::Molecule& mol, const float* positions) {
     return 1;
 }
 
-size_t spear_initialize_scoring(const char* data_dir) {
+uint64_t spear_initialize_scoring(const char* data_dir) {
     if (ligand == nullptr || receptor == nullptr) {
         set_error("You must initialize ligand and receptor first");
         return 0;
