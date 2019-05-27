@@ -107,6 +107,11 @@ void Simulation::initialize_context(const std::string& platform) {
     context_->setPositions(positions);
 }
 
+void Simulation::randomize_velocities(double temperature) {
+    initialize_context();
+    context_->setVelocitiesToTemperature(temperature);
+}
+
 void Simulation::minimize(double tolerance, std::size_t max_iterations) {
     initialize_context();
 

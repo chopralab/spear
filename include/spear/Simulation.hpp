@@ -51,6 +51,9 @@ public:
     /// operations.
     void initialize_context(const std::string& platform = "Reference");
 
+    /// Adds random velocities to the system
+    void randomize_velocities(double temperature = 300.0);
+
     /// Run minimization
     void minimize(double tolerance, std::size_t max_iterations);
 
