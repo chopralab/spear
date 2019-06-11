@@ -143,7 +143,7 @@ public:
     ///
     /// \param idx1 first atom index
     /// \param idx2 second atom index
-    BondEdge bond(size_t idx1, size_t idx2);
+    BondEdge bond(size_t idx1, size_t idx2) const;
 
     /// Retrieve all the bonds within all the atoms.
     ///

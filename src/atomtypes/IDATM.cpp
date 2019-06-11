@@ -40,7 +40,7 @@ const std::map<std::string, std::map<std::string,std::string>> standard_residues
     {"TRP",{AMINO_ACID_CORE,{"CB","C3"},{"CD1","Car"},{"CD2","Car"},{"CE2","Car"},{"CE3","Car"},{"CG","Car"},{"CH2","Car"},{"CZ2","Car"},{"CZ3","Car"},{"NE1","Npl"}}},
     {"TYR",{AMINO_ACID_CORE,{"CB","C3"},{"CD1","Car"},{"CD2","Car"},{"CE1","Car"},{"CE2","Car"},{"CG","Car"},{"CZ","Car"},{"OH","O3"}}},
     {"VAL",{AMINO_ACID_CORE,{"CB","C3"},{"CG1","C3"},{"CG2","C3"}}},
-    {"HOH",{{"O","O3"}}},
+    {"HOH",{{"O","O3"}, {"OW", "O3"}, {"WO", "O3"}}},
 };
 
 // angle values used to discriminate between hybridization states

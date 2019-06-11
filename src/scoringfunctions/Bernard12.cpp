@@ -1,7 +1,5 @@
 #include "spear/scoringfunctions/Bernard12.hpp"
 
-#include <fstream>
-
 #include "spear/Grid.hpp"
 
 #ifndef M_PI

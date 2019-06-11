@@ -132,7 +132,7 @@ Molecule::iterator<ret_type, sto_type>::operator[](difference_type rhs) const {
  * Molecule
  ******************************************************************************/
 
-inline BondEdge Molecule::bond(size_t idx1, size_t idx2) {
+inline BondEdge Molecule::bond(size_t idx1, size_t idx2) const {
     auto edge = boost::edge(idx1, idx2, graph_);
     if (!edge.second) {
         throw std::runtime_error("No bond between: " + std::to_string(idx1) +
