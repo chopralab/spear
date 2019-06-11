@@ -2,6 +2,7 @@
 #include <map>
 #include <string>
 #include <locale>
+#include <unordered_set>
 
 #include "spear/Molecule.hpp"
 #include "spear/Molecule_impl.hpp"

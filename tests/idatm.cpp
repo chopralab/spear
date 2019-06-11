@@ -5,6 +5,7 @@
 #include "chemfiles.hpp"
 #include <utility>
 #include <numeric>
+#include <unordered_set>
 
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
