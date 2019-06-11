@@ -152,6 +152,27 @@ void Molecule::rings_() {
         return;
     }
 
+    bool remove_metal_bonds_ = true;
+    std::vector<std::pair<size_t, size_t>> metal_bonds;
+    if (remove_metal_bonds_) {
+        for (auto bond : bonds()) {
+            if (!bond.source().is_non_metal() ||
+                !bond.target().is_non_metal()) {
+                metal_bonds.push_back({bond.source(), bond.target()});
+            }
+
+            auto res1 = topology_.residue_for_atom(bond.source());
+            auto res2 = topology_.residue_for_atom(bond.target());
+            if (res1 && res2 && res1->name() == "CYS" && res2->name() == "CYS" &&
+                *res1 != *res2) {
+                metal_bonds.push_back({bond.source(), bond.target()});
+            }
+        }
+        for (auto& rm_bond : metal_bonds) {
+            remove_bond(rm_bond.first, rm_bond.second);
+        }
+    }
+
     cycle_saver vis(all_rings_);
     boost::hawick_circuits(graph_, vis);
 
@@ -159,6 +180,12 @@ void Molecule::rings_() {
         for (auto& atom : ring) {
             atom_to_ring_.insert({atom, ring});
         }
+    }
+
+    smallest_set_of_smallest_rings_();
+
+    for (auto& rm_bond : metal_bonds) {
+        add_bond(rm_bond.first, rm_bond.second);
     }
 }
 
@@ -174,8 +201,7 @@ void Molecule::smallest_set_of_smallest_rings_() {
         return;
     }
 
-    auto num = connected_components();
-    auto sssr_count = boost::num_edges(graph_) + 1 + (num - 1) - size();
+    auto sssr_count = boost::num_edges(graph_) + connected_components() - size();
 
     if (sssr_count >= all_rings.size()) {
         sssr_ = all_rings_;
@@ -188,7 +214,7 @@ void Molecule::smallest_set_of_smallest_rings_() {
     }
 
     auto find_independant_rings_with_degree =
-    [&all_rings, this] (size_t degree) {
+    [sssr_count, &all_rings, this] (size_t degree) {
         std::vector<bool> used_nodes(size(), false); // move out for speed?
 
         // The rings are already sorted by their size, therefor we will
@@ -218,6 +244,10 @@ void Molecule::smallest_set_of_smallest_rings_() {
 
             for (auto atom_id : current_ring) {
                 used_nodes[atom_id] = true;
+            }
+
+            if (sssr_.size() == sssr_count) {
+                break;
             }
         }
     };

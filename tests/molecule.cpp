@@ -206,6 +206,31 @@ TEST_CASE("Ring Finding") {
         CHECK((ring_iter++)->size() == 4);
         CHECK((ring_iter++)->size() == 4);
     }
+
+    SECTION("1NVQ ligand") {
+        auto traj = chemfiles::Trajectory("data/1nvq_ligand.sdf");
+        auto mol = Spear::Molecule(traj.read());
+        auto& sssr = mol.smallest_set_of_smallest_rings();
+
+        CHECK(sssr.size() == 8);
+        auto ring_iter = sssr.begin();
+        CHECK((ring_iter++)->size() == 5);
+        CHECK((ring_iter++)->size() == 5);
+        CHECK((ring_iter++)->size() == 5);
+        CHECK((ring_iter++)->size() == 6);
+        CHECK((ring_iter++)->size() == 6);
+        CHECK((ring_iter++)->size() == 6);
+        CHECK((ring_iter++)->size() == 6);
+        CHECK((ring_iter++)->size() == 7);
+    }
+
+    SECTION("3DX1 Protein") {
+        auto traj = chemfiles::Trajectory("data/3dx1_protein.pdb.gz");
+        auto mol = Spear::Molecule(traj.read());
+        auto& sssr = mol.smallest_set_of_smallest_rings();
+
+        CHECK(sssr.size() == 226);
+    }
 }
 
 TEST_CASE("Default AtomType") {

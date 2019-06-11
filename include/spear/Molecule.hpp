@@ -111,7 +111,6 @@ public:
         graph_(), topology_(frame.topology()) {
         init_(frame);
         rings_();
-        smallest_set_of_smallest_rings_();
         add_default_type();
     }
 
