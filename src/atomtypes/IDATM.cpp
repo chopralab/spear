@@ -4,6 +4,9 @@
 #include <locale>
 #include <unordered_set>
 
+//FIXME
+#include <iostream>
+
 #include "spear/Molecule.hpp"
 #include "spear/Molecule_impl.hpp"
 
@@ -431,10 +434,11 @@ void IDATM::infallible_() {
 
                 auto it2 = it->second.find(a.name());
                 if (it2 == it->second.end()) {
-                    throw std::logic_error(
-                        "Cannot find atom name " + a.name() +
-                        " of template residue " + residue.name()
-                    );
+                    /// FIXME Using logging instead
+                    std::cerr << "Cannot find atom name " + a.name()
+                              << " of template residue " + residue.name();
+                    mapped_[i] = false;
+                    continue;
                 }
                 set(i, idatm_mask.at(it2->second));
             }
