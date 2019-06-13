@@ -61,6 +61,8 @@ SPEARMINT_EXPORT uint64_t spear_ligand_add_atom(
 SPEARMINT_EXPORT uint64_t spear_ligand_add_atom_to(
 	uint64_t atom, uint64_t element, float* x, float* y, float* z
 );
+
+SPEARMINT_EXPORT uint64_t spear_ligand_swap_atoms(uint64_t idx1, uint64_t idx2);
 SPEARMINT_EXPORT uint64_t spear_ligand_remove_atom(uint64_t atom);
 
 SPEARMINT_EXPORT uint64_t spear_initialize_scoring(const char* data_dir);

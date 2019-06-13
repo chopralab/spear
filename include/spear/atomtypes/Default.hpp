@@ -27,6 +27,7 @@ public:
     void remove_atom(size_t idx) override {
         erase(this->begin() + static_cast<std::ptrdiff_t>(idx));
         hybridizations_.erase(hybridizations_.begin() + static_cast<std::ptrdiff_t>(idx));
+        aromatics_.erase(aromatics_.begin() + static_cast<std::ptrdiff_t>(idx));
     }
 
     bool is_aromatic(size_t atom_id) const override;
@@ -35,6 +36,12 @@ public:
 
     Hybridization hybridization(size_t atom_id) const override {
         return hybridizations_[atom_id];
+    }
+
+    void swap(size_t idx1, size_t idx2) override {
+        AtomType::swap(idx1, idx2);
+        std::swap(hybridizations_[0], hybridizations_[1]);
+        std::swap(aromatics_[0], aromatics_[1]);
     }
 
     void assign_aromaticity();

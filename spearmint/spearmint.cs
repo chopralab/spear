@@ -104,6 +104,12 @@ public static class SpearMintInterface
 	[DllImport("spearmint")]
     public static extern ulong spear_ligand_remove_hydrogens();
 
+	[DllImport("spearmint")]
+    public static extern ulong spear_ligand_remove_atom(ulong idx);
+
+	[DllImport("spearmint")]
+    public static extern ulong spear_ligand_swap_atoms(ulong idx1, ulong idx2);
+
     [DllImport("spearmint")]
     public static extern ulong spear_ligand_add_atom([In] ulong element,
             [In] float x, [In] float y, [In] float z
@@ -373,6 +379,24 @@ public static class SpearMintInterface
             }
 
             // Print out all ligand bonds!
+            for (int k = 0; k < bond_2.Length; k += 3)
+            {
+                Console.WriteLine("BOND: " + bond_2[k + 0] +
+                                  " - " + bond_2[k + 1] +
+                                  " : " + bond_2[k + 2]);
+            }
+
+            if (spear_ligand_swap_atoms(1, 2) == 0) {
+                Console.WriteLine(spear_get_error());
+            }
+
+                if (spear_ligand_bonds(bond_2) == 0)
+            {
+                Console.WriteLine(spear_get_error());
+            }
+
+            Console.WriteLine("After swapping atoms");
+
             for (int k = 0; k < bond_2.Length; k += 3)
             {
                 Console.WriteLine("BOND: " + bond_2[k + 0] +

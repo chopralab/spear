@@ -93,6 +93,50 @@ TEST_CASE("Atoms and Bonds") {
     }
 }
 
+TEST_CASE("Swap atoms") {
+    auto traj = chemfiles::Trajectory("data/palmitic.sdf");
+    auto mol = Spear::Molecule(traj.read());
+
+    CHECK(mol[15].position() == Spear::Vector3d{-6.1032, 11.0348, 0.6870});
+    CHECK(mol[17].position() == Spear::Vector3d{-6.6395, 11.9563, 1.5193});
+
+    CHECK(mol[15].degree() == 3);
+    CHECK(mol[17].degree() == 1);
+
+    CHECK(mol[15].atomic_number() == Spear::Element::C);
+    CHECK(mol[17].atomic_number() == Spear::Element::O);
+
+    CHECK(mol[15].name() == "C");
+    CHECK(mol[17].name() == "O");
+
+    mol.swap_atoms(15, 17);
+
+    CHECK(mol[15].degree() == 1);
+    CHECK(mol[17].degree() == 3);
+
+    CHECK(mol[15].atomic_number() == Spear::Element::O);
+    CHECK(mol[17].atomic_number() == Spear::Element::C);
+
+    CHECK(mol[15].name() == "O");
+    CHECK(mol[17].name() == "C");
+
+    CHECK(mol[15].position() == Spear::Vector3d{-6.6395, 11.9563, 1.5193});
+    CHECK(mol[17].position() == Spear::Vector3d{-6.1032, 11.0348, 0.6870});
+
+    mol.swap_atoms(1, 17);
+
+    CHECK(mol[1].degree() == 3);
+    CHECK(mol[17].degree() == 2);
+
+    CHECK(mol[1].position() == Spear::Vector3d{-6.1032, 11.0348, 0.6870});
+
+    mol.remove_atom(17);
+
+    CHECK(mol[0].degree() == 0);
+
+    CHECK_THROWS(mol.swap_atoms(5, 5));
+}
+
 TEST_CASE("Hydrogens") {
     SECTION("Remove") {
         auto traj = chemfiles::Trajectory("data/3qox_ligand.sdf");

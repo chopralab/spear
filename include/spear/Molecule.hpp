@@ -211,6 +211,8 @@ public:
 
     void remove_atom(size_t index);
 
+    void swap_atoms(size_t idx1, size_t idx2);
+
     void remove_hydrogens();
 
     size_t add_hydrogens();

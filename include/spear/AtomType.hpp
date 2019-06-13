@@ -68,6 +68,10 @@ public:
         return *this;
     }
 
+    virtual void swap(size_t idx1, size_t idx2) {
+        std::swap((*this)[idx1], (*this)[idx2]);
+    }
+
     using super::size;
 
     /// Beginning of all atomtypes

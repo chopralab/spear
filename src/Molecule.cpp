@@ -331,6 +331,66 @@ void Molecule::remove_atom(size_t index) {
     }
 }
 
+void Molecule::swap_atoms(size_t idx1, size_t idx2) {
+
+    if (idx1 == idx2) {
+        throw std::logic_error("You cannot swap an atom with itself");
+    }
+
+    std::swap(positions_[idx1], positions_[idx2]);
+
+    for (const auto& at : atom_types_) {
+        at.second->swap(idx1, idx2);
+    }
+
+    std::set<std::tuple<size_t, size_t, Bond::Order>> atom_bonds;
+
+    auto atm1 = (*this)[idx1].atomic_number();
+    auto atm2 = (*this)[idx2].atomic_number();
+
+    boost::get(boost::vertex_name, graph_, idx1) = atm2;
+    boost::get(boost::vertex_name, graph_, idx2) = atm1;
+
+    for (auto bond : (*this)[idx1].bonds()) {
+        if (bond.source() == idx2 || bond.target() == idx2) {
+            atom_bonds.insert({idx1, idx2, bond.order()});
+            remove_bond(bond.source(), bond.target());
+            continue;
+        }
+
+        if (bond.source() == idx1) {
+            atom_bonds.insert({idx2, bond.target(), bond.order()});
+        } else {
+            atom_bonds.insert({bond.source(), idx2, bond.order()});
+        }
+        remove_bond(bond.source(), bond.target());
+    }
+
+    for (auto bond : (*this)[idx2].bonds()) {
+        // The swapped atoms are bonded, only do this re-addition once
+        if (bond.source() == idx1 || bond.target() == idx1) {
+            remove_bond(bond.source(), bond.target());
+            continue;
+        }
+        if (bond.source() == idx2) {
+            atom_bonds.insert({idx1, bond.target(), bond.order()});
+        } else {
+            atom_bonds.insert({bond.source(), idx1, bond.order()});
+        }
+        remove_bond(bond.source(), bond.target());
+    }
+
+    for (auto& bond : atom_bonds) {
+        add_bond(get<0>(bond), get<1>(bond), get<2>(bond));
+    }
+
+    auto atm_name1 = topology_[idx1].name();
+    auto atm_name2 = topology_[idx2].name();
+
+    topology_[idx1].set_name(atm_name2);
+    topology_[idx2].set_name(atm_name1);
+}
+
 void Molecule::remove_hydrogens() {
     auto& mol = *this;
 

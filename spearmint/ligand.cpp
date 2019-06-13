@@ -109,6 +109,9 @@ uint64_t spear_ligand_add_bond(uint64_t atom1, uint64_t atom2) {
     } catch (const std::exception& e) {
         set_error(std::string("Error in adding bond ") + e.what());
         return 0;
+    } catch (...) {
+        set_error("Unknown error in spear_ligand_add_bond");
+        return 0;
     }
     return 1;
 }
@@ -124,6 +127,9 @@ uint64_t spear_ligand_remove_bond(uint64_t atom1, uint64_t atom2) {
     } catch (const std::exception& e) {
         set_error(std::string("Error in removing bond ") + e.what());
         return 0;
+    } catch (...) {
+        set_error("Unknown spear_ligand_remove_bond");
+        return 0;
     }
     return 1;
 }
@@ -134,6 +140,9 @@ uint64_t spear_ligand_remove_hydrogens() {
         ligand->remove_hydrogens();
     } catch (const std::exception& e) {
         set_error(std::string("Error in removing hydrogens ") + e.what());
+        return 0;
+    } catch (...) {
+        set_error("Unknown error in spear_ligand_remove_hydrogens");
         return 0;
     }
     return 1;
@@ -183,11 +192,27 @@ uint64_t spear_ligand_add_atom_to(uint64_t atom, uint64_t element, float* x, flo
     }
 }
 
+uint64_t spear_ligand_swap_atoms(uint64_t idx1, uint64_t idx2) {
+    CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
+
+    try {
+        ligand->swap_atoms(idx1, idx2);
+        return 1;
+    } catch(const std::exception& error) {
+        set_error(error.what());
+    } catch(...) {
+        set_error("An unknown error occured in spear_ligand_swap_atoms");
+    }
+
+    return 0;
+}
+
 uint64_t spear_ligand_remove_atom(uint64_t atom) {
     CHECK_MOLECULE(ligand, "You must run initialize_ligand first");
 
     if (atom >= ligand->size()) {
         set_error("Atom not in range for removal.");
+        return 0;
     }
 
     try {
