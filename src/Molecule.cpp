@@ -384,11 +384,7 @@ void Molecule::swap_atoms(size_t idx1, size_t idx2) {
         add_bond(get<0>(bond), get<1>(bond), get<2>(bond));
     }
 
-    auto atm_name1 = topology_[idx1].name();
-    auto atm_name2 = topology_[idx2].name();
-
-    topology_[idx1].set_name(atm_name2);
-    topology_[idx2].set_name(atm_name1);
+    std::swap(topology_[idx1], topology_[idx2]);
 }
 
 void Molecule::remove_hydrogens() {
