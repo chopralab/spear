@@ -60,6 +60,10 @@ void Simulation::set_periodic_vectors(const chemfiles::UnitCell& cell) {
     uses_periodic_ = true;
 }
 
+void Simulation::constrain_particle(size_t idx) {
+    system_->setParticleMass(idx, 0.0);
+}
+
 void Simulation::add_langevin(double temperature, double friction, double stepsize) {
     integrator_ = std::make_unique<OpenMM::LangevinIntegrator>(temperature, friction, stepsize);
 }

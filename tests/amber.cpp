@@ -88,7 +88,7 @@ TEST_CASE("Read new AMBER file") {
         sim.set_periodic_vectors(frame.cell());
         sim.add_non_bonded_force(ff);
         sim.add_langevin(300.0, 92, 0.002);
-        sim.initialize_context("CUDA");
+        //sim.initialize_context("CUDA");
 
         chemfiles::Trajectory otraj("villin.mmtf", 'w');
         chemfiles::Frame start;
@@ -102,7 +102,7 @@ TEST_CASE("Read new AMBER file") {
         otraj.write(start);
         sim.randomize_velocities(300);
 
-        while (sim.time() <= 20) {
+        while (sim.time() <= 2) {
             sim.dynamic_steps(100);
             pos = sim.positions();
             update_chfl_frame(start, pos);

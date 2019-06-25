@@ -44,6 +44,9 @@ public:
 
     void set_periodic_vectors(const chemfiles::UnitCell& cell);
 
+    /// Constrains the positions of a coordinate by setting its mass to zero
+    void constrain_particle(size_t idx);
+
     /// Adds a Langevin integrator to the context instead of verlet
     void add_langevin(double temperature, double friction, double stepsize);
 

@@ -41,6 +41,9 @@ TEST_CASE("Read gaff.dat file") {
 
         mol.add_atomtype<GAFF>();
         sim.add_molecule(mol, ff);
+        sim.constrain_particle(0);
+        sim.constrain_particle(1);
+        sim.constrain_particle(2);
         sim.add_non_bonded_force(ff);
         sim.minimize(1e-3, 1000);
 
