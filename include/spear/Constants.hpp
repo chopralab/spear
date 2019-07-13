@@ -84,6 +84,17 @@ enum Order : uint64_t {
     AROMATIC = 255,
 };
 }
+
+namespace Atom {
+enum Chirality : uint64_t {
+    UNSPECIFIED = 0,
+    NONE,
+    CIP_R,
+    CIP_S,
+    OTHER,
+};
+}
+
 }
 
 #endif

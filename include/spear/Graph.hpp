@@ -112,6 +112,12 @@ public:
 
     AtomVertex target() const;
 
+    AtomVertex other_atom(const AtomVertex& av) const;
+
+    std::pair<AtomVertex, AtomVertex> as_pair() const;
+
+    size_t index() const;
+
     Bond::Order order() const;
 
 private:
@@ -153,6 +159,8 @@ public:
     size_t explicit_hydrogens() const;
 
     size_t total_hydrogens() const;
+
+    Atom::Chirality chirality() const;
 
     AtomRingMapIteratorPair rings() const;
 

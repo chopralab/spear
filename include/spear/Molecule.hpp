@@ -220,6 +220,9 @@ public:
     /// The number of atoms(nodes) in the `Molecule`
     size_t size() const;
 
+    /// The number of bonds(edges) in the `Molecule`
+    size_t bond_count() const;
+
     AtomVertex operator[](size_t index) const;
 
     iterator<AtomVertex, VertexIterator> begin() const;

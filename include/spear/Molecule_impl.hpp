@@ -108,9 +108,7 @@ Molecule::iterator<ret_type, sto_type>::operator-(const iterator<ret_type, sto_t
         throw std::logic_error("Cannot take the difference of unrelated iterators");
     }
 
-    return
-    index_ >= rhs.index_ ?  static_cast<difference_type>(index_ - rhs.index_)
-                         : -static_cast<difference_type>(rhs.index_ - index_);
+    return std::distance(rhs.index_, index_);
 }
 
 template<typename ret_type, typename sto_type>
@@ -203,6 +201,10 @@ inline void Molecule::set_default_partial_charge(const std::string& name) {
 
 inline size_t Molecule::size() const {
     return boost::num_vertices(graph_);
+}
+
+inline size_t Molecule::bond_count() const {
+    return boost::num_edges(graph_);
 }
 
 inline AtomVertex Molecule::operator[](size_t index) const {

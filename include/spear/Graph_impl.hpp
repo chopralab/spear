@@ -4,6 +4,8 @@
 #include "spear/Graph.hpp"
 #include "spear/Molecule.hpp"
 
+#include <boost/iterator/distance.hpp>
+
 namespace Spear {
 
 /******************************************************************************
@@ -17,6 +19,38 @@ inline AtomVertex BondEdge::source() const {
 
 inline AtomVertex BondEdge::target() const {
     return AtomVertex(br_, boost::target(index_, br_->graph()));
+}
+
+inline AtomVertex BondEdge::other_atom(const AtomVertex& av) const {
+    if (source() == av) {
+        return source();
+    }
+
+    if (target() == av) {
+        return target();
+    }
+
+    //TODO: throw
+    return source();
+}
+
+inline std::pair<AtomVertex, AtomVertex> BondEdge::as_pair() const {
+    return std::minmax(source(), target());
+}
+
+inline size_t BondEdge::index() const {
+    auto all_bonds = br_->bonds();
+
+    size_t count = 0;
+
+    for (auto bond : all_bonds) {
+        if (as_pair() == bond.as_pair()) {
+            break;
+        }
+        ++count;
+    }
+
+    return count;
 }
 
 inline Bond::Order BondEdge::order() const {
@@ -151,6 +185,10 @@ inline size_t AtomVertex::explicit_hydrogens() const {
 
 inline size_t AtomVertex::total_hydrogens() const {
     return explicit_hydrogens() + implicit_hydrogens();
+}
+
+inline Atom::Chirality AtomVertex::chirality() const {
+    return Atom::UNSPECIFIED;
 }
 
 inline AtomRingMapIteratorPair AtomVertex::rings() const {
