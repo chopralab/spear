@@ -12,6 +12,8 @@ using BitSet = std::vector<bool>;
 using AccumTuple = std::tuple<boost::dynamic_bitset<>, size_t, unsigned int>;
 using BitInfoMap = std::map<std::uint32_t, std::vector<std::pair<std::uint32_t, std::uint32_t>>>;
 
+using Neighborhood = boost::dynamic_bitset<>;
+
 namespace Spear {
 
 static std::vector<size_t> atom_invarients(const Molecule& mol, bool use_rings) {
@@ -50,14 +52,13 @@ Fingerprint
 calcFingerprint(const Molecule& mol, uint64_t radius,
                 const std::vector<size_t>& invariants_in,
                 const std::vector<size_t>& fromAtoms,
-                size_t finger_print_length,
                 bool useChirality, bool useBondTypes,
                 bool onlyNonzeroInvariants) {
 
     auto nAtoms = mol.size();
 
     BitInfoMap atomsSettingBits;
-    Fingerprint res(finger_print_length);
+    Fingerprint res;
 
     std::vector<size_t> invariants;
 
@@ -85,11 +86,11 @@ calcFingerprint(const Molecule& mol, uint64_t radius,
 
     // these are the neighborhoods that have already been added
     // to the fingerprint
-    std::vector<boost::dynamic_bitset<>> neighborhoods;
+    std::vector<Neighborhood> neighborhoods;
 
     // these are the environments around each atom:
-    auto atom_neighborhood = std::vector<boost::dynamic_bitset<>>(
-        nAtoms, boost::dynamic_bitset<>(mol.bond_count())
+    auto atom_neighborhood = std::vector<Neighborhood>(
+        nAtoms, Neighborhood(mol.bond_count())
     );
 
     // atoms with exact environments already seen
@@ -133,7 +134,7 @@ calcFingerprint(const Molecule& mol, uint64_t radius,
     // now do our subsequent rounds:
     for (uint64_t layer = 0; layer < radius; ++layer) {
         std::vector<size_t> roundInvariants(nAtoms);
-        std::vector<boost::dynamic_bitset<>> roundAtomNeighborhoods = atom_neighborhood;
+        std::vector<Neighborhood> roundAtomNeighborhoods = atom_neighborhood;
         std::vector<AccumTuple> round_neighborhoods;
 
         for (auto atomIdx : atom_order) {

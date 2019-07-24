@@ -82,7 +82,7 @@ inline Neighbors::NeighborIterator Neighbors::NeighborIterator::operator++(int) 
 }
 
 inline AtomVertex Neighbors::NeighborIterator::operator* () const {
-        return {br_, *index_};
+    return {br_, *index_};
 }
 
 /******************************************************************************
