@@ -1,3 +1,6 @@
+// Spear: Statistical Platform for Elucidating moleculAr Reactivity
+// Copyright (C) Purdue University -- BSD license
+
 #include "spear/atomtypes/IDATM.hpp"
 #include <map>
 #include <string>

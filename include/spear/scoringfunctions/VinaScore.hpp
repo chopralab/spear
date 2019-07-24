@@ -1,3 +1,6 @@
+// Spear: Statistical Platform for Elucidating moleculAr Reactivity
+// Copyright (C) Purdue University -- BSD license
+
 #ifndef SPEAR_VINASCORE_HPP
 #define SPEAR_VINASCORE_HPP
 

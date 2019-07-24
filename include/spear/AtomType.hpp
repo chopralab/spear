@@ -1,4 +1,5 @@
-// License:
+// Spear: Statistical Platform for Elucidating moleculAr Reactivity
+// Copyright (C) Purdue University -- BSD license
 
 #ifndef SPEAR_ATOMTYPE_HPP
 #define SPEAR_ATOMTYPE_HPP

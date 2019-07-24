@@ -1,3 +1,6 @@
+// Spear: Statistical Platform for Elucidating moleculAr Reactivity
+// Copyright (C) Purdue University -- BSD license
+
 #include "spear/scoringfunctions/VinaScore.hpp"
 #include "spear/atomtypes/VinaType.hpp"
 #include "spear/Grid.hpp"

@@ -1,3 +1,6 @@
+// Spear: Statistical Platform for Elucidating moleculAr Reactivity
+// Copyright (C) Purdue University -- BSD license
+
 #include "spear/forcefields/GAFF_FF.hpp"
 #include "spear/atomtypes/GAFF.hpp"
 #include "spear/Molecule.hpp"

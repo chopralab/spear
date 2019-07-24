@@ -1,3 +1,6 @@
+// Spear: Statistical Platform for Elucidating moleculAr Reactivity
+// Copyright (C) Purdue University -- BSD license
+
 #include "spear/FunctionalGroup.hpp"
 #include "spear/Molecule_impl.hpp"
 

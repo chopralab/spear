@@ -1,3 +1,6 @@
+// Spear: Statistical Platform for Elucidating moleculAr Reactivity
+// Copyright (C) Purdue University -- BSD license
+
 #include "spear/partialcharges/Gasteiger.hpp"
 #include "spear/AtomType.hpp"
 #include "spear/Graph.hpp"
