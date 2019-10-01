@@ -49,9 +49,24 @@ inline double nonplanar(const Vector3d& i, const Vector3d& j,
     return rji.dot(n) / n.norm();
 }
 
-size_t SPEAR_EXPORT dimensionality(const Conformation& positions, double eps = 0.00001);
+inline double square_deviation(const Conformation& c1, const Conformation& c2) {
+    if (c1.size() != c2.size()) {
+        throw std::runtime_error("Spear::square_deviation(): input data mis-match");
+    }
 
-double SPEAR_EXPORT rmsd(const Conformation& conform1, const Conformation& conform2);
+    double distance = 0;
+    for (size_t i = 0; i < c1.size(); ++i) {
+        distance += (c1[i] - c2[i]).squaredNorm();
+    }
+    return distance;
+}
+
+inline double rmsd(const Conformation& c1, const Conformation& c2) {
+    double distance = square_deviation(c1, c2);
+    return std::sqrt(distance / static_cast<double>(c1.size()));
+}
+
+size_t SPEAR_EXPORT dimensionality(const Conformation& positions, double eps = 0.00001);
 
 Eigen::Affine3d SPEAR_EXPORT kabsch(const Conformation& conform1, const Conformation& conform2);
 

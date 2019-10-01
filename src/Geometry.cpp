@@ -84,20 +84,6 @@ size_t Spear::dimensionality(const std::vector<Vector3d>& positions, double eps)
     }
 }
 
-double Spear::rmsd(const Conformation& conform1,
-                   const Conformation& conform2) {
-
-    if (conform1.size() != conform2.size()) {
-        throw std::runtime_error("rmsd(): input data mis-match");
-    }
-
-    double distance = 0;
-    for (size_t i = 0; i < conform1.size(); ++i) {
-        distance += (conform1[i] - conform2[i]).squaredNorm();
-    }
-
-    return std::sqrt(distance / static_cast<double>(conform1.size()));
-}
 
 Eigen::Affine3d Spear::kabsch(const Conformation& conform1,
                               const Conformation& conform2) {
